@@ -14,10 +14,6 @@ type HttpDiscogsService struct {
 	client HTTPClient
 }
 
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
 func (r *HttpDiscogsService) Do(req *http.Request) (*http.Response, error) {
 	return r.client.Do(req)
 }
