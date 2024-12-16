@@ -26,7 +26,7 @@ func NewHttpDiscogsService(client HTTPClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}
 }
 
-type Response struct {
+type DiscogsResponse struct {
 	Pagination struct {
 		Page    int `json:"page"`
 		Pages   int `json:"pages"`
@@ -67,10 +67,10 @@ func (h *HttpDiscogsService) GetAlbumTitles() ([]Release, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var response Response
+	var response DiscogsResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse discogs releases, %v ", err)
+		return nil, fmt.Errorf("unable to parse Discogs response, %v ", err)
 	}
 	return response.Releases, nil
 }
