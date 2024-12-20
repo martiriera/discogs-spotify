@@ -11,10 +11,10 @@ type DiscogsResponse struct {
 			Next string `json:"next"`
 		} `json:"urls"`
 	} `json:"pagination"`
-	Releases []Release `json:"releases"`
+	Releases []DiscogsRelease `json:"releases"`
 }
 
-type Release struct {
+type DiscogsRelease struct {
 	ID               int    `json:"id"`
 	InstanceID       int    `json:"instance_id"`
 	DateAdded        string `json:"date_added"`
@@ -24,7 +24,9 @@ type Release struct {
 		Title    string `json:"title"`
 		Year     int    `json:"year"`
 	} `json:"basic_information"`
-	Artists []struct {
-		Name string `json:"name"`
-	}
+	Artists []DiscogsArtist `json:"artists"`
+}
+
+type DiscogsArtist struct {
+	Name string `json:"name"`
 }

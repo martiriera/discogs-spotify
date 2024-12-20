@@ -23,7 +23,7 @@ func NewHttpDiscogsService(client HttpClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}
 }
 
-func (s *HttpDiscogsService) GetReleases(username string) ([]entities.Release, error) {
+func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRelease, error) {
 	// TODO: Add pagination
 	// TODO: Handle private list error
 	url := basePath + "/users/" + username + "/collection/folders/0/releases"
