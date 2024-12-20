@@ -9,15 +9,15 @@ import (
 	"github.com/martiriera/discogs-spotify/entities"
 )
 
+type DiscogsService interface {
+	GetReleases(username string) ([]entities.DiscogsRelease, error)
+}
+
 type HttpDiscogsService struct {
 	client HttpClient
 }
 
 const basePath = "https://api.discogs.com"
-
-func (r *HttpDiscogsService) Do(req *http.Request) (*http.Response, error) {
-	return r.client.Do(req)
-}
 
 func NewHttpDiscogsService(client HttpClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}

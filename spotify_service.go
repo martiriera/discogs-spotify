@@ -12,6 +12,10 @@ import (
 	"github.com/martiriera/discogs-spotify/entities"
 )
 
+type SpotifyService interface {
+	GetAlbumUri(artist string, album string) (string, error)
+}
+
 type HttpSpotifyService struct {
 	client HttpClient
 	token  string
@@ -19,10 +23,6 @@ type HttpSpotifyService struct {
 
 func NewHttpSpotifyService(client HttpClient, token string) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client, token: token}
-}
-
-func (s *HttpSpotifyService) Do(req *http.Request) (*http.Response, error) {
-	return s.client.Do(req)
 }
 
 func (s *HttpSpotifyService) GetAlbumUri(artist string, album string) (string, error) {
