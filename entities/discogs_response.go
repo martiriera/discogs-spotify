@@ -19,14 +19,14 @@ type DiscogsRelease struct {
 	InstanceID       int                     `json:"instance_id"`
 	DateAdded        string                  `json:"date_added"`
 	BasicInformation DiscogsBasicInformation `json:"basic_information"`
-	Artists          []DiscogsArtist         `json:"artists"`
 }
 
 type DiscogsBasicInformation struct {
-	ID       int    `json:"id"`
-	MasterID int    `json:"master_id"`
-	Title    string `json:"title"`
-	Year     int    `json:"year"`
+	ID       int             `json:"id"`
+	MasterID int             `json:"master_id"`
+	Title    string          `json:"title"`
+	Year     int             `json:"year"`
+	Artists  []DiscogsArtist `json:"artists"`
 }
 
 type DiscogsArtist struct {
