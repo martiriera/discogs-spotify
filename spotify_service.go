@@ -13,7 +13,7 @@ import (
 )
 
 type SpotifyService interface {
-	GetAlbumUri(artist string, album string) (string, error)
+	GetAlbumUri(artist string, title string) (string, error)
 }
 
 type HttpSpotifyService struct {
@@ -25,9 +25,9 @@ func NewHttpSpotifyService(client HttpClient, token string) *HttpSpotifyService 
 	return &HttpSpotifyService{client: client, token: token}
 }
 
-func (s *HttpSpotifyService) GetAlbumUri(artist string, album string) (string, error) {
+func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, error) {
 	const path = "https://api.spotify.com/v1/search"
-	query := url.QueryEscape("album:" + album + " artist:" + artist)
+	query := url.QueryEscape("album:" + title + " artist:" + artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", path, query)
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
