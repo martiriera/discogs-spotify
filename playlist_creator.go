@@ -35,18 +35,19 @@ func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, erro
 		spotifyUris = append(spotifyUris, uri)
 	}
 	fmt.Printf("Spotify URIs: %v", spotifyUris)
-	return spotifyUris, nil
+	return filterNotFounds(spotifyUris), nil
 }
 
 func getAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
 	albums := []entities.Album{}
 	for _, release := range releases {
 		album := entities.Album{
-			Artist: joinArtists(release.Artists),
-			Title:  release.BasicInformation.Title,
+			Artist: joinArtists(release.BasicInformation.Artists),
+			Title:  strings.TrimSpace(release.BasicInformation.Title),
 		}
 		albums = append(albums, album)
 	}
+	// Remove duplicates
 	return albums
 }
 
@@ -57,4 +58,14 @@ func joinArtists(artists []entities.DiscogsArtist) string {
 		names = append(names, artist.Name)
 	}
 	return strings.Join(names, ", ")
+}
+
+func filterNotFounds(uris []string) []string {
+	filtered := []string{}
+	for _, uri := range uris {
+		if uri != "" {
+			filtered = append(filtered, uri)
+		}
+	}
+	return filtered
 }
