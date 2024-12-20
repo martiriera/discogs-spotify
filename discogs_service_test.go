@@ -37,12 +37,12 @@ func TestDiscogsService(t *testing.T) {
 					"basic_information": {
 						"id": 1,
 						"master_id": 1,
-						"title": "Album Title",
-						"year": 2021
-					},
-					"artists": [{
-						"name": "Artist Name"
-					}]
+						"title": "The Queen Is Dead",
+						"year": 1986,
+						"artists": [{
+							"name": "The Smiths"
+						}]
+					}
 				}]
 			}`)),
 	}
@@ -51,19 +51,19 @@ func TestDiscogsService(t *testing.T) {
 	service := NewHttpDiscogsService(stubClient)
 	response, err := service.GetReleases("digger")
 	if err != nil {
-		t.Errorf("error is not nil")
+		t.Errorf("did not expect an error, got %v", err)
 	}
 	if len(response) != 1 {
 		t.Errorf("got %d albums, want 1", len(response))
 	}
-	if response[0].BasicInformation.Title != "Album Title" {
-		t.Errorf("got %s, want Album Title", response[0].BasicInformation.Title)
+	if response[0].BasicInformation.Title != "The Queen Is Dead" {
+		t.Errorf("got %s, want The Queen Is Dead", response[0].BasicInformation.Title)
 	}
-	if response[0].BasicInformation.Year != 2021 {
-		t.Errorf("got %d, want 2021", response[0].BasicInformation.Year)
+	if response[0].BasicInformation.Year != 1986 {
+		t.Errorf("got %d, want 1986 {", response[0].BasicInformation.Year)
 	}
-	if response[0].Artists[0].Name != "Artist Name" {
-		t.Errorf("got %s, want Artist Name", response[0].Artists[0].Name)
+	if response[0].BasicInformation.Artists[0].Name != "The Smiths" {
+		t.Errorf("got %s, want The Smiths", response[0].BasicInformation.Artists[0].Name)
 	}
 }
 
