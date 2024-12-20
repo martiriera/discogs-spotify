@@ -50,6 +50,7 @@ func getAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album 
 	return albums
 }
 
+// TODO: Necessary?
 func joinArtists(artists []entities.DiscogsArtist) string {
 	names := []string{}
 	for _, artist := range artists {
