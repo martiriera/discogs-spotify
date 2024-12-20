@@ -3,82 +3,97 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-)
 
-type SpotifyService interface {
-	GetAlbumTitles(url string) ([]string, error)
-}
+	"github.com/martiriera/discogs-spotify/entities"
+)
 
 type HttpSpotifyService struct {
 	client HTTPClient
+	token  string
 }
 
-func (r *HttpSpotifyService) Do(req *http.Request) (*http.Response, error) {
-	return r.client.Do(req)
+func NewHttpSpotifyService(client HTTPClient, token string) *HttpSpotifyService {
+	return &HttpSpotifyService{client: client, token: token}
 }
 
-func NewHttpSpotifyService(client HTTPClient) *HttpSpotifyService {
-	return &HttpSpotifyService{client: client}
+func (s *HttpSpotifyService) Do(req *http.Request) (*http.Response, error) {
+	return s.client.Do(req)
 }
 
-type SpotifyResponse struct {
-}
-
-type SpotifyAuthResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
-}
-
-func (s *HttpSpotifyService) GetAlbumId(album string, artist string) (*SpotifyResponse, error) {
+func (s *HttpSpotifyService) GetAlbumUri(artist string, album string) (string, error) {
 	const path = "https://api.spotify.com/v1/search"
-	query := "album:" + album + " artist:" + artist + " type:album"
-	route := path + "?q=" + url.QueryEscape(query)
+	query := url.QueryEscape("album:" + album + " artist:" + artist)
+	route := fmt.Sprintf("%s?q=%s&type=album", path, query)
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("error creating Spotify search request: %v", err)
 	}
-	token, err := s.getAccessToken()
+
+	req.Header.Set("Authorization", "Bearer "+s.token)
+	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error getting Spotify access token: %v", err)
+		return "", fmt.Errorf("error requesting Spotify search: %v", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	resp, err := s.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error getting Spotify album id: %v", err)
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if err := s.setAccessToken(); err != nil {
+			return "", err
+		}
+		req.Header.Set("Authorization", "Bearer "+s.token)
+		resp, err = s.client.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("error requesting Spotify search: %v", err)
+		}
 	}
+
 	defer resp.Body.Close()
-	var response SpotifyResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("unable to parse Spotify response, %v ", err)
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("unexpected status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
-	return &response, nil
+
+	var response entities.SpotifySearchResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("unable to parse Spotify response, %v", err)
+	}
+
+	if len(response.Albums.Items) == 0 {
+		return "not_found", nil
+	}
+
+	return response.Albums.Items[0].URI, nil
 }
 
-func (s *HttpSpotifyService) getAccessToken() (string, error) {
+func (s *HttpSpotifyService) setAccessToken() error {
 	const authUrl = "https://accounts.spotify.com/api/token"
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
-	data.Set("client_id", os.Getenv("SPOTIFY_CLIENT_ID"))
-	data.Set("client_secret", os.Getenv("SPOTIFY_CLIENT_SECRET"))
+	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
+	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
+	if clientID == "" || clientSecret == "" {
+		return fmt.Errorf("SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variable not set")
+	}
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
 
 	r, _ := http.NewRequest(http.MethodPost, authUrl, strings.NewReader(data.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	var response SpotifyAuthResponse
 	resp, err := s.client.Do(r)
 	if err != nil {
-		// TODO: explain error
-		return "", err
+		return fmt.Errorf("error requesting Spotify access token: %v", err)
 	}
 	defer resp.Body.Close()
+
+	var response entities.SpotifyAuthResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		// TODO: explain error
-		return "", err
+		return fmt.Errorf("unable to parse Spotify auth response, %v", err)
 	}
-	return response.AccessToken, nil
+	s.token = response.AccessToken
+	return nil
 }

@@ -6,10 +6,6 @@ import (
 	"net/http"
 )
 
-type DiscogsService interface {
-	GetAlbumTitles(url string) ([]string, error)
-}
-
 type HttpDiscogsService struct {
 	client HTTPClient
 }
@@ -51,18 +47,20 @@ type Release struct {
 	}
 }
 
-func (h *HttpDiscogsService) GetAlbumTitles() ([]Release, error) {
+func (s *HttpDiscogsService) GetReleases() ([]Release, error) {
 	// TODO: Add pagination
 	const url = "https://api.discogs.com/users/martireir/collection/folders/0/releases"
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating Discogs request: %v", err)
 	}
-	resp, err := h.client.Do(req)
+
+	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error requesting Discogs releases: %v", err)
 	}
 	defer resp.Body.Close()
+
 	var response DiscogsResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
