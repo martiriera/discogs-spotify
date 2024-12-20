@@ -9,8 +9,8 @@ import (
 
 type StubSpotifyHttpClient struct {
 	Responses []*http.Response
-	Error     error
 	index     int
+	Error     error
 }
 
 func (s *StubSpotifyHttpClient) Do(req *http.Request) (*http.Response, error) {
@@ -25,35 +25,68 @@ func (s *StubSpotifyHttpClient) Do(req *http.Request) (*http.Response, error) {
 func TestSpotifyService(t *testing.T) {
 	t.Setenv("SPOTIFY_CLIENT_ID", "test")
 	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
-	stubResponse := &http.Response{
-		StatusCode: 200,
-		Body: io.NopCloser(bytes.NewBufferString(`{
-			"albums": {
-				"href": "https://api.spotify.com/v1/search?offset=0\u0026limit=20\u0026query=album%3ASpring%20Island%20artist%3ADelta%20Sleep\u0026type=album",
-				"items": [
-					{
-						"album_type": "album",
-						"id": "4JeLdGuCEO9SF9SnFa9LBh",
-						"name": "Spring Island",
-						"uri": "spotify:album:4JeLdGuCEO9SF9SnFa9LBh"
-					}
-				],
-				"limit": 20,
-				"next": null,
-				"offset": 0,
-				"previous": null,
-				"total": 1
+	tcs := []struct {
+		test     string
+		response *http.Response
+		want     string
+	}{
+		{
+			test: "should return album uri",
+			response: &http.Response{
+				StatusCode: 200,
+				Body: io.NopCloser(bytes.NewBufferString(`{
+				"albums": {
+					"href": "https://api.spotify.com/v1/search?offset=0\u0026limit=20\u0026query=album%3ASpring%20Island%20artist%3ADelta%20Sleep\u0026type=album",
+					"items": [
+						{
+							"album_type": "album",
+							"id": "4JeLdGuCEO9SF9SnFa9LBh",
+							"name": "Spring Island",
+							"uri": "spotify:album:4JeLdGuCEO9SF9SnFa9LBh"
+						}
+					],
+					"limit": 20,
+					"next": null,
+					"offset": 0,
+					"previous": null,
+					"total": 1
+				}
+			}`)),
+			},
+			want: "spotify:album:4JeLdGuCEO9SF9SnFa9LBh",
+		},
+		{
+			test: "should return empty string as uri when not found",
+			response: &http.Response{
+				StatusCode: 200,
+				Body: io.NopCloser(bytes.NewBufferString(`{
+				"albums": {
+					"href": "",
+					"items": [],
+					"limit": 20,
+					"next": null,
+					"offset": 0,
+					"previous": null,
+					"total": 1
+				}
+			}`)),
+			},
+			want: "",
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.test, func(t *testing.T) {
+			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
+			service := NewHttpSpotifyService(stubClient, "test_token")
+			response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
+			if err != nil {
+				t.Errorf("error is not nil: %v", err)
 			}
-		}`)),
-	}
-	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
-	service := NewHttpSpotifyService(stubClient, "")
-	response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
-	if err != nil {
-		t.Errorf("error is not nil: %v", err)
-	}
-	if response != "spotify:album:4JeLdGuCEO9SF9SnFa9LBh" {
-		t.Errorf("got %s, want spotify:album:4JeLdGuCEO9SF9SnFa9LBh", response)
+			if response != tc.want {
+				t.Errorf("got %s, want %s", response, tc.want)
+			}
+		})
 	}
 }
 
@@ -65,7 +98,7 @@ func TestSpotifyServiceError(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Bad Request"}`)),
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
-	service := NewHttpSpotifyService(stubClient, "")
+	service := NewHttpSpotifyService(stubClient, "test_token")
 	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
 	want := "unexpected status: 400, body: {\"message\": \"Bad Request\"}"
 	if err == nil {
@@ -106,7 +139,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 		},
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
-	service := NewHttpSpotifyService(stubClient, "")
+	service := NewHttpSpotifyService(stubClient, "expired_token")
 	response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
 	if err != nil {
 		t.Errorf("error is not nil: %v", err)
