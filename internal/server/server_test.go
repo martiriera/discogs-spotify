@@ -4,17 +4,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/martiriera/discogs-spotify/entities"
+	"github.com/martiriera/discogs-spotify/internal/discogs"
+	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
 func TestServer(t *testing.T) {
-	discogsServiceMock := &DiscogsServiceMock{
-		response: entities.MotherTwoAlbums(),
+	discogsServiceMock := &discogs.DiscogsServiceMock{
+		Response: entities.MotherTwoAlbums(),
 	}
-	spotifyServiceMock := &SpotifyServiceMock{
-		responses: []string{"spotify:album:1", "spotify:album:2"},
+	spotifyServiceMock := &spotify.SpotifyServiceMock{
+		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
-	playlistCreator := newPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+	playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 	server := NewServer(playlistCreator)
 
 	request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)

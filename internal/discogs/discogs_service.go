@@ -1,4 +1,4 @@
-package main
+package discogs
 
 import (
 	"encoding/json"
@@ -6,7 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/martiriera/discogs-spotify/entities"
+	"github.com/martiriera/discogs-spotify/internal/client"
+	"github.com/martiriera/discogs-spotify/internal/entities"
 )
 
 type DiscogsService interface {
@@ -14,12 +15,12 @@ type DiscogsService interface {
 }
 
 type HttpDiscogsService struct {
-	client HttpClient
+	client client.HttpClient
 }
 
 const basePath = "https://api.discogs.com"
 
-func NewHttpDiscogsService(client HttpClient) *HttpDiscogsService {
+func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}
 }
 

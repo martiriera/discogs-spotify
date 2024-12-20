@@ -1,4 +1,4 @@
-package main
+package spotify
 
 import (
 	"encoding/json"
@@ -9,7 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/martiriera/discogs-spotify/entities"
+	"github.com/martiriera/discogs-spotify/internal/client"
+	"github.com/martiriera/discogs-spotify/internal/entities"
 )
 
 type SpotifyService interface {
@@ -17,11 +18,11 @@ type SpotifyService interface {
 }
 
 type HttpSpotifyService struct {
-	client HttpClient
+	client client.HttpClient
 	token  string
 }
 
-func NewHttpSpotifyService(client HttpClient, token string) *HttpSpotifyService {
+func NewHttpSpotifyService(client client.HttpClient, token string) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client, token: token}
 }
 

@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/martiriera/discogs-spotify/internal/playlist"
 )
 
 type Server struct {
-	playlistCreator *PlaylistCreator
+	playlistCreator *playlist.PlaylistCreator
 	http.Handler
 }
 
-func NewServer(playlistCreator *PlaylistCreator) *Server {
+func NewServer(playlistCreator *playlist.PlaylistCreator) *Server {
 	s := new(Server)
 
 	s.playlistCreator = playlistCreator

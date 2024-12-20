@@ -1,42 +1,22 @@
-package main
+package playlist
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/martiriera/discogs-spotify/entities"
+	"github.com/martiriera/discogs-spotify/internal/discogs"
+	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
-type DiscogsServiceMock struct {
-	response []entities.DiscogsRelease
-}
-
-func (m *DiscogsServiceMock) GetReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
-	return m.response, nil
-}
-
-type SpotifyServiceMock struct {
-	responses []string
-	index     int
-}
-
-func (m *SpotifyServiceMock) GetAlbumUri(artist string, title string) (string, error) {
-	if m.index >= len(m.responses) {
-		return "", nil
-	}
-	response := m.responses[m.index]
-	m.index++
-	return response, nil
-}
-
 func TestPlaylistCreator(t *testing.T) {
-	discogsServiceMock := &DiscogsServiceMock{
-		response: entities.MotherTwoAlbums(),
+	discogsServiceMock := &discogs.DiscogsServiceMock{
+		Response: entities.MotherTwoAlbums(),
 	}
-	spotifyServiceMock := &SpotifyServiceMock{
-		responses: []string{"spotify:album:1", "spotify:album:2"},
+	spotifyServiceMock := &spotify.SpotifyServiceMock{
+		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
-	playlistCreator := newPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+	playlistCreator := NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 
 	uris, err := playlistCreator.CreatePlaylist("digger")
 	if err != nil {

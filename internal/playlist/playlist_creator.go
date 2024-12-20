@@ -1,19 +1,21 @@
-package main
+package playlist
 
 import (
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/martiriera/discogs-spotify/entities"
+	"github.com/martiriera/discogs-spotify/internal/discogs"
+	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
 type PlaylistCreator struct {
-	discogsService DiscogsService
-	spotifyService SpotifyService
+	discogsService discogs.DiscogsService
+	spotifyService spotify.SpotifyService
 }
 
-func newPlaylistCreator(discogsService DiscogsService, spotifyService SpotifyService) *PlaylistCreator {
+func NewPlaylistCreator(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistCreator {
 	return &PlaylistCreator{
 		discogsService: discogsService,
 		spotifyService: spotifyService,
