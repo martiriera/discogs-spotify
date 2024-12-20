@@ -40,7 +40,7 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 		return "", fmt.Errorf("error requesting Spotify search: %v", err)
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
+	if s.token == "" || resp.StatusCode == http.StatusUnauthorized {
 		if err := s.setAccessToken(); err != nil {
 			return "", err
 		}
@@ -63,7 +63,7 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 	}
 
 	if len(response.Albums.Items) == 0 {
-		return "not_found", nil
+		return "", nil
 	}
 
 	return response.Albums.Items[0].URI, nil
