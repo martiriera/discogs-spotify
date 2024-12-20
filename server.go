@@ -31,7 +31,9 @@ func (s *Server) createPlaylistHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(uris); err != nil {
+	response, err := json.Marshal(uris)
+	if err != nil {
 		log.Fatal(err)
 	}
+	w.Write(response)
 }
