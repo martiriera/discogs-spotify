@@ -1,26 +1,37 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 )
 
-func triggerUseCase(w http.ResponseWriter, r *http.Request) {
+type Server struct {
+	playlistCreator *PlaylistCreator
+	http.Handler
+}
+
+func NewServer(playlistCreator *PlaylistCreator) *Server {
+	s := new(Server)
+
+	s.playlistCreator = playlistCreator
+	router := http.NewServeMux()
+
+	router.Handle("/create-playlist", http.HandlerFunc(s.createPlaylistHandler))
+
+	s.Handler = router
+	return s
+}
+
+func (s *Server) createPlaylistHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
-	creator := newPlaylistCreator(
-		NewHttpDiscogsService(&http.Client{}),
-		NewHttpSpotifyService(&http.Client{}, ""),
-	)
-	uris, err := creator.CreatePlaylist(username)
+	uris, err := s.playlistCreator.CreatePlaylist(username)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprintf(w, "Spotify URIs: %v", uris)
-}
-
-func main() {
-	http.HandleFunc("/trigger", triggerUseCase)
-	fmt.Println("Server is listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(uris); err != nil {
+		log.Fatal(err)
+	}
 }
