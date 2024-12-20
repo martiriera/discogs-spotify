@@ -13,11 +13,11 @@ import (
 )
 
 type HttpSpotifyService struct {
-	client HTTPClient
+	client HttpClient
 	token  string
 }
 
-func NewHttpSpotifyService(client HTTPClient, token string) *HttpSpotifyService {
+func NewHttpSpotifyService(client HttpClient, token string) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client, token: token}
 }
 

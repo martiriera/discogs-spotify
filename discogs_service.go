@@ -7,14 +7,14 @@ import (
 )
 
 type HttpDiscogsService struct {
-	client HTTPClient
+	client HttpClient
 }
 
 func (r *HttpDiscogsService) Do(req *http.Request) (*http.Response, error) {
 	return r.client.Do(req)
 }
 
-func NewHttpDiscogsService(client HTTPClient) *HttpDiscogsService {
+func NewHttpDiscogsService(client HttpClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}
 }
 

@@ -8,12 +8,12 @@ import (
 	"testing"
 )
 
-type StubHTTPClient struct {
+type StubDiscogsHttpClient struct {
 	Response *http.Response
 	Error    error
 }
 
-func (s *StubHTTPClient) Do(req *http.Request) (*http.Response, error) {
+func (s *StubDiscogsHttpClient) Do(req *http.Request) (*http.Response, error) {
 	return s.Response, s.Error
 }
 
@@ -48,7 +48,7 @@ func TestDiscogsService(t *testing.T) {
 			}`)),
 	}
 
-	stubClient := &StubHTTPClient{Response: stubResponse}
+	stubClient := &StubDiscogsHttpClient{Response: stubResponse}
 	service := NewHttpDiscogsService(stubClient)
 	response, err := service.GetReleases()
 	if err != nil {
@@ -69,7 +69,7 @@ func TestDiscogsService(t *testing.T) {
 }
 
 func TestDiscogsServiceError(t *testing.T) {
-	stubClient := &StubHTTPClient{Error: fmt.Errorf("request error")}
+	stubClient := &StubDiscogsHttpClient{Error: fmt.Errorf("request error")}
 	service := NewHttpDiscogsService(stubClient)
 	_, err := service.GetReleases()
 	if err == nil {
@@ -83,7 +83,7 @@ func TestDiscogsServiceInvalidJSON(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewBufferString(`invalid json`)),
 	}
 
-	stubClient := &StubHTTPClient{Response: stubResponse}
+	stubClient := &StubDiscogsHttpClient{Response: stubResponse}
 	service := NewHttpDiscogsService(stubClient)
 	_, err := service.GetReleases()
 	if err == nil {
