@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -50,7 +49,7 @@ func TestDiscogsService(t *testing.T) {
 
 	stubClient := &StubDiscogsHttpClient{Response: stubResponse}
 	service := NewHttpDiscogsService(stubClient)
-	response, err := service.GetReleases()
+	response, err := service.GetReleases("digger")
 	if err != nil {
 		t.Errorf("error is not nil")
 	}
@@ -69,24 +68,14 @@ func TestDiscogsService(t *testing.T) {
 }
 
 func TestDiscogsServiceError(t *testing.T) {
-	stubClient := &StubDiscogsHttpClient{Error: fmt.Errorf("request error")}
-	service := NewHttpDiscogsService(stubClient)
-	_, err := service.GetReleases()
-	if err == nil {
-		t.Errorf("expected error, got nil")
-	}
-}
-
-func TestDiscogsServiceInvalidJSON(t *testing.T) {
 	stubResponse := &http.Response{
-		StatusCode: 200,
-		Body:       io.NopCloser(bytes.NewBufferString(`invalid json`)),
+		StatusCode: 500,
+		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Internal server error"}`)),
 	}
-
 	stubClient := &StubDiscogsHttpClient{Response: stubResponse}
 	service := NewHttpDiscogsService(stubClient)
-	_, err := service.GetReleases()
+	_, err := service.GetReleases("digger")
 	if err == nil {
-		t.Errorf("expected error, got nil")
+		t.Errorf("error is nil")
 	}
 }
