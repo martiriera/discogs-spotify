@@ -27,6 +27,12 @@ func NewServer(playlistCreator *playlist.PlaylistCreator) *Server {
 
 func (s *Server) createPlaylistHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
+
+	if username == "" {
+		http.Error(w, "username is required", http.StatusBadRequest)
+		return
+	}
+
 	uris, err := s.playlistCreator.CreatePlaylist(username)
 	if err != nil {
 		log.Fatal(err)

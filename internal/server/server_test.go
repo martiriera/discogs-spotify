@@ -17,16 +17,29 @@ func TestServer(t *testing.T) {
 	spotifyServiceMock := &spotify.SpotifyServiceMock{
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
+
 	playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 	server := NewServer(playlistCreator)
 
-	request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
-	response := httptest.NewRecorder()
+	t.Run("create playlist", func(t *testing.T) {
+		request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
+		response := httptest.NewRecorder()
 
-	server.ServeHTTP(response, request)
+		server.ServeHTTP(response, request)
 
-	assertResponseStatus(t, response.Code, 200)
-	assertResponseBody(t, response.Body.String(), `["spotify:album:1","spotify:album:2"]`)
+		assertResponseStatus(t, response.Code, 200)
+		assertResponseBody(t, response.Body.String(), `["spotify:album:1","spotify:album:2"]`)
+	})
+
+	t.Run("create playlist without username", func(t *testing.T) {
+		request := httptest.NewRequest("POST", "/create-playlist", nil)
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 400)
+		assertResponseBody(t, response.Body.String(), "username is required\n")
+	})
 }
 
 func assertResponseStatus(t testing.TB, got, want int) {
