@@ -45,12 +45,27 @@ func NewServer(
 }
 
 func (s *Server) handleMain(w http.ResponseWriter, r *http.Request) {
-	html := `<html>
-				<body>
-					<a href="/login">Log in with Spotify</a>
-				</body>
-			</html>`
-	fmt.Fprint(w, html)
+	// TODO: Implement IsAuthenticated method
+	ok := false
+	if ok {
+		html := `<html>
+					<body>
+						<form action="/create-playlist" method="get">
+							<label for="username">Discogs username:</label>
+							<input type="text" id="username" name="username">
+							<button type="submit">Create playlist</button>
+						</form>
+					</body>
+				</html>`
+		fmt.Fprint(w, html)
+	} else {
+		html := `<html>
+					<body>
+						<a href="/login">Log in with Spotify</a>
+					</body>
+				</html>`
+		fmt.Fprint(w, html)
+	}
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
