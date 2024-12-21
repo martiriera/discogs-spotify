@@ -3,18 +3,23 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/server"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/util"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
-	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
-	port := os.Getenv("PORT")
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatalf("No .env file found")
+	}
+	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
+	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
+	port := util.AssertEnvVar("PORT")
 
 	redirectURL := "http://localhost:" + port + "/callback"
 

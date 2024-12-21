@@ -11,7 +11,6 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 )
 
 type Server struct {
@@ -27,30 +26,49 @@ func NewServer(
 	s := new(Server)
 
 	s.playlistCreator = playlistCreator
+	s.oauthController = oauthController
 	router := http.NewServeMux()
 
 	router.Handle("/create-playlist", http.HandlerFunc(s.handlePlaylistCreate))
 	router.Handle("/", http.HandlerFunc(s.handleMain))
-	router.Handle("/login", http.HandlerFunc(oauthController.HandleLogin))
-	router.Handle("/callback", http.HandlerFunc(oauthController.HandleCallback))
+	router.Handle("/login", http.HandlerFunc(s.handleLogin))
+	router.Handle("/callback", http.HandlerFunc(s.handleLoginCallback))
 
 	// TODO: Implement the OAuthController.SetTokenStoreFunc method
-	oauthController.SetTokenStoreFunc(func(token *oauth2.Token) {
-		fmt.Println("Access Token:", token.AccessToken)
-		fmt.Println("Refresh Token:", token.RefreshToken)
-	})
+	// oauthController.SetTokenStoreFunc(func(token *oauth2.Token) {
+	// 	fmt.Println("Access Token:", token.AccessToken)
+	// 	fmt.Println("Refresh Token:", token.RefreshToken)
+	// })
 
 	s.Handler = router
 	return s
 }
 
-func (o *Server) handleMain(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleMain(w http.ResponseWriter, r *http.Request) {
 	html := `<html>
 				<body>
 					<a href="/login">Log in with Spotify</a>
 				</body>
 			</html>`
 	fmt.Fprint(w, html)
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	url := s.oauthController.GetRedirectionUrl()
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+
+func (s *Server) handleLoginCallback(w http.ResponseWriter, r *http.Request) {
+	// Verify state parameter to prevent CSRF
+	state := r.FormValue("state")
+	code := r.FormValue("code")
+	service, err := s.oauthController.GetServiceFromCallback(state, code)
+	if err != nil {
+		util.HandleError(w, err, http.StatusInternalServerError)
+		return
+	}
+	s.playlistCreator.SetSpotifyService(service)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func (s *Server) handlePlaylistCreate(w http.ResponseWriter, r *http.Request) {

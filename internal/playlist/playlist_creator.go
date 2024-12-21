@@ -17,11 +17,26 @@ type PlaylistCreator struct {
 func NewPlaylistCreator(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistCreator {
 	return &PlaylistCreator{
 		discogsService: discogsService,
+		// TODO: Remove this line
 		spotifyService: spotifyService,
 	}
 }
 
+func (c *PlaylistCreator) SetSpotifyService(service spotify.SpotifyService) {
+	c.spotifyService = service
+}
+
 func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, error) {
+	if c.spotifyService == nil {
+		return nil, fmt.Errorf("spotify service not set")
+	}
+
+	spotifyUser, err := c.spotifyService.GetSpotifyUserInfo()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Spotify user: %s", spotifyUser)
+
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	if err != nil {
 		return nil, err

@@ -35,6 +35,17 @@ func TestServer(t *testing.T) {
 		assertResponseStatus(t, response.Code, 200)
 	})
 
+	t.Run("login", func(t *testing.T) {
+		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(playlistCreator, oauthController)
+		request := httptest.NewRequest("GET", "/login", nil)
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 307)
+	})
+
 	t.Run("create playlist", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)

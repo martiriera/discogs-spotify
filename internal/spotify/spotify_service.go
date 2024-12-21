@@ -24,7 +24,7 @@ const basePath = "https://api.spotify.com/v1"
 type SpotifyService interface {
 	GetAlbumUri(artist string, title string) (string, error)
 	CreatePlaylist(uris []string) (string, error)
-	GetSpotifyUserInfo(client *http.Client) (string, error)
+	GetSpotifyUserInfo() (string, error)
 }
 
 type HttpSpotifyService struct {
@@ -83,15 +83,19 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 	return "", nil
 }
 
-func (s *HttpSpotifyService) GetSpotifyUserInfo(client *http.Client) (string, error) {
-	resp, err := client.Get("https://api.spotify.com/v1/me")
+func (s *HttpSpotifyService) GetSpotifyUserInfo() (string, error) {
+	req, err := http.NewRequest(http.MethodGet, basePath + "/me", nil)
+	if err != nil {
+		return "", errors.Wrap(ErrSearchRequest, err.Error())
+	}
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Spotify API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("spotify API returned status %d", resp.StatusCode)
 	}
 
 	var userInfo map[string]interface{}

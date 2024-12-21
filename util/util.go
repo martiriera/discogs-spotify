@@ -2,7 +2,9 @@ package util
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"os"
 )
 
 // HandleError formats and sends the error response
@@ -20,4 +22,12 @@ func HandleError(w http.ResponseWriter, err error, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(errorResponse)
+}
+
+func AssertEnvVar(name string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		log.Fatalf("environment variable %s is required", name)
+	}
+	return value
 }

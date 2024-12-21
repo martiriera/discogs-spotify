@@ -2,15 +2,13 @@ package spotify
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
 )
 
 type OAuthController struct {
-	service        SpotifyService
 	config         *oauth2.Config
 	oauthState     string
 	tokenStoreFunc func(token *oauth2.Token)
@@ -25,28 +23,23 @@ func NewOAuthController(clientID, clientSecret, redirectURL string, scopes []str
 			Scopes:       scopes,
 			Endpoint:     spotify.Endpoint,
 		},
-		oauthState: "random-string",
+		oauthState: "butifarrondesembutifarronizate",
 	}
 }
 
-func (o *OAuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	url := o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+func (o *OAuthController) GetRedirectionUrl() string {
+	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) HandleCallback(w http.ResponseWriter, r *http.Request) {
+func (o *OAuthController) GetServiceFromCallback(state string, code string) (*HttpSpotifyService, error) {
 	// Verify state parameter to prevent CSRF
-	state := r.FormValue("state")
 	if state != o.oauthState {
-		http.Error(w, "State mismatch", http.StatusBadRequest)
-		return
+		return nil, errors.New("state mismatch")
 	}
 
-	code := r.FormValue("code")
 	token, err := o.config.Exchange(context.Background(), code)
 	if err != nil {
-		http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-		return
+		return nil, errors.Wrap(err, "failed to exchange token")
 	}
 
 	// Optionally store the token
@@ -55,14 +48,7 @@ func (o *OAuthController) HandleCallback(w http.ResponseWriter, r *http.Request)
 	}
 
 	client := o.config.Client(context.Background(), token)
-	userInfo, err := o.service.GetSpotifyUserInfo(client)
-	if err != nil {
-		http.Error(w, "Failed to fetch user info: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Display user info
-	fmt.Fprintf(w, "User Info: %s\n", userInfo)
+	return NewHttpSpotifyService(client, ""), nil
 }
 
 func (o *OAuthController) SetTokenStoreFunc(fn func(token *oauth2.Token)) {
