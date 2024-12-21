@@ -25,14 +25,14 @@ func main() {
 
 	creator := playlist.NewPlaylistCreator(
 		discogs.NewHttpDiscogsService(&http.Client{}),
-		spotify.NewHttpSpotifyService(&http.Client{}, ""),
+		spotify.NewHttpSpotifyService(&http.Client{}),
 	)
 
 	oauth := spotify.NewOAuthController(
 		clientID,
 		clientSecret,
 		redirectURL,
-		[]string{"user-read-private", "user-read-email"}, // Adjust scopes as needed
+		[]string{"user-read-private", "user-read-email"}, // Add playlist scopes
 	)
 
 	s := server.NewServer(creator, oauth)

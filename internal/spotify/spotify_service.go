@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
@@ -18,6 +16,7 @@ var ErrSearchRequest = errors.New("spotify search request error")
 var ErrSearchResponse = errors.New("spotify search response error")
 var ErrAccessTokenRequest = errors.New("spotify token request error")
 var ErrAccessTokenResponse = errors.New("spotify token response error")
+var ErrUnauthorized = errors.New("spotify unauthorized error")
 
 const basePath = "https://api.spotify.com/v1"
 
@@ -29,11 +28,10 @@ type SpotifyService interface {
 
 type HttpSpotifyService struct {
 	client client.HttpClient
-	token  string
 }
 
-func NewHttpSpotifyService(client client.HttpClient, token string) *HttpSpotifyService {
-	return &HttpSpotifyService{client: client, token: token}
+func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
+	return &HttpSpotifyService{client: client}
 }
 
 func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, error) {
@@ -44,21 +42,13 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
-	req.Header.Set("Authorization", "Bearer "+s.token)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
-	if s.token == "" || resp.StatusCode == http.StatusUnauthorized {
-		if err := s.setAccessToken(); err != nil {
-			return "", err
-		}
-		req.Header.Set("Authorization", "Bearer "+s.token)
-		resp, err = s.client.Do(req)
-		if err != nil {
-			return "", errors.Wrap(ErrSearchRequest, err.Error())
-		}
+	if resp.StatusCode == http.StatusUnauthorized {
+		return "", errors.Wrap(ErrUnauthorized, "unauthorized")
 	}
 
 	defer resp.Body.Close()
@@ -84,7 +74,7 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 }
 
 func (s *HttpSpotifyService) GetSpotifyUserInfo() (string, error) {
-	req, err := http.NewRequest(http.MethodGet, basePath + "/me", nil)
+	req, err := http.NewRequest(http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
@@ -104,36 +94,4 @@ func (s *HttpSpotifyService) GetSpotifyUserInfo() (string, error) {
 	}
 
 	return fmt.Sprintf("%v", userInfo), nil
-}
-
-func (s *HttpSpotifyService) setAccessToken() error {
-	const authUrl = "https://accounts.spotify.com/api/token"
-	data := url.Values{}
-	data.Set("grant_type", "client_credentials")
-	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
-	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
-	if clientID == "" || clientSecret == "" {
-		return fmt.Errorf("SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variable not set")
-	}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
-
-	r, err := http.NewRequest(http.MethodPost, authUrl, strings.NewReader(data.Encode()))
-	if err != nil {
-		return errors.Wrap(ErrAccessTokenRequest, err.Error())
-	}
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := s.client.Do(r)
-	if err != nil {
-		return errors.Wrap(ErrAccessTokenRequest, err.Error())
-	}
-	defer resp.Body.Close()
-
-	var response entities.SpotifyAuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return errors.Wrap(ErrAccessTokenResponse, err.Error())
-	}
-	s.token = response.AccessToken
-	return nil
 }

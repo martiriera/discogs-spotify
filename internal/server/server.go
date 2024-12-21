@@ -86,6 +86,10 @@ func (s *Server) handlePlaylistCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if errors.Cause(err) == spotify.ErrUnauthorized {
+			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		}
+
 		util.HandleError(w, err, http.StatusInternalServerError)
 		return
 	}

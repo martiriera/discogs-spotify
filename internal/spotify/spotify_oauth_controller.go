@@ -48,7 +48,7 @@ func (o *OAuthController) GetServiceFromCallback(state string, code string) (*Ht
 	}
 
 	client := o.config.Client(context.Background(), token)
-	return NewHttpSpotifyService(client, ""), nil
+	return NewHttpSpotifyService(client), nil
 }
 
 func (o *OAuthController) SetTokenStoreFunc(fn func(token *oauth2.Token)) {

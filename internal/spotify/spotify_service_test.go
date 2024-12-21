@@ -96,7 +96,7 @@ func TestSpotifyService(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
-			service := NewHttpSpotifyService(stubClient, "test_token")
+			service := NewHttpSpotifyService(stubClient)
 			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
@@ -116,7 +116,7 @@ func TestSpotifyServiceError(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Bad Request"}`)),
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
-	service := NewHttpSpotifyService(stubClient, "test_token")
+	service := NewHttpSpotifyService(stubClient)
 	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
 	want := `status: 400, body: {"message": "Bad Request"}: spotify search response error`
 	if err == nil {
@@ -133,7 +133,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	stubResponses := []*http.Response{
 		{
 			StatusCode: 401,
-			Body:       io.NopCloser(bytes.NewBufferString(`{"error": "Token has expired"}`)),
+			Body:       io.NopCloser(bytes.NewBufferString(`{"error": "Unauthorized"}`)),
 		},
 		{
 			StatusCode: 200,
@@ -157,7 +157,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 		},
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
-	service := NewHttpSpotifyService(stubClient, "expired_token")
+	service := NewHttpSpotifyService(stubClient)
 	response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
 	if err != nil {
 		t.Errorf("error is not nil: %v", err)

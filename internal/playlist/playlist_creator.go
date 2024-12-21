@@ -31,17 +31,11 @@ func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, erro
 		return nil, fmt.Errorf("spotify service not set")
 	}
 
-	spotifyUser, err := c.spotifyService.GetSpotifyUserInfo()
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("Spotify user: %s", spotifyUser)
-
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	if err != nil {
 		return nil, err
 	}
-	albums := getAlbumsFromReleases(releases)
+	albums := parseAlbumsFromReleases(releases)
 	spotifyUris := []string{}
 	for _, album := range albums {
 		uri, err := c.spotifyService.GetAlbumUri(album.Artist, album.Title)
@@ -54,7 +48,7 @@ func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, erro
 	return filterNotFounds(spotifyUris), nil
 }
 
-func getAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
+func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
 	albums := []entities.Album{}
 	for _, release := range releases {
 		album := entities.Album{
