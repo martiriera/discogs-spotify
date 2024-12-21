@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
@@ -17,7 +18,12 @@ func main() {
 	)
 	s := server.NewServer(creator)
 
-	if err := http.ListenAndServe(":5000", s); err != nil {
-		log.Fatalf("could not listen on port 5000 %v", err)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	if err := http.ListenAndServe(":"+port, s); err != nil {
+		log.Fatalf("could not listen on port %s: %v", port, err)
 	}
 }
