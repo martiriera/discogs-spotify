@@ -79,3 +79,16 @@ func TestDiscogsServiceError(t *testing.T) {
 		t.Errorf("error is nil")
 	}
 }
+
+func TestDiscogsServiceUnauthorized(t *testing.T) {
+	stubResponse := &http.Response{
+		StatusCode: 401,
+		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "You must authenticate to access this resource"}`)),
+	}
+	stubClient := &StubDiscogsHttpClient{Response: stubResponse}
+	service := NewHttpDiscogsService(stubClient)
+	_, err := service.GetReleases("digger")
+	if err == nil {
+		t.Errorf("error is nil")
+	}
+}

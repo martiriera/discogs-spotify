@@ -2,13 +2,18 @@ package discogs
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/pkg/errors"
 )
+
+var ErrUnauthorized = errors.New("discogs unauthorized error")
+var ErrUnexpectedStatus = errors.New("discogs unexpected status error")
+var ErrRequest = errors.New("discogs request error")
+var ErrResponse = errors.New("discogs response error")
 
 type DiscogsService interface {
 	GetReleases(username string) ([]entities.DiscogsRelease, error)
@@ -30,23 +35,28 @@ func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRel
 	url := basePath + "/users/" + username + "/collection/folders/0/releases"
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating Discogs request: %v", err)
+		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error requesting Discogs releases: %v", err)
+		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, errors.Wrap(ErrUnauthorized, "private collection")
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return nil, errors.Wrapf(ErrUnexpectedStatus, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response entities.DiscogsResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Discogs response, %v ", err)
+		return nil, errors.Wrap(ErrResponse, err.Error())
 	}
 	return response.Releases, nil
 }

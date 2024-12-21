@@ -18,10 +18,9 @@ func TestServer(t *testing.T) {
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
 
-	playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
-	server := NewServer(playlistCreator)
-
 	t.Run("create playlist", func(t *testing.T) {
+		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(playlistCreator)
 		request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
 		response := httptest.NewRecorder()
 
@@ -32,6 +31,8 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("create playlist without username", func(t *testing.T) {
+		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(playlistCreator)
 		request := httptest.NewRequest("POST", "/create-playlist", nil)
 		response := httptest.NewRecorder()
 
@@ -39,6 +40,19 @@ func TestServer(t *testing.T) {
 
 		assertResponseStatus(t, response.Code, 400)
 		assertResponseBody(t, response.Body.String(), "username is required\n")
+	})
+
+	t.Run("server error from discogs", func(t *testing.T) {
+		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
+		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(playlistCreator)
+		request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 500)
+		assertResponseBody(t, response.Body.String(), "{\"error\":\"discogs unexpected status error\"}\n")
 	})
 }
 

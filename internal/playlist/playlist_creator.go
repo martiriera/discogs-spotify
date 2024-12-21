@@ -2,7 +2,6 @@ package playlist
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -25,14 +24,14 @@ func NewPlaylistCreator(discogsService discogs.DiscogsService, spotifyService sp
 func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, error) {
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	albums := getAlbumsFromReleases(releases)
 	spotifyUris := []string{}
 	for _, album := range albums {
 		uri, err := c.spotifyService.GetAlbumUri(album.Artist, album.Title)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		spotifyUris = append(spotifyUris, uri)
 	}

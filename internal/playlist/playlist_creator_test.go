@@ -34,9 +34,9 @@ func TestPlaylistCreator(t *testing.T) {
 // func TestRealPlaylistCreator(t *testing.T) {
 // 	t.Setenv("SPOTIFY_CLIENT_ID", "0e0db614950547a9848c20f23c38ced3")
 // 	t.Setenv("SPOTIFY_CLIENT_SECRET", "c9f69a062c9c482a95e77a200a9c04f4")
-// 	playlistCreator := newPlaylistCreator(
-// 		NewHttpDiscogsService(&http.Client{}),
-// 		NewHttpSpotifyService(&http.Client{}, ""),
+// 	playlistCreator := NewPlaylistCreator(
+// 		discogs.NewHttpDiscogsService(&http.Client{}),
+// 		spotify.NewHttpSpotifyService(&http.Client{}, ""),
 // 	)
 
 // 	uris, err := playlistCreator.CreatePlaylist("martireir")

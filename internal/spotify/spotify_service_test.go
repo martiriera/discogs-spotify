@@ -100,7 +100,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
 	service := NewHttpSpotifyService(stubClient, "test_token")
 	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
-	want := "unexpected status: 400, body: {\"message\": \"Bad Request\"}"
+	want := `status: 400, body: {"message": "Bad Request"}: spotify search response error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
 	}

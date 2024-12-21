@@ -11,7 +11,13 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/pkg/errors"
 )
+
+var ErrSearchRequest = errors.New("spotify search request error")
+var ErrSearchResponse = errors.New("spotify search response error")
+var ErrAccessTokenRequest = errors.New("spotify token request error")
+var ErrAccessTokenResponse = errors.New("spotify token response error")
 
 type SpotifyService interface {
 	GetAlbumUri(artist string, title string) (string, error)
@@ -32,13 +38,13 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 	route := fmt.Sprintf("%s?q=%s&type=album", path, query)
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
-		return "", fmt.Errorf("error creating Spotify search request: %v", err)
+		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
 	req.Header.Set("Authorization", "Bearer "+s.token)
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error requesting Spotify search: %v", err)
+		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
 	if s.token == "" || resp.StatusCode == http.StatusUnauthorized {
@@ -48,19 +54,19 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 		req.Header.Set("Authorization", "Bearer "+s.token)
 		resp, err = s.client.Do(req)
 		if err != nil {
-			return "", fmt.Errorf("error requesting Spotify search: %v", err)
+			return "", errors.Wrap(ErrSearchRequest, err.Error())
 		}
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("unexpected status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return "", errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response entities.SpotifySearchResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", fmt.Errorf("unable to parse Spotify response, %v", err)
+		return "", errors.Wrap(ErrSearchResponse, err.Error())
 	}
 
 	if len(response.Albums.Items) == 0 {
@@ -82,18 +88,21 @@ func (s *HttpSpotifyService) setAccessToken() error {
 	data.Set("client_id", clientID)
 	data.Set("client_secret", clientSecret)
 
-	r, _ := http.NewRequest(http.MethodPost, authUrl, strings.NewReader(data.Encode()))
+	r, err := http.NewRequest(http.MethodPost, authUrl, strings.NewReader(data.Encode()))
+	if err != nil {
+		return errors.Wrap(ErrAccessTokenRequest, err.Error())
+	}
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := s.client.Do(r)
 	if err != nil {
-		return fmt.Errorf("error requesting Spotify access token: %v", err)
+		return errors.Wrap(ErrAccessTokenRequest, err.Error())
 	}
 	defer resp.Body.Close()
 
 	var response entities.SpotifyAuthResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return fmt.Errorf("unable to parse Spotify auth response, %v", err)
+		return errors.Wrap(ErrAccessTokenResponse, err.Error())
 	}
 	s.token = response.AccessToken
 	return nil

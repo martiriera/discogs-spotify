@@ -5,7 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/util"
+	"github.com/pkg/errors"
 )
 
 type Server struct {
@@ -35,8 +38,15 @@ func (s *Server) createPlaylistHandler(w http.ResponseWriter, r *http.Request) {
 
 	uris, err := s.playlistCreator.CreatePlaylist(username)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Cause(err) == discogs.ErrUnauthorized {
+			util.HandleError(w, err, http.StatusUnauthorized)
+			return
+		}
+
+		util.HandleError(w, err, http.StatusInternalServerError)
+		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	response, err := json.Marshal(uris)
