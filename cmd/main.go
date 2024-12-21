@@ -12,13 +12,26 @@ import (
 )
 
 func main() {
+	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
+	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
+	port := os.Getenv("PORT")
+
+	redirectURL := "http://localhost:" + port + "/callback"
+
 	creator := playlist.NewPlaylistCreator(
 		discogs.NewHttpDiscogsService(&http.Client{}),
 		spotify.NewHttpSpotifyService(&http.Client{}, ""),
 	)
-	s := server.NewServer(creator)
 
-	port := os.Getenv("PORT")
+	oauth := spotify.NewOAuthController(
+		clientID,
+		clientSecret,
+		redirectURL,
+		[]string{"user-read-private", "user-read-email"}, // Adjust scopes as needed
+	)
+
+	s := server.NewServer(creator, oauth)
+
 	if port == "" {
 		port = "8080"
 	}

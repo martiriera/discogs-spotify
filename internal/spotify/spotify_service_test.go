@@ -26,12 +26,16 @@ func TestSpotifyService(t *testing.T) {
 	t.Setenv("SPOTIFY_CLIENT_ID", "test")
 	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
 	tcs := []struct {
-		test     string
+		name     string
+		request  func(service SpotifyService) (string, error)
 		response *http.Response
 		want     string
 	}{
 		{
-			test: "should return album uri",
+			name: "should return album uri",
+			request: func(service SpotifyService) (string, error) {
+				return service.GetAlbumUri("Delta Sleep", "Spring Island")
+			},
 			response: &http.Response{
 				StatusCode: 200,
 				Body: io.NopCloser(bytes.NewBufferString(`{
@@ -56,7 +60,10 @@ func TestSpotifyService(t *testing.T) {
 			want: "spotify:album:4JeLdGuCEO9SF9SnFa9LBh",
 		},
 		{
-			test: "should return empty string as uri when not found",
+			name: "should return empty string as uri when not found",
+			request: func(service SpotifyService) (string, error) {
+				return service.GetAlbumUri("Delta Sleep", "Spring Island")
+			},
 			response: &http.Response{
 				StatusCode: 200,
 				Body: io.NopCloser(bytes.NewBufferString(`{
@@ -73,13 +80,24 @@ func TestSpotifyService(t *testing.T) {
 			},
 			want: "",
 		},
+		{
+			name: "should create playlist",
+			request: func(service SpotifyService) (string, error) {
+				return service.CreatePlaylist([]string{"spotify:album:4JeLdGuCEO9SF9SnFa9LBh"})
+			},
+			response: &http.Response{
+				StatusCode: 201,
+				Body:       io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
+			},
+			want: "123",
+		},
 	}
 
 	for _, tc := range tcs {
-		t.Run(tc.test, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
 			service := NewHttpSpotifyService(stubClient, "test_token")
-			response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
+			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
 			}
