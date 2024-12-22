@@ -24,12 +24,6 @@ func NewServer(
 	combinedRouter.Handle("/api/", http.StripPrefix("/api", apiRouter))
 	combinedRouter.Handle("/auth/", http.StripPrefix("/auth", authRouter))
 
-	// TODO: Implement the OAuthController.SetTokenStoreFunc method
-	// oauthController.SetTokenStoreFunc(func(token *oauth2.Token) {
-	// 	fmt.Println("Access Token:", token.AccessToken)
-	// 	fmt.Println("Refresh Token:", token.RefreshToken)
-	// })
-
 	s.Handler = combinedRouter
 	return s
 }

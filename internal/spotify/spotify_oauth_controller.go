@@ -11,9 +11,8 @@ import (
 const oauthState = "AOWTCN2KHZ"
 
 type OAuthController struct {
-	config         *oauth2.Config
-	oauthState     string
-	tokenStoreFunc func(token *oauth2.Token)
+	config     *oauth2.Config
+	oauthState string
 }
 
 func NewOAuthController(clientID, clientSecret, redirectURL string, scopes []string) *OAuthController {
@@ -43,16 +42,6 @@ func (o *OAuthController) GetServiceFromCallback(state string, code string) (*Ht
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to exchange token")
 	}
-
-	// Optionally store the token
-	if o.tokenStoreFunc != nil {
-		o.tokenStoreFunc(token)
-	}
-
 	client := o.config.Client(context.Background(), token)
 	return NewHttpSpotifyService(client), nil
-}
-
-func (o *OAuthController) SetTokenStoreFunc(fn func(token *oauth2.Token)) {
-	o.tokenStoreFunc = fn
 }
