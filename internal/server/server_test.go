@@ -10,7 +10,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
-func TestServer(t *testing.T) {
+func TestAcceptance(t *testing.T) {
 	discogsServiceMock := &discogs.DiscogsServiceMock{
 		Response: entities.MotherTwoAlbums(),
 	}
@@ -27,7 +27,7 @@ func TestServer(t *testing.T) {
 	t.Run("serve main", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("GET", "/", nil)
+		request := httptest.NewRequest("GET", "/api/", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -38,7 +38,7 @@ func TestServer(t *testing.T) {
 	t.Run("login", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("GET", "/login", nil)
+		request := httptest.NewRequest("GET", "/auth/login", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -49,7 +49,7 @@ func TestServer(t *testing.T) {
 	t.Run("create playlist", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/create-playlist?username=test", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -61,7 +61,7 @@ func TestServer(t *testing.T) {
 	t.Run("create playlist without username", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/create-playlist", nil)
+		request := httptest.NewRequest("POST", "/api/create-playlist", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -74,7 +74,7 @@ func TestServer(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/create-playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/create-playlist?username=test", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
