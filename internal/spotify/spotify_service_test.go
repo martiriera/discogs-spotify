@@ -135,34 +135,14 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 			StatusCode: 401,
 			Body:       io.NopCloser(bytes.NewBufferString(`{"error": "Unauthorized"}`)),
 		},
-		{
-			StatusCode: 200,
-			Body: io.NopCloser(bytes.NewBufferString(`{
-				"access_token": "fresh_token",
-				"token_type": "Bearer",
-				"expires_in": 3600
-			}`)),
-		},
-		{
-			StatusCode: 200,
-			Body: io.NopCloser(bytes.NewBufferString(`{
-				"albums": {
-				"items": [
-					{
-						"uri": "spotify:album:4JeLdGuCEO9SF9SnFa9LBh"
-					}
-				]
-			}
-		}`)),
-		},
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
 	service := NewHttpSpotifyService(stubClient)
-	response, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
-	if err != nil {
-		t.Errorf("error is not nil: %v", err)
+	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
+	if err == nil {
+		t.Errorf("did expect error, got nil")
 	}
-	if response != "spotify:album:4JeLdGuCEO9SF9SnFa9LBh" {
-		t.Errorf("got %s, want spotify:album:4JeLdGuCEO9SF9SnFa9LBh", response)
+	if err != ErrUnauthorized {
+		t.Errorf("got %v, want %v", err, ErrUnauthorized)
 	}
 }

@@ -48,7 +48,7 @@ func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, e
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return "", errors.Wrap(ErrUnauthorized, "unauthorized")
+		return "", ErrUnauthorized
 	}
 
 	defer resp.Body.Close()
