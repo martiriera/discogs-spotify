@@ -23,7 +23,7 @@ func NewApiRouter(c *playlist.PlaylistCreator) *http.ServeMux {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(router.handleMain))
-	mux.Handle("/create-playlist", http.HandlerFunc(router.handlePlaylistCreate))
+	mux.Handle("/playlist", http.HandlerFunc(router.handlePlaylistCreate))
 	return mux
 }
 
@@ -33,7 +33,7 @@ func (router *ApiRouter) handleMain(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		html := `<html>
 					<body>
-						<form action="/create-playlist" method="get">
+						<form action="/playlist" method="get">
 							<label for="username">Discogs username:</label>
 							<input type="text" id="username" name="username">
 							<button type="submit">Create playlist</button>

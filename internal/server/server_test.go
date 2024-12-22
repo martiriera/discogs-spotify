@@ -49,7 +49,7 @@ func TestAcceptance(t *testing.T) {
 	t.Run("create playlist", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/api/create-playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/playlist?username=test", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -61,7 +61,7 @@ func TestAcceptance(t *testing.T) {
 	t.Run("create playlist without username", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/api/create-playlist", nil)
+		request := httptest.NewRequest("POST", "/api/playlist", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -74,7 +74,7 @@ func TestAcceptance(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("POST", "/api/create-playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/playlist?username=test", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
