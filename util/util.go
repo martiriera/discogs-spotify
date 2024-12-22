@@ -1,17 +1,16 @@
 package util
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
-// HandleError formats and sends the error response
-func HandleError(w http.ResponseWriter, err error, statusCode int) {
-
+// HandleError formats and sends the error response using Gin
+func HandleError(c *gin.Context, err error, statusCode int) {
 	// Log the error (you can add more sophisticated logging)
-	// Log.Println(wrappedErr)
+	log.Println(err)
 
 	// Prepare the error response
 	errorResponse := map[string]string{
@@ -19,9 +18,7 @@ func HandleError(w http.ResponseWriter, err error, statusCode int) {
 	}
 
 	// Set response headers and send the error response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errorResponse)
+	c.JSON(statusCode, errorResponse)
 }
 
 func AssertEnvVar(name string) string {

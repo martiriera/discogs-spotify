@@ -1,29 +1,29 @@
 package server
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
 type Server struct {
-	http.Handler
+	*gin.Engine
 }
 
 func NewServer(
 	playlistCreator *playlist.PlaylistCreator,
 	oauthController *spotify.OAuthController,
 ) *Server {
-	s := new(Server)
+	s := &Server{Engine: gin.Default()}
 
 	apiRouter := NewApiRouter(playlistCreator)
 	authRouter := NewAuthRouter(oauthController)
 
-	combinedRouter := http.NewServeMux()
-	combinedRouter.Handle("/api/", http.StripPrefix("/api", apiRouter))
-	combinedRouter.Handle("/auth/", http.StripPrefix("/auth", authRouter))
+	authGroup := s.Engine.Group("/auth")
+	authRouter.SetupRoutes(authGroup)
 
-	s.Handler = combinedRouter
+	apiGroup := s.Engine.Group("/api")
+	apiRouter.SetupRoutes(apiGroup)
+
 	return s
 }

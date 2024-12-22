@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 )
@@ -11,26 +12,27 @@ type AuthRouter struct {
 	oauthController *spotify.OAuthController
 }
 
-func NewAuthRouter(c *spotify.OAuthController) *http.ServeMux {
+func NewAuthRouter(c *spotify.OAuthController) *AuthRouter {
 	router := &AuthRouter{oauthController: c}
 	router.oauthController = c
-
-	mux := http.NewServeMux()
-	mux.Handle("/login", http.HandlerFunc(router.handleLogin))
-	mux.Handle("/callback", http.HandlerFunc(router.handleLoginCallback))
-	return mux
+	return router
 }
 
-func (router *AuthRouter) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
+	rg.POST("/login", router.handleLogin)
+	rg.POST("/callback", router.handleLoginCallback)
+}
+
+func (router *AuthRouter) handleLogin(c *gin.Context) {
 	url := router.oauthController.GetAuthUrl()
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func (router *AuthRouter) handleLoginCallback(w http.ResponseWriter, r *http.Request) {
-	err := router.oauthController.SetToken(r.Context(), r.URL.Query())
+func (router *AuthRouter) handleLoginCallback(c *gin.Context) {
+	err := router.oauthController.SetToken(c.Request.URL.Query())
 	if err != nil {
-		util.HandleError(w, err, http.StatusInternalServerError)
+		util.HandleError(c, err, http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, "/")
 }

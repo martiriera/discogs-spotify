@@ -38,7 +38,7 @@ func TestAcceptance(t *testing.T) {
 	t.Run("login", func(t *testing.T) {
 		playlistCreator := playlist.NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistCreator, oauthController)
-		request := httptest.NewRequest("GET", "/auth/login", nil)
+		request := httptest.NewRequest("POST", "/auth/login", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -67,7 +67,7 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 400)
-		assertResponseBody(t, response.Body.String(), "username is required\n")
+		assertResponseBody(t, response.Body.String(), "{\"error\":\"username is required\"}")
 	})
 
 	t.Run("server error from discogs", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 500)
-		assertResponseBody(t, response.Body.String(), "{\"error\":\"discogs unexpected status error\"}\n")
+		assertResponseBody(t, response.Body.String(), "{\"error\":\"discogs unexpected status error\"}")
 	})
 }
 

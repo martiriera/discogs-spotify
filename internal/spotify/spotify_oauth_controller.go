@@ -33,7 +33,7 @@ func (o *OAuthController) GetAuthUrl() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) SetToken(ctx context.Context, values url.Values) error {
+func (o *OAuthController) SetToken(values url.Values) error {
 	if err := values.Get("error"); err != "" {
 		return errors.Wrap(errors.New(err), "spotify: error in callback")
 	}
@@ -45,7 +45,7 @@ func (o *OAuthController) SetToken(ctx context.Context, values url.Values) error
 	if actualState != o.oauthState {
 		return errors.New("spotify: redirect state parameter doesn't match")
 	}
-	token, err := o.config.Exchange(ctx, code)
+	_, err := o.config.Exchange(context.Background(), code)
 	if err != nil {
 		return errors.Wrap(err, "spotify: error exchanging code for token")
 	}
