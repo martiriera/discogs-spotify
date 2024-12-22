@@ -8,6 +8,8 @@ import (
 	"golang.org/x/oauth2/spotify"
 )
 
+const oauthState = "AOWTCN2KHZ"
+
 type OAuthController struct {
 	config         *oauth2.Config
 	oauthState     string
@@ -23,11 +25,11 @@ func NewOAuthController(clientID, clientSecret, redirectURL string, scopes []str
 			Scopes:       scopes,
 			Endpoint:     spotify.Endpoint,
 		},
-		oauthState: "butifarrondesembutifarronizate",
+		oauthState: oauthState,
 	}
 }
 
-func (o *OAuthController) GetRedirectionUrl() string {
+func (o *OAuthController) GetAuthUrl() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 

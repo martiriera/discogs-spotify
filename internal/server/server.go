@@ -69,7 +69,7 @@ func (s *Server) handleMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	url := s.oauthController.GetRedirectionUrl()
+	url := s.oauthController.GetAuthUrl()
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
