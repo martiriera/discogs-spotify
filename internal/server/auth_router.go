@@ -27,14 +27,10 @@ func (router *AuthRouter) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (router *AuthRouter) handleLoginCallback(w http.ResponseWriter, r *http.Request) {
-	// Verify state parameter to prevent CSRF
-	state := r.FormValue("state")
-	code := r.FormValue("code")
-	_, err := router.oauthController.GetServiceFromCallback(state, code)
+	err := router.oauthController.SetToken(r.Context(), r.URL.Query())
 	if err != nil {
 		util.HandleError(w, err, http.StatusInternalServerError)
 		return
 	}
-	// router.playlistCreator.SetSpotifyService(service)
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

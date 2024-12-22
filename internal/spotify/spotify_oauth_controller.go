@@ -2,6 +2,7 @@ package spotify
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
@@ -32,16 +33,21 @@ func (o *OAuthController) GetAuthUrl() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) GetServiceFromCallback(state string, code string) (*HttpSpotifyService, error) {
-	// Verify state parameter to prevent CSRF
-	if state != o.oauthState {
-		return nil, errors.New("state mismatch")
+func (o *OAuthController) SetToken(ctx context.Context, values url.Values) error {
+	if err := values.Get("error"); err != "" {
+		return errors.Wrap(errors.New(err), "spotify: error in callback")
 	}
-
-	token, err := o.config.Exchange(context.Background(), code)
+	code := values.Get("code")
+	if code == "" {
+		return errors.New("spotify: no code in callback")
+	}
+	actualState := values.Get("state")
+	if actualState != o.oauthState {
+		return errors.New("spotify: redirect state parameter doesn't match")
+	}
+	token, err := o.config.Exchange(ctx, code)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to exchange token")
+		return errors.Wrap(err, "spotify: error exchanging code for token")
 	}
-	client := o.config.Client(context.Background(), token)
-	return NewHttpSpotifyService(client), nil
+	return nil
 }

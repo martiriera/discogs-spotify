@@ -17,7 +17,6 @@ type PlaylistCreator struct {
 func NewPlaylistCreator(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistCreator {
 	return &PlaylistCreator{
 		discogsService: discogsService,
-		// TODO: Remove this line
 		spotifyService: spotifyService,
 	}
 }
