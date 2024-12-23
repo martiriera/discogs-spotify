@@ -24,7 +24,7 @@ func NewApiRouter(c *playlist.PlaylistController, s *session.Session) *ApiRouter
 
 func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
-	rg.POST("/playlist", AuthMiddleware(*router.session), router.handlePlaylistCreate)
+	rg.POST("/playlist", authMiddleware(*router.session), router.handlePlaylistCreate)
 }
 
 func (router *ApiRouter) handleMain(c *gin.Context) {

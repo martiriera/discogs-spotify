@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func AuthMiddleware(store session.Session) gin.HandlerFunc {
+func authMiddleware(store session.Session) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		data, err := store.GetData(c.Request, session.SpotifyTokenKey)
 		if err != nil {
