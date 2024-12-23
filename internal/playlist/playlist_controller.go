@@ -33,7 +33,7 @@ func (c *PlaylistController) CreatePlaylist(discogsUsername string) ([]string, e
 	albums := parseAlbumsFromReleases(releases)
 	spotifyUris := []string{}
 	for _, album := range albums {
-		uri, err := c.spotifyService.GetAlbumUri(album.Artist, album.Title)
+		uri, err := c.spotifyService.GetAlbumUri(album)
 		if err != nil {
 			return nil, err
 		}

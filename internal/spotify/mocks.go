@@ -1,13 +1,16 @@
 package spotify
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/martiriera/discogs-spotify/internal/entities"
+)
 
 type SpotifyServiceMock struct {
 	Responses []string
 	index     int
 }
 
-func (m *SpotifyServiceMock) GetAlbumUri(artist string, title string) (string, error) {
+func (m *SpotifyServiceMock) GetAlbumUri(album entities.Album) (string, error) {
 	if m.index >= len(m.Responses) {
 		return "", nil
 	}

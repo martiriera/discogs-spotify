@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/martiriera/discogs-spotify/internal/entities"
 )
 
 type StubSpotifyHttpClient struct {
@@ -34,7 +36,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return album uri",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri("Delta Sleep", "Spring Island")
+				return service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -62,7 +64,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri("Delta Sleep", "Spring Island")
+				return service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -117,7 +119,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
+	_, err := service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 	want := `status: 400, body: {"message": "Bad Request"}: spotify search response error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
@@ -138,7 +140,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri("Delta Sleep", "Spring Island")
+	_, err := service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 	if err == nil {
 		t.Errorf("did expect error, got nil")
 	}

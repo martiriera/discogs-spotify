@@ -24,7 +24,7 @@ var ErrUnauthorized = errors.New("spotify unauthorized error")
 const basePath = "https://api.spotify.com/v1"
 
 type SpotifyService interface {
-	GetAlbumUri(artist string, title string) (string, error)
+	GetAlbumUri(album entities.Album) (string, error)
 	CreatePlaylist(uris []string) (string, error)
 	GetSpotifyUserInfo(c *gin.Context) (string, error)
 }
@@ -37,8 +37,8 @@ func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client}
 }
 
-func (s *HttpSpotifyService) GetAlbumUri(artist string, title string) (string, error) {
-	query := url.QueryEscape("album:" + title + " artist:" + artist)
+func (s *HttpSpotifyService) GetAlbumUri(album entities.Album) (string, error) {
+	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
