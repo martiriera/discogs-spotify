@@ -42,16 +42,14 @@ func TestSpotifyOauthController(t *testing.T) {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		authSession, _ := session.GetSession(c.Request, session.AuthSessionName)
+		tokenJson, err := session.GetSpotifyToken(c.Request)
 
-		tokenJson, ok := authSession.Values[session.SpotifyTokenKey]
-
-		if !ok {
-			t.Errorf("token not stored in session")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
 		}
 
 		var storedToken oauth2.Token
-		err = json.Unmarshal([]byte(tokenJson.(string)), &storedToken)
+		err = json.Unmarshal([]byte(tokenJson), &storedToken)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
