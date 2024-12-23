@@ -21,15 +21,15 @@ func (gs *GorillaSession) Init() {
 	gs.store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 }
 
-func (gs *GorillaSession) Get(r *http.Request, sessionName string) (*SessionData, error) {
+func (gs *GorillaSession) Get(r *http.Request, sessionName string) (map[any]any, error) {
 	session, err := gs.store.Get(r, sessionName)
 	if err != nil {
 		return nil, err
 	}
-	return &SessionData{Values: session.Values}, nil
+	return session.Values, nil
 }
 
-func (gs *GorillaSession) GetData(r *http.Request, key string) (interface{}, error) {
+func (gs *GorillaSession) GetData(r *http.Request, key string) (any, error) {
 	session, err := gs.store.Get(r, AuthSessionName)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (gs *GorillaSession) GetData(r *http.Request, key string) (interface{}, err
 	return session.Values[key], nil
 }
 
-func (gs *GorillaSession) SetData(r *http.Request, w http.ResponseWriter, key string, value interface{}) error {
+func (gs *GorillaSession) SetData(r *http.Request, w http.ResponseWriter, key string, value any) error {
 	session, err := gs.store.Get(r, AuthSessionName)
 	if err != nil {
 		return err

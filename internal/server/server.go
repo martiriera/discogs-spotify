@@ -18,7 +18,7 @@ func NewServer(
 ) *Server {
 	s := &Server{Engine: gin.Default()}
 
-	apiRouter := NewApiRouter(playlistController)
+	apiRouter := NewApiRouter(playlistController, &session)
 	authRouter := NewAuthRouter(oauthController, &session)
 
 	authGroup := s.Engine.Group("/auth")

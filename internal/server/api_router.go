@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 	"github.com/pkg/errors"
@@ -13,17 +14,17 @@ import (
 
 type ApiRouter struct {
 	playlistController *playlist.PlaylistController
+	session            *session.Session
 }
 
-func NewApiRouter(c *playlist.PlaylistController) *ApiRouter {
-	router := &ApiRouter{playlistController: c}
-	router.playlistController = c
+func NewApiRouter(c *playlist.PlaylistController, s *session.Session) *ApiRouter {
+	router := &ApiRouter{playlistController: c, session: s}
 	return router
 }
 
 func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
-	rg.POST("/playlist", router.handlePlaylistCreate)
+	rg.POST("/playlist", AuthMiddleware(*router.session), router.handlePlaylistCreate)
 }
 
 func (router *ApiRouter) handleMain(c *gin.Context) {

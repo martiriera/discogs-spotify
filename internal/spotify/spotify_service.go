@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
 )
 
 var ErrSearchRequest = errors.New("spotify search request error")
@@ -23,12 +26,11 @@ const basePath = "https://api.spotify.com/v1"
 type SpotifyService interface {
 	GetAlbumUri(artist string, title string) (string, error)
 	CreatePlaylist(uris []string) (string, error)
-	GetSpotifyUserInfo() (string, error)
+	GetSpotifyUserInfo(c *gin.Context) (string, error)
 }
 
 type HttpSpotifyService struct {
 	client client.HttpClient
-	// session session.Session
 }
 
 func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
@@ -74,11 +76,18 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 	return "", nil
 }
 
-func (s *HttpSpotifyService) GetSpotifyUserInfo() (string, error) {
+func (s *HttpSpotifyService) GetSpotifyUserInfo(c *gin.Context) (string, error) {
+	token, ok := c.Get(session.SpotifyTokenKey)
+	if !ok {
+		return "", errors.Wrap(ErrUnauthorized, "no token found")
+	}
+
 	req, err := http.NewRequest(http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
+
+	req.Header.Set("Authorization", "Bearer "+token.(*oauth2.Token).AccessToken)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", err
@@ -89,7 +98,7 @@ func (s *HttpSpotifyService) GetSpotifyUserInfo() (string, error) {
 		return "", fmt.Errorf("spotify API returned status %d", resp.StatusCode)
 	}
 
-	var userInfo map[string]interface{}
+	var userInfo map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		return "", err
 	}

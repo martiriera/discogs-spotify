@@ -25,6 +25,9 @@ func main() {
 
 	redirectURL := "http://localhost:" + port + "/callback"
 
+	session := session.NewGorillaSession()
+	session.Init()
+
 	creator := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
 		spotify.NewHttpSpotifyService(&http.Client{}),
@@ -37,14 +40,11 @@ func main() {
 		[]string{"user-read-private", "user-read-email"}, // Add playlist scopes
 	)
 
-	session := session.NewGorillaSession()
-	session.Init()
 	s := server.NewServer(creator, oauth, session)
 
 	if port == "" {
 		port = "8080"
 	}
-
 
 	if err := http.ListenAndServe(":"+port, s); err != nil {
 		log.Fatalf("could not listen on port %s: %v", port, err)
