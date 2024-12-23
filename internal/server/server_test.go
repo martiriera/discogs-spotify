@@ -43,7 +43,7 @@ func TestAcceptance(t *testing.T) {
 	t.Run("login", func(t *testing.T) {
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(controller, oauthController, sessionMock)
-		request := httptest.NewRequest("POST", "/auth/login", nil)
+		request := httptest.NewRequest("GET", "/auth/login", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)

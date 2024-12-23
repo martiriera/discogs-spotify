@@ -30,7 +30,7 @@ func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 func (router *ApiRouter) handleMain(ctx *gin.Context) {
 	html := `<html>
 					<body>
-						<form action="/auth/login" method="post">
+						<form action="/auth/login" method="get">
 							<label for="username">Discogs username:</label>
 							<input type="text" id="username" name="username">
 							<button type="submit">Create playlist</button>

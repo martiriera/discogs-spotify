@@ -15,15 +15,13 @@ type AuthRouter struct {
 }
 
 func NewAuthRouter(c *spotify.OAuthController, session *session.Session) *AuthRouter {
-	router := &AuthRouter{oauthController: c}
-	router.oauthController = c
-	router.session = session
+	router := &AuthRouter{oauthController: c, session: session}
 	return router
 }
 
 func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
-	rg.POST("/login", router.handleLogin)
-	rg.POST("/callback", router.handleLoginCallback)
+	rg.GET("/login", router.handleLogin)
+	rg.GET("/callback", router.handleLoginCallback)
 }
 
 func (router *AuthRouter) handleLogin(ctx *gin.Context) {
