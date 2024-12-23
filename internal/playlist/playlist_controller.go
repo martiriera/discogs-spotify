@@ -21,10 +21,6 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) SetSpotifyService(service spotify.SpotifyService) {
-	c.spotifyService = service
-}
-
 func (c *PlaylistController) CreatePlaylist(discogsUsername string) ([]string, error) {
 	if c.spotifyService == nil {
 		return nil, fmt.Errorf("spotify service not set")
