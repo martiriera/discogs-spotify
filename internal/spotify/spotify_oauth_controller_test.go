@@ -1,7 +1,14 @@
 package spotify
 
 import (
+	"encoding/json"
+	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/martiriera/discogs-spotify/internal/session"
+	"golang.org/x/oauth2"
 )
 
 func TestSpotifyOauthController(t *testing.T) {
@@ -16,5 +23,42 @@ func TestSpotifyOauthController(t *testing.T) {
 		}
 	})
 
-	// TODO: Add test for GetServiceFromCallback
+	t.Run("store token", func(t *testing.T) {
+		t.Setenv("SESSION_KEY", "session_key")
+		session.Init()
+		controller := NewOAuthController("client_id", "client_secret", "redirect_uri", []string{"scope1", "scope2"})
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		c.Request = httptest.NewRequest("POST", "/", nil)
+
+		token := &oauth2.Token{
+			AccessToken:  "access_token",
+			RefreshToken: "refresh_token",
+			Expiry:       time.Now().Add(time.Hour),
+			TokenType:    "token_type",
+		}
+		err := controller.StoreToken(c, token)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		authSession, _ := session.GetSession(c.Request, session.AuthSessionName)
+
+		tokenJson, ok := authSession.Values[session.SpotifyTokenKey]
+
+		if !ok {
+			t.Errorf("token not stored in session")
+		}
+
+		var storedToken oauth2.Token
+		err = json.Unmarshal([]byte(tokenJson.(string)), &storedToken)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if storedToken.AccessToken != token.AccessToken {
+			t.Errorf("got %s, want %s", storedToken.AccessToken, token.AccessToken)
+		}
+	})
 }

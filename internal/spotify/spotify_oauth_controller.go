@@ -1,9 +1,10 @@
 package spotify
 
 import (
-	"context"
-	"net/url"
+	"encoding/json"
 
+	"github.com/gin-gonic/gin"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
@@ -33,21 +34,41 @@ func (o *OAuthController) GetAuthUrl() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) SetToken(values url.Values) error {
+func (o *OAuthController) GenerateToken(c *gin.Context) (*oauth2.Token, error) {
+	values := c.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
-		return errors.Wrap(errors.New(err), "spotify: error in callback")
+		return nil, errors.Wrap(errors.New(err), "spotify: error in callback")
 	}
 	code := values.Get("code")
 	if code == "" {
-		return errors.New("spotify: no code in callback")
+		return nil, errors.New("spotify: no code in callback")
 	}
 	actualState := values.Get("state")
 	if actualState != o.oauthState {
-		return errors.New("spotify: redirect state parameter doesn't match")
+		return nil, errors.New("spotify: redirect state parameter doesn't match")
 	}
-	_, err := o.config.Exchange(context.Background(), code)
+
+	token, err := o.config.Exchange(c, code)
 	if err != nil {
-		return errors.Wrap(err, "spotify: error exchanging code for token")
+		return nil, errors.Wrap(err, "spotify: error exchanging code for token")
 	}
+	return token, nil
+}
+
+func (o *OAuthController) StoreToken(c *gin.Context, token *oauth2.Token) error {
+	authSession, _ := session.GetSession(c.Request, session.AuthSessionName)
+
+	tokenJSON, err := json.Marshal(token)
+	if err != nil {
+		return errors.Wrap(err, "spotify: error marshalling token")
+	}
+
+	authSession.Values[session.SpotifyTokenKey] = string(tokenJSON)
+	err = authSession.Save(c.Request, c.Writer)
+
+	if err != nil {
+		return errors.Wrap(err, "spotify: error saving session")
+	}
+
 	return nil
 }

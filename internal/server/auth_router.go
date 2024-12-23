@@ -29,7 +29,12 @@ func (router *AuthRouter) handleLogin(c *gin.Context) {
 }
 
 func (router *AuthRouter) handleLoginCallback(c *gin.Context) {
-	err := router.oauthController.SetToken(c.Request.URL.Query())
+	token, err := router.oauthController.GenerateToken(c)
+	if err != nil {
+		util.HandleError(c, err, http.StatusInternalServerError)
+		return
+	}
+	err = router.oauthController.StoreToken(c, token)
 	if err != nil {
 		util.HandleError(c, err, http.StatusInternalServerError)
 		return
