@@ -23,7 +23,7 @@ func main() {
 	port := util.AssertEnvVar("PORT")
 	util.AssertEnvVar("SESSION_KEY")
 
-	redirectURL := "http://localhost:" + port + "/callback"
+	redirectURL := "http://localhost:" + port + "/auth/callback"
 
 	session := session.NewGorillaSession()
 	session.Init()

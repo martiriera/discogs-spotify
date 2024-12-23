@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
@@ -21,7 +22,7 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(discogsUsername string) ([]string, error) {
+func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) ([]string, error) {
 	if c.spotifyService == nil {
 		return nil, fmt.Errorf("spotify service not set")
 	}
@@ -33,7 +34,7 @@ func (c *PlaylistController) CreatePlaylist(discogsUsername string) ([]string, e
 	albums := parseAlbumsFromReleases(releases)
 	spotifyUris := []string{}
 	for _, album := range albums {
-		uri, err := c.spotifyService.GetAlbumUri(album)
+		uri, err := c.spotifyService.GetAlbumUri(ctx, album)
 		if err != nil {
 			return nil, err
 		}

@@ -26,21 +26,21 @@ func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.POST("/callback", router.handleLoginCallback)
 }
 
-func (router *AuthRouter) handleLogin(c *gin.Context) {
+func (router *AuthRouter) handleLogin(ctx *gin.Context) {
 	url := router.oauthController.GetAuthUrl()
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	ctx.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func (router *AuthRouter) handleLoginCallback(c *gin.Context) {
-	token, err := router.oauthController.GenerateToken(c)
+func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
+	token, err := router.oauthController.GenerateToken(ctx)
 	if err != nil {
-		util.HandleError(c, err, http.StatusInternalServerError)
+		util.HandleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	err = router.oauthController.StoreToken(c, *router.session, token)
+	err = router.oauthController.StoreToken(ctx, *router.session, token)
 	if err != nil {
-		util.HandleError(c, err, http.StatusInternalServerError)
+		util.HandleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	c.Redirect(http.StatusTemporaryRedirect, "/")
+	ctx.Redirect(http.StatusTemporaryRedirect, "/api/playlist"+ctx.Request.URL.RawQuery)
 }

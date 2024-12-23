@@ -9,20 +9,20 @@ import (
 )
 
 func authMiddleware(store session.Session) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		data, err := store.GetData(c.Request, session.SpotifyTokenKey)
+	return func(ctx *gin.Context) {
+		data, err := store.GetData(ctx.Request, session.SpotifyTokenKey)
 		if err != nil {
 			// TODO: log error
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
 
 		token, ok := data.(*oauth2.Token)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-		c.Set(session.SpotifyTokenKey, token)
-		c.Next()
+		ctx.Set(session.SpotifyTokenKey, token)
+		ctx.Next()
 	}
 }

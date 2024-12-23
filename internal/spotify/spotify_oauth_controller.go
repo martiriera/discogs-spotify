@@ -34,8 +34,8 @@ func (o *OAuthController) GetAuthUrl() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) GenerateToken(c *gin.Context) (*oauth2.Token, error) {
-	values := c.Request.URL.Query()
+func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
+	values := ctx.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
 		return nil, errors.Wrap(errors.New(err), "spotify: error in callback")
 	}
@@ -48,20 +48,20 @@ func (o *OAuthController) GenerateToken(c *gin.Context) (*oauth2.Token, error) {
 		return nil, errors.New("spotify: redirect state parameter doesn't match")
 	}
 
-	token, err := o.config.Exchange(c, code)
+	token, err := o.config.Exchange(ctx, code)
 	if err != nil {
 		return nil, errors.Wrap(err, "spotify: error exchanging code for token")
 	}
 	return token, nil
 }
 
-func (o *OAuthController) StoreToken(c *gin.Context, s session.Session, token *oauth2.Token) error {
+func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token *oauth2.Token) error {
 	tokenJSON, err := json.Marshal(token)
 	if err != nil {
 		return errors.Wrap(err, "spotify: error marshalling token")
 	}
 
-	err = s.SetData(c.Request, c.Writer, session.SpotifyTokenKey, string(tokenJSON))
+	err = s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, string(tokenJSON))
 
 	if err != nil {
 		return errors.Wrap(err, "spotify: error saving session")

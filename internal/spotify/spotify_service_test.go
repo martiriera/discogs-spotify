@@ -7,6 +7,9 @@ import (
 	"testing"
 
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/session"
+	"github.com/martiriera/discogs-spotify/util"
+	"golang.org/x/oauth2"
 )
 
 type StubSpotifyHttpClient struct {
@@ -27,6 +30,8 @@ func (s *StubSpotifyHttpClient) Do(req *http.Request) (*http.Response, error) {
 func TestSpotifyService(t *testing.T) {
 	t.Setenv("SPOTIFY_CLIENT_ID", "test")
 	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+
 	tcs := []struct {
 		name     string
 		request  func(service SpotifyService) (string, error)
@@ -36,7 +41,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return album uri",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -64,7 +69,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -89,7 +94,8 @@ func TestSpotifyService(t *testing.T) {
 			},
 			response: &http.Response{
 				StatusCode: 201,
-				Body:       io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
+				// TODO: more real id
+				Body: io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
 			},
 			want: "123",
 		},
@@ -118,8 +124,11 @@ func TestSpotifyServiceError(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Bad Request"}`)),
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+
 	want := `status: 400, body: {"message": "Bad Request"}: spotify search response error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
@@ -139,8 +148,11 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 		},
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri(entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+
 	if err == nil {
 		t.Errorf("did expect error, got nil")
 	}

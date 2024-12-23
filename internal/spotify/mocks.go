@@ -10,7 +10,7 @@ type SpotifyServiceMock struct {
 	index     int
 }
 
-func (m *SpotifyServiceMock) GetAlbumUri(album entities.Album) (string, error) {
+func (m *SpotifyServiceMock) GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error) {
 	if m.index >= len(m.Responses) {
 		return "", nil
 	}
@@ -23,6 +23,6 @@ func (m *SpotifyServiceMock) CreatePlaylist(uris []string) (string, error) {
 	return m.Responses[0], nil
 }
 
-func (m *SpotifyServiceMock) GetSpotifyUserInfo(c *gin.Context) (string, error) {
+func (m *SpotifyServiceMock) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
 	return m.Responses[0], nil
 }

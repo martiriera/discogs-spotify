@@ -8,7 +8,7 @@ import (
 )
 
 // HandleError formats and sends the error response using Gin
-func HandleError(c *gin.Context, err error, statusCode int) {
+func HandleError(ctx *gin.Context, err error, statusCode int) {
 	// Log the error (you can add more sophisticated logging)
 	log.Println(err)
 
@@ -18,7 +18,7 @@ func HandleError(c *gin.Context, err error, statusCode int) {
 	}
 
 	// Set response headers and send the error response
-	c.JSON(statusCode, errorResponse)
+	ctx.JSON(statusCode, errorResponse)
 }
 
 func AssertEnvVar(name string) string {

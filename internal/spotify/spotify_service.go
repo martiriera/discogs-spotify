@@ -24,9 +24,9 @@ var ErrUnauthorized = errors.New("spotify unauthorized error")
 const basePath = "https://api.spotify.com/v1"
 
 type SpotifyService interface {
-	GetAlbumUri(album entities.Album) (string, error)
+	GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error)
 	CreatePlaylist(uris []string) (string, error)
-	GetSpotifyUserInfo(c *gin.Context) (string, error)
+	GetSpotifyUserInfo(ctx *gin.Context) (string, error)
 }
 
 type HttpSpotifyService struct {
@@ -37,14 +37,20 @@ func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client}
 }
 
-func (s *HttpSpotifyService) GetAlbumUri(album entities.Album) (string, error) {
+func (s *HttpSpotifyService) GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
+	token, ok := ctx.Get(session.SpotifyTokenKey)
+	if !ok {
+		return "", errors.Wrap(ErrUnauthorized, "no token found")
+	}
+
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
+	req.Header.Set("Authorization", "Bearer "+token.(*oauth2.Token).AccessToken)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
@@ -76,8 +82,8 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 	return "", nil
 }
 
-func (s *HttpSpotifyService) GetSpotifyUserInfo(c *gin.Context) (string, error) {
-	token, ok := c.Get(session.SpotifyTokenKey)
+func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
+	token, ok := ctx.Get(session.SpotifyTokenKey)
 	if !ok {
 		return "", errors.Wrap(ErrUnauthorized, "no token found")
 	}

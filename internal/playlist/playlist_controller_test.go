@@ -6,7 +6,10 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/util"
+	"golang.org/x/oauth2"
 )
 
 func TestPlaylistController(t *testing.T) {
@@ -17,8 +20,9 @@ func TestPlaylistController(t *testing.T) {
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
 	controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	uris, err := controller.CreatePlaylist("digger")
+	uris, err := controller.CreatePlaylist(ctx, "digger")
 	if err != nil {
 		t.Errorf("error is not nil")
 	}
