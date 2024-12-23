@@ -1,0 +1,47 @@
+package session
+
+import (
+	"net/http"
+	"os"
+
+	"github.com/gorilla/sessions"
+)
+
+type GorillaSession struct {
+	store *sessions.CookieStore
+}
+
+func NewGorillaSession() *GorillaSession {
+	return &GorillaSession{
+		store: nil,
+	}
+}
+
+func (gs *GorillaSession) Init() {
+	gs.store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+}
+
+func (gs *GorillaSession) Get(r *http.Request, sessionName string) (*SessionData, error) {
+	session, err := gs.store.Get(r, sessionName)
+	if err != nil {
+		return nil, err
+	}
+	return &SessionData{Values: session.Values}, nil
+}
+
+func (gs *GorillaSession) GetData(r *http.Request, key string) (interface{}, error) {
+	session, err := gs.store.Get(r, AuthSessionName)
+	if err != nil {
+		return nil, err
+	}
+	return session.Values[key], nil
+}
+
+func (gs *GorillaSession) SetData(r *http.Request, w http.ResponseWriter, key string, value interface{}) error {
+	session, err := gs.store.Get(r, AuthSessionName)
+	if err != nil {
+		return err
+	}
+	session.Values[key] = value
+	return gs.store.Save(r, w, session)
+}

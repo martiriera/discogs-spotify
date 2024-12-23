@@ -25,7 +25,8 @@ func TestSpotifyOauthController(t *testing.T) {
 
 	t.Run("store token", func(t *testing.T) {
 		t.Setenv("SESSION_KEY", "session_key")
-		session.Init()
+		s := session.NewGorillaSession()
+		s.Init()
 		controller := NewOAuthController("client_id", "client_secret", "redirect_uri", []string{"scope1", "scope2"})
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("POST", "/", nil)
@@ -36,20 +37,20 @@ func TestSpotifyOauthController(t *testing.T) {
 			Expiry:       time.Now().Add(time.Hour),
 			TokenType:    "token_type",
 		}
-		err := controller.StoreToken(c, token)
+		err := controller.StoreToken(c, s, token)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		tokenJson, err := session.GetSpotifyToken(c.Request)
+		tokenJson, err := s.GetData(c.Request, session.SpotifyTokenKey)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 
 		var storedToken oauth2.Token
-		err = json.Unmarshal([]byte(tokenJson), &storedToken)
+		err = json.Unmarshal([]byte(tokenJson.(string)), &storedToken)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)

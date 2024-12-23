@@ -4,17 +4,20 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
 type AuthRouter struct {
 	oauthController *spotify.OAuthController
+	session         *session.Session
 }
 
-func NewAuthRouter(c *spotify.OAuthController) *AuthRouter {
+func NewAuthRouter(c *spotify.OAuthController, session *session.Session) *AuthRouter {
 	router := &AuthRouter{oauthController: c}
 	router.oauthController = c
+	router.session = session
 	return router
 }
 
@@ -34,7 +37,7 @@ func (router *AuthRouter) handleLoginCallback(c *gin.Context) {
 		util.HandleError(c, err, http.StatusInternalServerError)
 		return
 	}
-	err = router.oauthController.StoreToken(c, token)
+	err = router.oauthController.StoreToken(c, *router.session, token)
 	if err != nil {
 		util.HandleError(c, err, http.StatusInternalServerError)
 		return

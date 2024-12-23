@@ -28,6 +28,7 @@ type SpotifyService interface {
 
 type HttpSpotifyService struct {
 	client client.HttpClient
+	// session session.Session
 }
 
 func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {

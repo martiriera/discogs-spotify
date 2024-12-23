@@ -55,13 +55,13 @@ func (o *OAuthController) GenerateToken(c *gin.Context) (*oauth2.Token, error) {
 	return token, nil
 }
 
-func (o *OAuthController) StoreToken(c *gin.Context, token *oauth2.Token) error {
+func (o *OAuthController) StoreToken(c *gin.Context, s session.Session, token *oauth2.Token) error {
 	tokenJSON, err := json.Marshal(token)
 	if err != nil {
 		return errors.Wrap(err, "spotify: error marshalling token")
 	}
 
-	err = session.SetSpotifyToken(c, string(tokenJSON))
+	err = s.SetData(c.Request, c.Writer, session.SpotifyTokenKey, string(tokenJSON))
 
 	if err != nil {
 		return errors.Wrap(err, "spotify: error saving session")

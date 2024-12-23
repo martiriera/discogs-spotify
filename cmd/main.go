@@ -37,13 +37,14 @@ func main() {
 		[]string{"user-read-private", "user-read-email"}, // Add playlist scopes
 	)
 
-	s := server.NewServer(creator, oauth)
+	session := session.NewGorillaSession()
+	session.Init()
+	s := server.NewServer(creator, oauth, session)
 
 	if port == "" {
 		port = "8080"
 	}
 
-	session.Init()
 
 	if err := http.ListenAndServe(":"+port, s); err != nil {
 		log.Fatalf("could not listen on port %s: %v", port, err)
