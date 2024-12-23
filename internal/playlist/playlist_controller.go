@@ -9,23 +9,23 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
-type PlaylistCreator struct {
+type PlaylistController struct {
 	discogsService discogs.DiscogsService
 	spotifyService spotify.SpotifyService
 }
 
-func NewPlaylistCreator(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistCreator {
-	return &PlaylistCreator{
+func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistController {
+	return &PlaylistController{
 		discogsService: discogsService,
 		spotifyService: spotifyService,
 	}
 }
 
-func (c *PlaylistCreator) SetSpotifyService(service spotify.SpotifyService) {
+func (c *PlaylistController) SetSpotifyService(service spotify.SpotifyService) {
 	c.spotifyService = service
 }
 
-func (c *PlaylistCreator) CreatePlaylist(discogsUsername string) ([]string, error) {
+func (c *PlaylistController) CreatePlaylist(discogsUsername string) ([]string, error) {
 	if c.spotifyService == nil {
 		return nil, fmt.Errorf("spotify service not set")
 	}

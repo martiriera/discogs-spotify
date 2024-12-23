@@ -12,12 +12,12 @@ import (
 )
 
 type ApiRouter struct {
-	playlistCreator *playlist.PlaylistCreator
+	playlistController *playlist.PlaylistController
 }
 
-func NewApiRouter(c *playlist.PlaylistCreator) *ApiRouter {
-	router := &ApiRouter{playlistCreator: c}
-	router.playlistCreator = c
+func NewApiRouter(c *playlist.PlaylistController) *ApiRouter {
+	router := &ApiRouter{playlistController: c}
+	router.playlistController = c
 	return router
 }
 
@@ -47,7 +47,7 @@ func (router *ApiRouter) handlePlaylistCreate(c *gin.Context) {
 		return
 	}
 
-	uris, err := router.playlistCreator.CreatePlaylist(username)
+	uris, err := router.playlistController.CreatePlaylist(username)
 	if err != nil {
 		if errors.Cause(err) == discogs.ErrUnauthorized {
 			util.HandleError(c, err, http.StatusUnauthorized)

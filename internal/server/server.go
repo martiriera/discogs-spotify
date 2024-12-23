@@ -11,12 +11,12 @@ type Server struct {
 }
 
 func NewServer(
-	playlistCreator *playlist.PlaylistCreator,
+	playlistController *playlist.PlaylistController,
 	oauthController *spotify.OAuthController,
 ) *Server {
 	s := &Server{Engine: gin.Default()}
 
-	apiRouter := NewApiRouter(playlistCreator)
+	apiRouter := NewApiRouter(playlistController)
 	authRouter := NewAuthRouter(oauthController)
 
 	authGroup := s.Engine.Group("/auth")

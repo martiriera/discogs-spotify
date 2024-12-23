@@ -25,7 +25,7 @@ func main() {
 
 	redirectURL := "http://localhost:" + port + "/callback"
 
-	creator := playlist.NewPlaylistCreator(
+	creator := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
 		spotify.NewHttpSpotifyService(&http.Client{}),
 	)

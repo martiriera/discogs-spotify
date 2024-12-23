@@ -9,16 +9,16 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
-func TestPlaylistCreator(t *testing.T) {
+func TestPlaylistController(t *testing.T) {
 	discogsServiceMock := &discogs.DiscogsServiceMock{
 		Response: entities.MotherTwoAlbums(),
 	}
 	spotifyServiceMock := &spotify.SpotifyServiceMock{
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
-	playlistCreator := NewPlaylistCreator(discogsServiceMock, spotifyServiceMock)
+	controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 
-	uris, err := playlistCreator.CreatePlaylist("digger")
+	uris, err := controller.CreatePlaylist("digger")
 	if err != nil {
 		t.Errorf("error is not nil")
 	}
