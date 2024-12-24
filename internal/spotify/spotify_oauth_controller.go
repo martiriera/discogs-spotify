@@ -1,8 +1,6 @@
 package spotify
 
 import (
-	"encoding/json"
-
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/pkg/errors"
@@ -56,12 +54,7 @@ func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error)
 }
 
 func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token *oauth2.Token) error {
-	tokenJSON, err := json.Marshal(token)
-	if err != nil {
-		return errors.Wrap(err, "spotify: error marshalling token")
-	}
-
-	err = s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, string(tokenJSON))
+	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {
 		return errors.Wrap(err, "spotify: error saving session")

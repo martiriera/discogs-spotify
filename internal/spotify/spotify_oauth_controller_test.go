@@ -1,7 +1,6 @@
 package spotify
 
 import (
-	"encoding/json"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -43,17 +42,15 @@ func TestSpotifyOauthController(t *testing.T) {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		tokenJson, err := s.GetData(ctx.Request, session.SpotifyTokenKey)
+		storedTokenData, err := s.GetData(ctx.Request, session.SpotifyTokenKey)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		var storedToken oauth2.Token
-		err = json.Unmarshal([]byte(tokenJson.(string)), &storedToken)
-
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+		storedToken, ok := storedTokenData.(*oauth2.Token)
+		if !ok {
+			t.Errorf("stored token is not of type *oauth2.Token")
 		}
 
 		if storedToken.AccessToken != token.AccessToken {

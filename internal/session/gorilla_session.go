@@ -1,10 +1,12 @@
 package session
 
 import (
+	"encoding/gob"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/sessions"
+	"golang.org/x/oauth2"
 )
 
 type GorillaSession struct {
@@ -18,6 +20,7 @@ func NewGorillaSession() *GorillaSession {
 }
 
 func (gs *GorillaSession) Init() {
+	gob.Register(&oauth2.Token{})
 	gs.store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 }
 
