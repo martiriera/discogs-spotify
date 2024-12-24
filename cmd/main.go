@@ -23,7 +23,7 @@ func main() {
 	port := util.AssertEnvVar("PORT")
 	util.AssertEnvVar("SESSION_KEY")
 
-	redirectURL := "http://localhost:" + port + "/auth/callback"
+	oauthRedirectUrl := "http://localhost:" + port + "/auth/callback"
 
 	session := session.NewGorillaSession()
 	session.Init()
@@ -36,8 +36,7 @@ func main() {
 	oauth := spotify.NewOAuthController(
 		clientID,
 		clientSecret,
-		redirectURL,
-		[]string{"user-read-private", "user-read-email"}, // Add playlist scopes
+		oauthRedirectUrl,
 	)
 
 	s := server.NewServer(creator, oauth, session)

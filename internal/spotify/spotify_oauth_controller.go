@@ -10,12 +10,19 @@ import (
 
 const oauthState = "AOWTCN2KHZ"
 
+var scopes = []string{
+	"user-read-private",
+	"user-read-email",
+	"playlist-modify-public",
+	"playlist-modify-private",
+}
+
 type OAuthController struct {
 	config     *oauth2.Config
 	oauthState string
 }
 
-func NewOAuthController(clientID, clientSecret, redirectURL string, scopes []string) *OAuthController {
+func NewOAuthController(clientID, clientSecret, redirectURL string) *OAuthController {
 	return &OAuthController{
 		config: &oauth2.Config{
 			ClientID:     clientID,

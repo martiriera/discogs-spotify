@@ -25,7 +25,6 @@ func TestAcceptance(t *testing.T) {
 		"client_id",
 		"client_secret",
 		"http://localhost:8080/callback",
-		[]string{"user-read-private", "user-read-email"},
 	)
 	sessionMock := session.NewInMemorySession()
 	sessionMock.Init()
