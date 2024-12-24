@@ -1,7 +1,7 @@
 package server
 
 import (
-	"net/http"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/session"
@@ -10,18 +10,26 @@ import (
 
 func authMiddleware(store session.Session) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		data, err := store.GetData(ctx.Request, session.SpotifyTokenKey)
+		// TODO: Request can have the token so session may not be needed
+		// TODDO: TESTS
+
+		tokenJson, err := store.GetData(ctx.Request, session.SpotifyTokenKey)
+
 		if err != nil {
-			// TODO: log error
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.Redirect(302, "/auth/login")
+			ctx.Abort()
 			return
 		}
 
-		token, ok := data.(*oauth2.Token)
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		var token oauth2.Token
+		err = json.Unmarshal([]byte(tokenJson.(string)), &token)
+
+		if err != nil {
+			ctx.Redirect(302, "/auth/login")
+			ctx.Abort()
 			return
 		}
+
 		ctx.Set(session.SpotifyTokenKey, token)
 		ctx.Next()
 	}

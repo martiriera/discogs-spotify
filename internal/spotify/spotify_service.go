@@ -50,7 +50,12 @@ func (s *HttpSpotifyService) GetAlbumUri(ctx *gin.Context, album entities.Album)
 		return "", errors.Wrap(ErrSearchRequest, err.Error())
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token.(*oauth2.Token).AccessToken)
+	oauthToken, ok := token.(oauth2.Token)
+	if !ok {
+		return "", errors.Wrap(ErrUnauthorized, "invalid token type")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+oauthToken.AccessToken)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", errors.Wrap(ErrSearchRequest, err.Error())

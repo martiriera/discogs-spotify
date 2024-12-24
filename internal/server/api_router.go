@@ -24,24 +24,38 @@ func NewApiRouter(c *playlist.PlaylistController, s *session.Session) *ApiRouter
 
 func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
+	rg.GET("/home", authMiddleware(*router.session), router.handleMain)
 	rg.POST("/playlist", authMiddleware(*router.session), router.handlePlaylistCreate)
 }
 
 func (router *ApiRouter) handleMain(ctx *gin.Context) {
-	html := `<html>
+	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
+		router.handleHome(ctx)
+	} else {
+		html := `<html>
 					<body>
-						<form action="/auth/login" method="get">
-							<label for="username">Discogs username:</label>
-							<input type="text" id="username" name="username">
-							<button type="submit">Create playlist</button>
-						</form>
+						<a href="/auth/login">Login with Spotify</a>
 					</body>
 				</html>`
+		ctx.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+	}
+}
+
+func (router *ApiRouter) handleHome(ctx *gin.Context) {
+	html := `<html>
+				<body>
+					<form action="/api/playlist" method="post">
+						<label for="username">Discogs username:</label>
+						<input type="text" name="username" name="username">
+						<input type="submit" value="Create playlist">
+					</form>
+				</body>
+			</html>`
 	ctx.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
-	username := ctx.Query("username")
+	username := ctx.PostForm("username")
 
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
