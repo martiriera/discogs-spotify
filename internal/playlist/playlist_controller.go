@@ -23,10 +23,6 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 }
 
 func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) ([]string, error) {
-	if c.spotifyService == nil {
-		return nil, fmt.Errorf("spotify service not set")
-	}
-
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	if err != nil {
 		return nil, err
