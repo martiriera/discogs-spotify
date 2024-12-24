@@ -3,7 +3,6 @@ package spotify
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 
@@ -41,20 +40,9 @@ func (s *HttpSpotifyService) GetAlbumUri(ctx *gin.Context, album entities.Album)
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
 
-	resp, err := s.doRequest(ctx, http.MethodGet, route)
+	response, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route)
 	if err != nil {
 		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return "", errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
-	}
-
-	var response entities.SpotifySearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", errors.Wrap(ErrSearchResponse, err.Error())
 	}
 
 	if len(response.Albums.Items) == 0 {
@@ -71,25 +59,15 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
 	route := basePath + "/me"
 
-	resp, err := s.doRequest(ctx, http.MethodGet, route)
+	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("spotify API returned status %d", resp.StatusCode)
-	}
-
-	var userInfo entities.SpotifyUserResponse
-	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		return "", errors.Wrap(ErrSearchResponse, err.Error())
-	}
-
-	return fmt.Sprintf("%v", userInfo.URI), nil
+	return fmt.Sprintf("%v", resp.URI), nil
 }
 
-func (s *HttpSpotifyService) doRequest(ctx *gin.Context, method, route string) (*http.Response, error) {
+func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route string) (*T, error) {
 	token, ok := ctx.Get(session.SpotifyTokenKey)
 	if !ok {
 		return nil, errors.Wrap(ErrUnauthorized, "no token found")
@@ -110,10 +88,16 @@ func (s *HttpSpotifyService) doRequest(ctx *gin.Context, method, route string) (
 	if err != nil {
 		return nil, errors.Wrap(ErrSearchRequest, err.Error())
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, ErrUnauthorized
 	}
 
-	return resp, nil
+	var result T
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, errors.Wrap(ErrSearchResponse, err.Error())
+	}
+
+	return &result, nil
 }
