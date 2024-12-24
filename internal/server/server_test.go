@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -53,7 +54,8 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("create playlist", func(t *testing.T) {
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		request := httptest.NewRequest("POST", "/api/playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 
 		token := &oauth2.Token{
@@ -87,7 +89,8 @@ func TestAcceptance(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(controller, oauthController, sessionMock)
-		request := httptest.NewRequest("POST", "/api/playlist?username=test", nil)
+		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
