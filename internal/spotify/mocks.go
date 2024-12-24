@@ -19,7 +19,7 @@ func (m *SpotifyServiceMock) GetAlbumUri(ctx *gin.Context, album entities.Album)
 	return response, nil
 }
 
-func (m *SpotifyServiceMock) CreatePlaylist(uris []string) (string, error) {
+func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
 	return m.Responses[0], nil
 }
 

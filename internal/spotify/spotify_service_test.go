@@ -115,18 +115,17 @@ func TestSpotifyService(t *testing.T) {
 			},
 			want: "spotify:user:wizzler",
 		},
-		// {
-		// 	name: "should create playlist",
-		// 	request: func(service SpotifyService) (string, error) {
-		// 		return service.CreatePlaylist([]string{"spotify:album:4JeLdGuCEO9SF9SnFa9LBh"})
-		// 	},
-		// 	response: &http.Response{
-		// 		StatusCode: 201,
-		// 		// TODO: more real id
-		// 		Body: io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
-		// 	},
-		// 	want: "123",
-		// },
+		{
+			name: "should create playlist",
+			request: func(service SpotifyService) (string, error) {
+				return service.CreatePlaylist(ctx, "test", "test")
+			},
+			response: &http.Response{
+				StatusCode: 201,
+				Body: io.NopCloser(bytes.NewBufferString(`{"id": "6rqhFgbbKwnb9MLmUQDhG6"}`)),
+			},
+			want: "6rqhFgbbKwnb9MLmUQDhG6",
+		},
 	}
 
 	for _, tc := range tcs {

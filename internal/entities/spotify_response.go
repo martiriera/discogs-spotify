@@ -6,22 +6,18 @@ type SpotifySearchResponse struct {
 		Items []struct {
 			AlbumType string `json:"album_type"`
 			Artists   []struct {
-				ExternalUrls struct {
-					Spotify string `json:"spotify"`
-				} `json:"external_urls"`
-				Href string `json:"href"`
-				ID   string `json:"id"`
-				Name string `json:"name"`
-				Type string `json:"type"`
-				URI  string `json:"uri"`
+				ExternalUrls SpotifyExternalUrls `json:"external_urls"`
+				Href         string              `json:"href"`
+				ID           string              `json:"id"`
+				Name         string              `json:"name"`
+				Type         string              `json:"type"`
+				URI          string              `json:"uri"`
 			} `json:"artists"`
-			AvailableMarkets []string `json:"available_markets"`
-			ExternalUrls     struct {
-				Spotify string `json:"spotify"`
-			} `json:"external_urls"`
-			Href   string `json:"href"`
-			ID     string `json:"id"`
-			Images []struct {
+			AvailableMarkets []string            `json:"available_markets"`
+			ExternalUrls     SpotifyExternalUrls `json:"external_urls"`
+			Href             string              `json:"href"`
+			ID               string              `json:"id"`
+			Images           []struct {
 				Height int    `json:"height"`
 				URL    string `json:"url"`
 				Width  int    `json:"width"`
@@ -55,10 +51,8 @@ type SpotifyUserResponse struct {
 		FilterEnabled bool `json:"filter_enabled"`
 		FilterLocked  bool `json:"filter_locked"`
 	} `json:"explicit_content"`
-	ExternalUrls struct {
-		Spotify string `json:"spotify"`
-	} `json:"external_urls"`
-	Followers struct {
+	ExternalUrls SpotifyExternalUrls `json:"external_urls"`
+	Followers    struct {
 		Href  string `json:"href"`
 		Total int    `json:"total"`
 	} `json:"followers"`
@@ -72,4 +66,20 @@ type SpotifyUserResponse struct {
 	Product string `json:"product"`
 	Type    string `json:"type"`
 	URI     string `json:"uri"`
+}
+
+type SpotifyPlaylistResponse struct {
+	Collaborative bool                `json:"collaborative"`
+	ExternalUrls  SpotifyExternalUrls `json:"external_urls"`
+	Href          string              `json:"href"`
+	ID            string              `json:"id"`
+	Name          string              `json:"name"`
+	Public        bool                `json:"public"`
+	SnapshotID    string              `json:"snapshot_id"`
+	Type          string              `json:"type"`
+	URI           string              `json:"uri"`
+}
+
+type SpotifyExternalUrls struct {
+	Spotify string `json:"spotify"`
 }

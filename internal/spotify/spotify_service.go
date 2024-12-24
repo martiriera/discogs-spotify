@@ -1,6 +1,7 @@
 package spotify
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,7 +26,7 @@ const basePath = "https://api.spotify.com/v1"
 
 type SpotifyService interface {
 	GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error)
-	CreatePlaylist(uris []string) (string, error)
+	CreatePlaylist(ctx *gin.Context, name string, description string) (string, error)
 	GetSpotifyUserInfo(ctx *gin.Context) (string, error)
 }
 
@@ -41,26 +42,44 @@ func (s *HttpSpotifyService) GetAlbumUri(ctx *gin.Context, album entities.Album)
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
 
-	response, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route)
+	resp, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route, nil)
 	if err != nil {
 		return "", err
 	}
 
-	if len(response.Albums.Items) == 0 {
+	if len(resp.Albums.Items) == 0 {
 		return "", nil
 	}
 
-	return response.Albums.Items[0].URI, nil
+	return resp.Albums.Items[0].URI, nil
 }
 
-func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
-	return "", nil
+func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
+	userId := "test"
+	route := basePath + "users/" + userId + "/playlists"
+
+	body := map[string]string{
+		"name":        name,
+		"description": description,
+	}
+
+	jsonBody := new(bytes.Buffer)
+	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
+		return "", errors.Wrap(ErrSearchRequest, err.Error())
+	}
+
+	resp, err := doRequest[entities.SpotifyPlaylistResponse](s, ctx, http.MethodPost, route, jsonBody)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.ID, nil
 }
 
 func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
 	route := basePath + "/me"
 
-	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route)
+	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route, nil)
 	if err != nil {
 		return "", err
 	}
@@ -68,13 +87,13 @@ func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error
 	return fmt.Sprintf("%v", resp.URI), nil
 }
 
-func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route string) (*T, error) {
+func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route string, body io.Reader) (*T, error) {
 	token, ok := ctx.Get(session.SpotifyTokenKey)
 	if !ok {
 		return nil, errors.Wrap(ErrUnauthorized, "no token found")
 	}
 
-	req, err := http.NewRequest(method, route, nil)
+	req, err := http.NewRequest(method, route, body)
 	if err != nil {
 		return nil, errors.Wrap(ErrSearchRequest, err.Error())
 	}
@@ -97,7 +116,7 @@ func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route str
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
