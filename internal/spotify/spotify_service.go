@@ -40,32 +40,13 @@ func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
 func (s *HttpSpotifyService) GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
-	token, ok := ctx.Get(session.SpotifyTokenKey)
-	if !ok {
-		return "", errors.Wrap(ErrUnauthorized, "no token found")
-	}
 
-	req, err := http.NewRequest(http.MethodGet, route, nil)
+	resp, err := s.doRequest(ctx, http.MethodGet, route)
 	if err != nil {
-		return "", errors.Wrap(ErrSearchRequest, err.Error())
+		return "", err
 	}
-
-	oauthToken, ok := token.(*oauth2.Token)
-	if !ok {
-		return "", errors.Wrap(ErrUnauthorized, "invalid token type")
-	}
-
-	req.Header.Set("Authorization", "Bearer "+oauthToken.AccessToken)
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return "", errors.Wrap(ErrSearchRequest, err.Error())
-	}
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		return "", ErrUnauthorized
-	}
-
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return "", errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
@@ -88,18 +69,9 @@ func (s *HttpSpotifyService) CreatePlaylist(uris []string) (string, error) {
 }
 
 func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
-	token, ok := ctx.Get(session.SpotifyTokenKey)
-	if !ok {
-		return "", errors.Wrap(ErrUnauthorized, "no token found")
-	}
+	route := basePath + "/me"
 
-	req, err := http.NewRequest(http.MethodGet, basePath+"/me", nil)
-	if err != nil {
-		return "", errors.Wrap(ErrSearchRequest, err.Error())
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token.(*oauth2.Token).AccessToken)
-	resp, err := s.client.Do(req)
+	resp, err := s.doRequest(ctx, http.MethodGet, route)
 	if err != nil {
 		return "", err
 	}
@@ -109,10 +81,39 @@ func (s *HttpSpotifyService) GetSpotifyUserInfo(ctx *gin.Context) (string, error
 		return "", fmt.Errorf("spotify API returned status %d", resp.StatusCode)
 	}
 
-	var userInfo map[string]any
+	var userInfo entities.SpotifyUserResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		return "", err
+		return "", errors.Wrap(ErrSearchResponse, err.Error())
 	}
 
-	return fmt.Sprintf("%v", userInfo), nil
+	return fmt.Sprintf("%v", userInfo.URI), nil
+}
+
+func (s *HttpSpotifyService) doRequest(ctx *gin.Context, method, route string) (*http.Response, error) {
+	token, ok := ctx.Get(session.SpotifyTokenKey)
+	if !ok {
+		return nil, errors.Wrap(ErrUnauthorized, "no token found")
+	}
+
+	req, err := http.NewRequest(method, route, nil)
+	if err != nil {
+		return nil, errors.Wrap(ErrSearchRequest, err.Error())
+	}
+
+	oauthToken, ok := token.(*oauth2.Token)
+	if !ok {
+		return nil, errors.Wrap(ErrUnauthorized, "invalid token type")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+oauthToken.AccessToken)
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(ErrSearchRequest, err.Error())
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, ErrUnauthorized
+	}
+
+	return resp, nil
 }

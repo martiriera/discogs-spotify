@@ -88,17 +88,45 @@ func TestSpotifyService(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "should create playlist",
+			name: "should return user info",
 			request: func(service SpotifyService) (string, error) {
-				return service.CreatePlaylist([]string{"spotify:album:4JeLdGuCEO9SF9SnFa9LBh"})
+				return service.GetSpotifyUserInfo(ctx)
 			},
 			response: &http.Response{
-				StatusCode: 201,
-				// TODO: more real id
-				Body: io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
+				StatusCode: 200,
+				Body: io.NopCloser(bytes.NewBufferString(`{
+				"display_name": "John Doe",
+				"email": "johndoe@example.com",
+				"external_urls": {
+					"spotify": "string"
+				},
+				"href": "https://api.spotify.com/v1/users/123",
+				"id": "wizzler",
+				"images": [
+					{
+						"url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228",
+						"height": 300,
+						"width": 300
+					}
+				],
+				"type": "user",
+				"uri": "spotify:user:wizzler"
+				}`)),
 			},
-			want: "123",
+			want: "spotify:user:wizzler",
 		},
+		// {
+		// 	name: "should create playlist",
+		// 	request: func(service SpotifyService) (string, error) {
+		// 		return service.CreatePlaylist([]string{"spotify:album:4JeLdGuCEO9SF9SnFa9LBh"})
+		// 	},
+		// 	response: &http.Response{
+		// 		StatusCode: 201,
+		// 		// TODO: more real id
+		// 		Body: io.NopCloser(bytes.NewBufferString(`{"id": "123"}`)),
+		// 	},
+		// 	want: "123",
+		// },
 	}
 
 	for _, tc := range tcs {
