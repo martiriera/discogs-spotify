@@ -3,6 +3,7 @@ package spotify
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -92,6 +93,13 @@ func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route str
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, ErrUnauthorized
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result T
