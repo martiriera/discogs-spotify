@@ -90,7 +90,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return user info",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetSpotifyUserInfo(ctx)
+				return service.GetSpotifyUserId(ctx)
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -118,11 +118,12 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should create playlist",
 			request: func(service SpotifyService) (string, error) {
-				return service.CreatePlaylist(ctx, "test", "test")
+				ctx.Set(session.SpotifyUserIdKey, "wizzler")
+				return service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 			},
 			response: &http.Response{
 				StatusCode: 201,
-				Body: io.NopCloser(bytes.NewBufferString(`{"id": "6rqhFgbbKwnb9MLmUQDhG6"}`)),
+				Body:       io.NopCloser(bytes.NewBufferString(`{"id": "6rqhFgbbKwnb9MLmUQDhG6"}`)),
 			},
 			want: "6rqhFgbbKwnb9MLmUQDhG6",
 		},

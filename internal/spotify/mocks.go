@@ -19,10 +19,14 @@ func (m *SpotifyServiceMock) GetAlbumUri(ctx *gin.Context, album entities.Album)
 	return response, nil
 }
 
-func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
-	return m.Responses[0], nil
+func (m *SpotifyServiceMock) GetSpotifyUserId(ctx *gin.Context) (string, error) {
+	return "wizzler", nil
 }
 
-func (m *SpotifyServiceMock) GetSpotifyUserInfo(ctx *gin.Context) (string, error) {
-	return m.Responses[0], nil
+func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
+	return "6rqhFgbbKwnb9MLmUQDhG6", nil
+}
+
+func (m *SpotifyServiceMock) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
+	return nil
 }

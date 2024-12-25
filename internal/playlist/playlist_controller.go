@@ -1,13 +1,14 @@
 package playlist
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/pkg/errors"
 )
 
 type PlaylistController struct {
@@ -22,22 +23,34 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) ([]string, error) {
+func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (string, error) {
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	albums := parseAlbumsFromReleases(releases)
 	spotifyUris := []string{}
 	for _, album := range albums {
 		uri, err := c.spotifyService.GetAlbumUri(ctx, album)
 		if err != nil {
-			return nil, err
+			return "", errors.Wrap(err, "error getting album uri")
 		}
 		spotifyUris = append(spotifyUris, uri)
 	}
-	fmt.Printf("Spotify URIs: %v", spotifyUris)
-	return filterNotFounds(spotifyUris), nil
+	filterNotFounds(spotifyUris)
+	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "error getting spotify user id")
+	}
+
+	// TODO: Store also on session?
+	ctx.Set(session.SpotifyUserIdKey, userId)
+
+	playlistId, err := c.spotifyService.CreatePlaylist(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	if err != nil {
+		return "", errors.Wrap(err, "error creating playlist")
+	}
+	return playlistId, nil
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
@@ -62,12 +75,13 @@ func joinArtists(artists []entities.DiscogsArtist) string {
 	return strings.Join(names, ", ")
 }
 
-func filterNotFounds(uris []string) []string {
-	filtered := []string{}
+func filterNotFounds(uris []string) {
+	j := 0
 	for _, uri := range uris {
 		if uri != "" {
-			filtered = append(filtered, uri)
+			uris[j] = uri
+			j++
 		}
 	}
-	return filtered
+	uris = uris[:j]
 }

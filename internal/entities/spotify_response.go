@@ -83,3 +83,7 @@ type SpotifyPlaylistResponse struct {
 type SpotifyExternalUrls struct {
 	Spotify string `json:"spotify"`
 }
+
+type SpotifySnapshotId struct {
+	SnapshotID string `json:"snapshot_id"`
+}

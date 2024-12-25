@@ -6,6 +6,7 @@ import (
 
 var AuthSessionName = "auth-session"
 var SpotifyTokenKey = "spotify-token"
+var SpotifyUserIdKey = "spotify-user-id"
 
 type Session interface {
 	Init()
