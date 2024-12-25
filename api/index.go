@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func main() {
+func StartApp() {
 	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatalf("No .env file found")
 	}
@@ -48,4 +48,8 @@ func main() {
 	if err := http.ListenAndServe(":"+port, s); err != nil {
 		log.Fatalf("could not listen on port %s: %v", port, err)
 	}
+}
+
+func main() {
+	StartApp()
 }
