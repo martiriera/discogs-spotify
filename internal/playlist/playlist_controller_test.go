@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -12,12 +13,12 @@ import (
 )
 
 func TestPlaylistController(t *testing.T) {
-	t.Run("Test CreatePlaylist", func(t *testing.T) {
+	t.Run("create playlist", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
 		spotifyServiceMock := &spotify.SpotifyServiceMock{
-			Responses: []string{"spotify:album:1", "spotify:album:2"}, // GetAlbumUri
+			Responses: []string{"spotify:album:1", "spotify:album:2"},
 		}
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
@@ -29,5 +30,28 @@ func TestPlaylistController(t *testing.T) {
 		if playlistId == "" {
 			t.Errorf("got empty playlist id, want not empty")
 		}
+	})
+
+	t.Run("filter duplicates", func(t *testing.T) {
+		discogsServiceMock := &discogs.DiscogsServiceMock{
+			Response: entities.MotherTwoAlbums(),
+		}
+		uris := []string{"spotify:album:1", "", "spotify:album:3", "spotify:album:4"}
+		spotifyServiceMock := &spotify.SpotifyServiceMock{
+			Responses: uris,
+		}
+
+		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		filteredUris := controller.filterNotFounds(uris)
+
+		if len(filteredUris) != 3 {
+			t.Errorf("got %d uris, want 3", len(filteredUris))
+		}
+
+		expectedUris := []string{"spotify:album:1", "spotify:album:3", "spotify:album:4"}
+		if !reflect.DeepEqual(filteredUris, expectedUris) {
+			t.Errorf("got %v, want %v", filteredUris, expectedUris)
+		}
+
 	})
 }

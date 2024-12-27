@@ -69,7 +69,7 @@ func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []en
 		}
 		uris = append(uris, uri)
 	}
-	filteredUris := filterNotFounds(uris)
+	filteredUris := c.filterNotFounds(uris)
 	return filteredUris, nil
 }
 
@@ -82,11 +82,10 @@ func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Albu
 		}
 		albums = append(albums, album)
 	}
-	// Remove duplicates
 	return albums
 }
 
-func filterNotFounds(uris []string) []string {
+func (c *PlaylistController) filterNotFounds(uris []string) []string {
 	filtered := []string{}
 	for _, uri := range uris {
 		if uri != "" {
