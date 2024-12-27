@@ -12,20 +12,22 @@ import (
 )
 
 func TestPlaylistController(t *testing.T) {
-	discogsServiceMock := &discogs.DiscogsServiceMock{
-		Response: entities.MotherTwoAlbums(),
-	}
-	spotifyServiceMock := &spotify.SpotifyServiceMock{
-		Responses: []string{"spotify:album:1", "spotify:album:2"}, // GetAlbumUri
-	}
-	controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	t.Run("Test CreatePlaylist", func(t *testing.T) {
+		discogsServiceMock := &discogs.DiscogsServiceMock{
+			Response: entities.MotherTwoAlbums(),
+		}
+		spotifyServiceMock := &spotify.SpotifyServiceMock{
+			Responses: []string{"spotify:album:1", "spotify:album:2"}, // GetAlbumUri
+		}
+		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	playlistId, err := controller.CreatePlaylist(ctx, "discogs-digger")
-	if err != nil {
-		t.Errorf("error is not nil")
-	}
-	if playlistId == "" {
-		t.Errorf("got empty playlist id, want not empty")
-	}
+		playlistId, err := controller.CreatePlaylist(ctx, "discogs-digger")
+		if err != nil {
+			t.Errorf("error is not nil")
+		}
+		if playlistId == "" {
+			t.Errorf("got empty playlist id, want not empty")
+		}
+	})
 }
