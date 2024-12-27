@@ -38,8 +38,10 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
-	filteredUris := c.filterNotFounds(uris)
-	log.Println("URIs: ", len(filteredUris))
+	uris = c.filterNotFounds(uris)
+	uris = c.removeDuplicates(uris)
+
+	log.Println("URIs: ", len(uris))
 
 	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
 	if err != nil {
@@ -54,7 +56,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error creating playlist")
 	}
 
-	err = c.addToSpotifyPlaylist(ctx, playlistId, filteredUris)
+	err = c.addToSpotifyPlaylist(ctx, playlistId, uris)
 	if err != nil {
 		return "", errors.Wrap(err, "error adding to playlist")
 	}
@@ -128,6 +130,18 @@ func (c *PlaylistController) filterNotFounds(uris []string) []string {
 	for _, uri := range uris {
 		if uri != "" {
 			filtered = append(filtered, uri)
+		}
+	}
+	return filtered
+}
+
+func (c *PlaylistController) removeDuplicates(uris []string) []string {
+	seen := map[string]bool{}
+	filtered := []string{}
+	for _, uri := range uris {
+		if !seen[uri] {
+			filtered = append(filtered, uri)
+			seen[uri] = true
 		}
 	}
 	return filtered

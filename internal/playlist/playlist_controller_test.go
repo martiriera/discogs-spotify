@@ -71,6 +71,28 @@ func TestPlaylistController(t *testing.T) {
 			t.Errorf("got %d calls, want 3", spotifyServiceMock.CalledCount)
 		}
 	})
+
+	t.Run("filter duplicates", func(t *testing.T) {
+		discogsServiceMock := &discogs.DiscogsServiceMock{
+			Response: entities.MotherTwoAlbums(),
+		}
+		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2"}
+		spotifyServiceMock := &spotify.SpotifyServiceMock{
+			Responses: uris,
+		}
+
+		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		filteredUris := controller.removeDuplicates(uris)
+
+		if len(filteredUris) != 2 {
+			t.Errorf("got %d uris, want 2", len(filteredUris))
+		}
+
+		expectedUris := []string{"spotify:album:1", "spotify:album:2"}
+		if !reflect.DeepEqual(filteredUris, expectedUris) {
+			t.Errorf("got %v, want %v", filteredUris, expectedUris)
+		}
+	})
 }
 
 func BenchmarkGetAlbumUris(b *testing.B) {
