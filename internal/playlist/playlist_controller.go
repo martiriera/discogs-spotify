@@ -3,6 +3,7 @@ package playlist
 import (
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -36,7 +37,8 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
-	log.Println("URIs: ", uris)
+	filteredUris := c.filterNotFounds(uris)
+	log.Println("URIs: ", filteredUris)
 
 	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
 	if err != nil {
@@ -51,7 +53,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error creating playlist")
 	}
 
-	err = c.spotifyService.AddToPlaylist(ctx, playlistId, uris)
+	err = c.spotifyService.AddToPlaylist(ctx, playlistId, filteredUris)
 	if err != nil {
 		return "", errors.Wrap(err, "error adding to playlist")
 	}
@@ -61,16 +63,34 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 
 func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	albums := parseAlbumsFromReleases(releases)
-	uris := []string{}
-	for _, album := range albums {
-		uri, err := c.spotifyService.GetAlbumUri(ctx, album)
-		if err != nil {
-			return nil, errors.Wrap(err, "error getting album uri")
-		}
-		uris = append(uris, uri)
+	uris := make([]string, len(albums))
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	errChan := make(chan error, len(albums))
+
+	for i, album := range albums {
+		wg.Add(1)
+		go func(i int, album entities.Album) {
+			defer wg.Done()
+			uri, err := c.spotifyService.GetAlbumUri(ctx, album)
+			if err != nil {
+				errChan <- errors.Wrap(err, "error getting album uri")
+				return
+			}
+			mu.Lock()
+			uris[i] = uri
+			mu.Unlock()
+		}(i, album)
 	}
-	filteredUris := c.filterNotFounds(uris)
-	return filteredUris, nil
+
+	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		return nil, <-errChan
+	}
+
+	return uris, nil
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {

@@ -52,6 +52,23 @@ func TestPlaylistController(t *testing.T) {
 		if !reflect.DeepEqual(filteredUris, expectedUris) {
 			t.Errorf("got %v, want %v", filteredUris, expectedUris)
 		}
-
 	})
+}
+
+func BenchmarkGetAlbumUris(b *testing.B) {
+	// TODO: Simulate slow response
+	discogsResponses := entities.MotherNAlbums(300)
+	discogsServiceMock := &discogs.DiscogsServiceMock{
+		Response: discogsResponses,
+	}
+	spotifyServiceMock := &spotify.SpotifyServiceMock{
+		Responses: []string{"spotify:album:1", "spotify:album:2"},
+	}
+	controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		controller.getSpotifyAlbumUris(ctx, discogsResponses)
+	}
 }

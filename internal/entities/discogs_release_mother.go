@@ -24,3 +24,20 @@ func MotherTwoAlbums() []DiscogsRelease {
 		},
 	}
 }
+
+func MotherNAlbums(n int) []DiscogsRelease {
+	albums := []DiscogsRelease{}
+	for i := 0; i < n; i++ {
+		albums = append(albums, DiscogsRelease{
+			BasicInformation: DiscogsBasicInformation{
+				Title: "Album",
+				Artists: []DiscogsArtist{
+					{
+						Name: "Artist",
+					},
+				},
+			},
+		})
+	}
+	return albums
+}
