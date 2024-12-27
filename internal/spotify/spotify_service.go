@@ -16,11 +16,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var ErrSearchRequest = errors.New("spotify search request error")
-var ErrSearchResponse = errors.New("spotify search response error")
-var ErrAccessTokenRequest = errors.New("spotify token request error")
-var ErrAccessTokenResponse = errors.New("spotify token response error")
-var ErrUnauthorized = errors.New("spotify unauthorized error")
+var ErrRequest = errors.New("spotify API request error")
+var ErrResponse = errors.New("spotify API response error")
+var ErrUnauthorized = errors.New("spotify API unauthorized error")
 
 const basePath = "https://api.spotify.com/v1"
 
@@ -69,7 +67,7 @@ func (s *HttpSpotifyService) GetSpotifyUserId(ctx *gin.Context) (string, error) 
 func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
 	userId := ctx.GetString(session.SpotifyUserIdKey)
 	if userId == "" {
-		return "", errors.Wrap(ErrSearchRequest, "no user id found on ctx")
+		return "", errors.Wrap(ErrRequest, "no user id found on ctx")
 	}
 
 	route := basePath + "/users/" + userId + "/playlists"
@@ -81,7 +79,7 @@ func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, descr
 
 	jsonBody := new(bytes.Buffer)
 	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return "", errors.Wrap(ErrSearchRequest, err.Error())
+		return "", errors.Wrap(ErrRequest, err.Error())
 	}
 
 	resp, err := doRequest[entities.SpotifyPlaylistResponse](s, ctx, http.MethodPost, route, jsonBody)
@@ -101,7 +99,7 @@ func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistId string, 
 
 	jsonBody := new(bytes.Buffer)
 	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return errors.Wrap(ErrSearchRequest, err.Error())
+		return errors.Wrap(ErrRequest, err.Error())
 	}
 
 	_, err := doRequest[entities.SpotifySnapshotId](s, ctx, http.MethodPost, route, jsonBody)
@@ -116,7 +114,7 @@ func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route str
 
 	req, err := http.NewRequest(method, route, body)
 	if err != nil {
-		return nil, errors.Wrap(ErrSearchRequest, err.Error())
+		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
 
 	oauthToken, ok := token.(*oauth2.Token)
@@ -127,7 +125,7 @@ func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route str
 	req.Header.Set("Authorization", "Bearer "+oauthToken.AccessToken)
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(ErrSearchRequest, err.Error())
+		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
 	defer resp.Body.Close()
 
@@ -139,12 +137,12 @@ func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route str
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, errors.Wrapf(ErrSearchResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return nil, errors.Wrapf(ErrResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result T
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, errors.Wrap(ErrSearchResponse, err.Error())
+		return nil, errors.Wrap(ErrResponse, err.Error())
 	}
 
 	return &result, nil

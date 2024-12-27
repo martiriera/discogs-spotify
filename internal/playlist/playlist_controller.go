@@ -39,7 +39,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
 	uris = c.filterNotFounds(uris)
-	uris = c.removeDuplicates(uris)
+	uris = c.filterDuplicates(uris)
 
 	log.Println("URIs: ", len(uris))
 
@@ -135,7 +135,7 @@ func (c *PlaylistController) filterNotFounds(uris []string) []string {
 	return filtered
 }
 
-func (c *PlaylistController) removeDuplicates(uris []string) []string {
+func (c *PlaylistController) filterDuplicates(uris []string) []string {
 	seen := map[string]bool{}
 	filtered := []string{}
 	for _, uri := range uris {

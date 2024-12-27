@@ -32,7 +32,7 @@ func TestPlaylistController(t *testing.T) {
 		}
 	})
 
-	t.Run("filter duplicates", func(t *testing.T) {
+	t.Run("filter not founds", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
@@ -82,7 +82,7 @@ func TestPlaylistController(t *testing.T) {
 		}
 
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		filteredUris := controller.removeDuplicates(uris)
+		filteredUris := controller.filterDuplicates(uris)
 
 		if len(filteredUris) != 2 {
 			t.Errorf("got %d uris, want 2", len(filteredUris))
