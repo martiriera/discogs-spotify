@@ -27,7 +27,7 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 
 func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (string, error) {
 	releases, err := c.discogsService.GetReleases(discogsUsername)
-	log.Println("Releases: ", releases)
+	log.Println("Releases: ", len(releases))
 
 	if err != nil {
 		return "", err
@@ -38,7 +38,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
 	filteredUris := c.filterNotFounds(uris)
-	log.Println("URIs: ", filteredUris)
+	log.Println("URIs: ", len(filteredUris))
 
 	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
 	if err != nil {
