@@ -30,15 +30,29 @@ func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
 }
 
 func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRelease, error) {
-	// TODO: Add pagination
-	// TODO: Handle private list error
-	url := basePath + "/users/" + username + "/collection/folders/0/releases"
+	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100"
+	result := make([]entities.DiscogsRelease, 0)
+	response, err := doRequest(s.client, url)
+	if err != nil {
+		return nil, err
+	}
+	result = append(result, response.Releases...)
+	for response.Pagination.Urls.Next != "" {
+		response, err = doRequest(s.client, response.Pagination.Urls.Next)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, response.Releases...)
+	}
+	return result, nil
+}
+
+func doRequest(client client.HttpClient, url string) (*entities.DiscogsResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
-
-	resp, err := s.client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
 	}
@@ -58,5 +72,5 @@ func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRel
 	if err != nil {
 		return nil, errors.Wrap(ErrResponse, err.Error())
 	}
-	return response.Releases, nil
+	return &response, nil
 }
