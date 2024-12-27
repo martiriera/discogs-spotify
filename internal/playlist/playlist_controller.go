@@ -103,38 +103,45 @@ func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []ent
 
 func (c *PlaylistController) addToSpotifyPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
 	batchSize := 100
-	for i := 0; i < len(uris); i += batchSize {
-		end := i + batchSize
-		if end > len(uris) {
-			end = len(uris)
-		}
-		batch := uris[i:end]
+	return batchRequests(ctx, uris, batchSize, func(ctx *gin.Context, batch []string) error {
 		err := c.spotifyService.AddToPlaylist(ctx, playlistId, batch)
 		if err != nil {
 			return errors.Wrap(err, "error adding to playlist")
 		}
-	}
-	return nil
+		return nil
+	})
 }
-
-// TODO: make a common method to batch
 
 func (c *PlaylistController) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
 	batckSize := 20
 	uris := []string{}
-	for i := 0; i < len(albums); i += batckSize {
-		end := i + batckSize
-		if end > len(albums) {
-			end = len(albums)
-		}
-		batch := albums[i:end]
+	err := batchRequests(ctx, albums, batckSize, func(ctx *gin.Context, batch []string) error {
 		tracks, err := c.spotifyService.GetAlbumsTrackUris(ctx, batch)
 		if err != nil {
-			return nil, errors.Wrap(err, "error getting track uris")
+			return errors.Wrap(err, "error getting album track uris")
 		}
 		uris = append(uris, tracks...)
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting album track uris")
 	}
 	return uris, nil
+}
+
+func batchRequests(ctx *gin.Context, totalItems []string, batchSize int, fn func(ctx *gin.Context, batch []string) error) error {
+	for i := 0; i < len(totalItems); i += batchSize {
+		end := i + batchSize
+		if end > len(totalItems) {
+			end = len(totalItems)
+		}
+		batch := totalItems[i:end]
+		err := fn(ctx, batch)
+		if err != nil {
+			return errors.Wrap(err, "error processing batch")
+		}
+	}
+	return nil
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
