@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -81,6 +82,7 @@ func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []en
 			uris[i] = uri
 			mu.Unlock()
 		}(i, album)
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	wg.Wait()
