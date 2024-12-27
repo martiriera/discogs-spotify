@@ -63,7 +63,7 @@ func (s *HttpSpotifyService) GetSpotifyUserId(ctx *gin.Context) (string, error) 
 		return "", err
 	}
 
-	return fmt.Sprintf("%v", resp.URI), nil
+	return fmt.Sprintf("%v", resp.ID), nil
 }
 
 func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
@@ -72,7 +72,7 @@ func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, descr
 		return "", errors.Wrap(ErrSearchRequest, "no user id found on ctx")
 	}
 
-	route := basePath + "users/" + userId + "/playlists"
+	route := basePath + "/users/" + userId + "/playlists"
 
 	body := map[string]string{
 		"name":        name,

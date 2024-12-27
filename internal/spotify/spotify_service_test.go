@@ -113,7 +113,7 @@ func TestSpotifyService(t *testing.T) {
 				"uri": "spotify:user:wizzler"
 				}`)),
 			},
-			want: "spotify:user:wizzler",
+			want: "wizzler",
 		},
 		{
 			name: "should create playlist",
