@@ -53,7 +53,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error creating playlist")
 	}
 
-	err = c.spotifyService.AddToPlaylist(ctx, playlistId, filteredUris)
+	err = c.addToSpotifyPlaylist(ctx, playlistId, filteredUris)
 	if err != nil {
 		return "", errors.Wrap(err, "error adding to playlist")
 	}
@@ -91,6 +91,22 @@ func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []en
 	}
 
 	return uris, nil
+}
+
+func (c *PlaylistController) addToSpotifyPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
+	batchSize := 100
+	for i := 0; i < len(uris); i += batchSize {
+		end := i + batchSize
+		if end > len(uris) {
+			end = len(uris)
+		}
+		batch := uris[i:end]
+		err := c.spotifyService.AddToPlaylist(ctx, playlistId, batch)
+		if err != nil {
+			return errors.Wrap(err, "error adding to playlist")
+		}
+	}
+	return nil
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {

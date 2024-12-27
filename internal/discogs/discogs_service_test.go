@@ -9,17 +9,15 @@ import (
 
 type StubDiscogsHttpClient struct {
 	Responses   []http.Response
-	index       int
 	CalledCount int
 	Error       error
 }
 
 func (s *StubDiscogsHttpClient) Do(req *http.Request) (*http.Response, error) {
-	if s.index >= len(s.Responses) {
+	if s.CalledCount >= len(s.Responses) {
 		return nil, s.Error
 	}
-	response := (s.Responses)[s.index]
-	s.index++
+	response := (s.Responses)[s.CalledCount]
 	s.CalledCount++
 	return &response, nil
 }

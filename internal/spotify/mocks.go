@@ -6,16 +6,16 @@ import (
 )
 
 type SpotifyServiceMock struct {
-	Responses []string
-	index     int
+	Responses   []string
+	CalledCount int
 }
 
 func (m *SpotifyServiceMock) GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error) {
-	if m.index >= len(m.Responses) {
+	if m.CalledCount >= len(m.Responses) {
 		return "", nil
 	}
-	response := m.Responses[m.index]
-	m.index++
+	response := m.Responses[m.CalledCount]
+	m.CalledCount++
 	return response, nil
 }
 
@@ -28,5 +28,6 @@ func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, descr
 }
 
 func (m *SpotifyServiceMock) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
+	m.CalledCount++
 	return nil
 }
