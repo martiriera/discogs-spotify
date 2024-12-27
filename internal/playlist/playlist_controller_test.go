@@ -109,6 +109,6 @@ func BenchmarkGetAlbumUris(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		controller.getSpotifyAlbumUris(ctx, discogsResponses)
+		controller.getSpotifyAlbumIds(ctx, discogsResponses)
 	}
 }

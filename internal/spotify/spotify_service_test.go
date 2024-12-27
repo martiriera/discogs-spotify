@@ -39,9 +39,9 @@ func TestSpotifyService(t *testing.T) {
 		want     string
 	}{
 		{
-			name: "should return album uri",
+			name: "should return album id",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -64,12 +64,12 @@ func TestSpotifyService(t *testing.T) {
 				}
 			}`)),
 			},
-			want: "spotify:album:4JeLdGuCEO9SF9SnFa9LBh",
+			want: "4JeLdGuCEO9SF9SnFa9LBh",
 		},
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -144,6 +144,55 @@ func TestSpotifyService(t *testing.T) {
 	}
 }
 
+func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
+	t.Setenv("SPOTIFY_CLIENT_ID", "test")
+	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	stubResponse := &http.Response{
+		StatusCode: 200,
+		Body: io.NopCloser(bytes.NewBufferString(`{
+			"albums": [
+				{
+					"tracks": {
+						"items": [
+							{
+								"uri": "spotify:track:1"
+							},
+							{
+								"uri": "spotify:track:2"
+							}
+						]
+					}
+				},
+				{
+					"tracks": {
+						"items": [
+							{
+								"uri": "spotify:track:3"
+							},
+							{
+								"uri": "spotify:track:4"
+							},
+							{
+								"uri": "spotify:track:5"
+							}
+						]
+					}
+				}
+			]
+		}`)),
+	}
+	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
+	service := NewHttpSpotifyService(stubClient)
+	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
+	if err != nil {
+		t.Errorf("did not expect error, got %v", err)
+	}
+	if len(uris) != 5 {
+		t.Errorf("got %d uris, want 5", len(uris))
+	}
+}
+
 func TestSpotifyServiceError(t *testing.T) {
 	t.Setenv("SPOTIFY_CLIENT_ID", "test")
 	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
@@ -155,9 +204,9 @@ func TestSpotifyServiceError(t *testing.T) {
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
-	want := `status: 400, body: {"message": "Bad Request"}: spotify search response error`
+	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
 	}
@@ -179,7 +228,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumUri(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {
 		t.Errorf("did expect error, got nil")

@@ -10,7 +10,7 @@ type SpotifyServiceMock struct {
 	CalledCount int
 }
 
-func (m *SpotifyServiceMock) GetAlbumUri(ctx *gin.Context, album entities.Album) (string, error) {
+func (m *SpotifyServiceMock) GetAlbumId(ctx *gin.Context, album entities.Album) (string, error) {
 	if m.CalledCount >= len(m.Responses) {
 		return "", nil
 	}
@@ -30,4 +30,8 @@ func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, descr
 func (m *SpotifyServiceMock) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
 	m.CalledCount++
 	return nil
+}
+
+func (m *SpotifyServiceMock) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+	return []string{"spotify:track:1", "spotify:track:2"}, nil
 }

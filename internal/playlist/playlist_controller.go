@@ -34,14 +34,18 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", err
 	}
 
-	uris, err := c.getSpotifyAlbumUris(ctx, releases)
+	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
-	uris = c.filterNotFounds(uris)
-	uris = c.filterDuplicates(uris)
+	albumIds = c.filterNotFounds(albumIds)
+	albumIds = c.filterDuplicates(albumIds)
+	log.Println("IDs: ", len(albumIds))
 
-	log.Println("URIs: ", len(uris))
+	tracks, err := c.getSpotifyTrackUris(ctx, albumIds)
+	if err != nil {
+		return "", errors.Wrap(err, "error getting spotify track uris")
+	}
 
 	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
 	if err != nil {
@@ -56,7 +60,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error creating playlist")
 	}
 
-	err = c.addToSpotifyPlaylist(ctx, playlistId, uris)
+	err = c.addToSpotifyPlaylist(ctx, playlistId, tracks)
 	if err != nil {
 		return "", errors.Wrap(err, "error adding to playlist")
 	}
@@ -64,7 +68,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	return playlistId, nil
 }
 
-func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
+func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	albums := parseAlbumsFromReleases(releases)
 	uris := make([]string, len(albums))
 	var wg sync.WaitGroup
@@ -75,9 +79,9 @@ func (c *PlaylistController) getSpotifyAlbumUris(ctx *gin.Context, releases []en
 		wg.Add(1)
 		go func(i int, album entities.Album) {
 			defer wg.Done()
-			uri, err := c.spotifyService.GetAlbumUri(ctx, album)
+			uri, err := c.spotifyService.GetAlbumId(ctx, album)
 			if err != nil {
-				errChan <- errors.Wrap(err, "error getting album uri")
+				errChan <- errors.Wrap(err, "error getting album id on channel")
 				return
 			}
 			mu.Lock()
@@ -111,6 +115,26 @@ func (c *PlaylistController) addToSpotifyPlaylist(ctx *gin.Context, playlistId s
 		}
 	}
 	return nil
+}
+
+// TODO: make a common method to batch
+
+func (c *PlaylistController) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+	batckSize := 20
+	uris := []string{}
+	for i := 0; i < len(albums); i += batckSize {
+		end := i + batckSize
+		if end > len(albums) {
+			end = len(albums)
+		}
+		batch := albums[i:end]
+		tracks, err := c.spotifyService.GetAlbumsTrackUris(ctx, batch)
+		if err != nil {
+			return nil, errors.Wrap(err, "error getting track uris")
+		}
+		uris = append(uris, tracks...)
+	}
+	return uris, nil
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {

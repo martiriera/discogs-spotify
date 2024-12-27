@@ -80,6 +80,17 @@ type SpotifyPlaylistResponse struct {
 	URI           string              `json:"uri"`
 }
 
+type SpotifyAlbumsResponse struct {
+	Albums []struct {
+		ID     string `json:"id"`
+		Tracks struct {
+			Items []struct {
+				URI string `json:"uri"`
+			} `json:"items"`
+		} `json:"tracks"`
+	} `json:"albums"`
+}
+
 type SpotifyExternalUrls struct {
 	Spotify string `json:"spotify"`
 }
