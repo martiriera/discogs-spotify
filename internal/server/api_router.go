@@ -78,5 +78,5 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"playlist_id": playlistId})
+	ctx.JSON(http.StatusOK, gin.H{"playlist_url": playlistId})
 }

@@ -119,7 +119,8 @@ func TestSpotifyService(t *testing.T) {
 			name: "should create playlist",
 			request: func(service SpotifyService) (string, error) {
 				ctx.Set(session.SpotifyUserIdKey, "wizzler")
-				return service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
+				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
+				return playlist.ID, err
 			},
 			response: &http.Response{
 				StatusCode: 201,

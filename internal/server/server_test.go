@@ -69,7 +69,7 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 200)
-		assertResponseBody(t, response.Body.String(), "{\"playlist_id\":\"6rqhFgbbKwnb9MLmUQDhG6\"}")
+		assertResponseBody(t, response.Body.String(), "{\"playlist_url\":\"https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6\"}")
 	})
 
 	t.Run("create playlist without username", func(t *testing.T) {

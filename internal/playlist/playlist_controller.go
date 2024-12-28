@@ -54,17 +54,17 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", errors.Wrap(err, "error getting spotify track uris")
 	}
 
-	playlistId, err := c.spotifyService.CreatePlaylist(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	playlist, err := c.spotifyService.CreatePlaylist(ctx, "Discogs Playlist", "Playlist created from Discogs")
 	if err != nil {
 		return "", errors.Wrap(err, "error creating playlist")
 	}
 
-	err = c.addToSpotifyPlaylist(ctx, playlistId, tracks)
+	err = c.addToSpotifyPlaylist(ctx, playlist.ID, tracks)
 	if err != nil {
 		return "", errors.Wrap(err, "error adding to playlist")
 	}
 
-	return playlistId, nil
+	return playlist.URL, nil
 }
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {

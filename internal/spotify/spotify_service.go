@@ -26,7 +26,7 @@ const basePath = "https://api.spotify.com/v1"
 type SpotifyService interface {
 	GetAlbumId(ctx *gin.Context, album entities.Album) (string, error)
 	GetSpotifyUserId(ctx *gin.Context) (string, error)
-	CreatePlaylist(ctx *gin.Context, name string, description string) (string, error)
+	CreatePlaylist(ctx *gin.Context, name string, description string) (entities.Playlist, error)
 	AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error
 	GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error)
 }
@@ -66,10 +66,10 @@ func (s *HttpSpotifyService) GetSpotifyUserId(ctx *gin.Context) (string, error) 
 	return fmt.Sprintf("%v", resp.ID), nil
 }
 
-func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (string, error) {
+func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.Playlist, error) {
 	userId := ctx.GetString(session.SpotifyUserIdKey)
 	if userId == "" {
-		return "", errors.Wrap(ErrRequest, "no user id found on ctx")
+		return entities.Playlist{}, errors.Wrap(ErrRequest, "no user id found on ctx")
 	}
 
 	route := basePath + "/users/" + userId + "/playlists"
@@ -81,15 +81,15 @@ func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, descr
 
 	jsonBody := new(bytes.Buffer)
 	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return "", errors.Wrap(ErrRequest, err.Error())
+		return entities.Playlist{}, errors.Wrap(ErrRequest, err.Error())
 	}
 
 	resp, err := doRequest[entities.SpotifyPlaylistResponse](s, ctx, http.MethodPost, route, jsonBody)
 	if err != nil {
-		return "", err
+		return entities.Playlist{}, err
 	}
 
-	return resp.ID, nil
+	return entities.Playlist{ID: resp.ID, URL: resp.ExternalUrls.Spotify}, nil
 }
 
 func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
