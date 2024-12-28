@@ -71,6 +71,7 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 
 		if errors.Cause(err) == spotify.ErrUnauthorized {
 			ctx.Redirect(http.StatusTemporaryRedirect, "/auth/login")
+			return
 		}
 
 		util.HandleError(ctx, err, http.StatusInternalServerError)

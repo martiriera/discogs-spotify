@@ -34,6 +34,13 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", err
 	}
 
+	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "error getting spotify user id")
+	}
+
+	ctx.Set(session.SpotifyUserIdKey, userId)
+
 	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
@@ -46,14 +53,6 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify track uris")
 	}
-
-	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
-	if err != nil {
-		return "", errors.Wrap(err, "error getting spotify user id")
-	}
-
-	// TODO: Store also on session?
-	ctx.Set(session.SpotifyUserIdKey, userId)
 
 	playlistId, err := c.spotifyService.CreatePlaylist(ctx, "Discogs Playlist", "Playlist created from Discogs")
 	if err != nil {
