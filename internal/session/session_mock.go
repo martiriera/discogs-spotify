@@ -18,7 +18,7 @@ func NewInMemorySession() *InMemorySession {
 }
 
 func (s *InMemorySession) Init(maxAgeSecs int) {
-	s.ExpiresAt = time.Now().Second() + maxAgeSecs
+	s.ExpiresAt = int(time.Now().Add(time.Duration(maxAgeSecs) * time.Second).Unix())
 }
 
 func (s *InMemorySession) Get(r *http.Request, sessionName string) (map[any]any, error) {
@@ -30,7 +30,7 @@ func (s *InMemorySession) GetData(r *http.Request, key string) (any, error) {
 		return nil, nil
 	}
 
-	if s.ExpiresAt < time.Now().Second() {
+	if s.ExpiresAt < int(time.Now().Unix()) {
 		return nil, errors.New("session expired")
 	}
 

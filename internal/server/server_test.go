@@ -28,8 +28,7 @@ func TestAcceptance(t *testing.T) {
 	)
 
 	t.Run("api main get 200", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/api/", nil)
 		response := httptest.NewRecorder()
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
@@ -41,8 +40,7 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	t.Run("auth login post 200", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/auth/login", nil)
 		response := httptest.NewRecorder()
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
@@ -54,8 +52,7 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	t.Run("api playlist post 200", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
@@ -78,8 +75,7 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	t.Run("api playlist post 400 no username", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("POST", "/api/playlist", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
@@ -94,8 +90,7 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api playlist post 500 discogs error", func(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 
 		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -111,8 +106,7 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	t.Run("api get home 200", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/api/home", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
@@ -125,15 +119,30 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	t.Run("api get home 302 expired token", func(t *testing.T) {
-		sessionMock := session.NewInMemorySession()
-		sessionMock.Init(90)
+		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/api/home", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Second)})
-		time.Sleep(1 * time.Second)
 		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(controller, oauthController, sessionMock)
 
+		time.Sleep(1 * time.Second)
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 302)
+	})
+
+	t.Run("api get home 302 expired session", func(t *testing.T) {
+		sessionMock := initSessionMock()
+		sessionMock.Init(1)
+		request := httptest.NewRequest("GET", "/api/home", nil)
+		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
+
+		// TODO: Find a way to avoid sleep
+		time.Sleep(2 * time.Second)
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 302)
@@ -152,4 +161,10 @@ func assertResponseBody(t testing.TB, got, want string) {
 	if got != want {
 		t.Errorf("response body is wrong, got %q want %q", got, want)
 	}
+}
+
+func initSessionMock() *session.InMemorySession {
+	sessionMock := session.NewInMemorySession()
+	sessionMock.Init(90)
+	return sessionMock
 }
