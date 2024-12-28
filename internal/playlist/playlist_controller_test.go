@@ -3,6 +3,7 @@ package playlist
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
@@ -96,19 +97,22 @@ func TestPlaylistController(t *testing.T) {
 }
 
 func BenchmarkGetAlbumUris(b *testing.B) {
-	// TODO: Simulate slow response
 	discogsResponses := entities.MotherNAlbums(300)
 	discogsServiceMock := &discogs.DiscogsServiceMock{
 		Response: discogsResponses,
 	}
 	spotifyServiceMock := &spotify.SpotifyServiceMock{
-		Responses: []string{"spotify:album:1", "spotify:album:2"},
+		Responses:   []string{"spotify:album:1", "spotify:album:2"},
+		SleepMillis: 600,
 	}
 	controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		start := time.Now()
 		controller.getSpotifyAlbumIds(ctx, discogsResponses)
+		elapsed := time.Since(start).Seconds()
+		b.Logf("Iteration %d took %f seconds", i, elapsed)
 	}
 }

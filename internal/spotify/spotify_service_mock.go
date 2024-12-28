@@ -1,6 +1,8 @@
 package spotify
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 )
@@ -8,6 +10,7 @@ import (
 type SpotifyServiceMock struct {
 	Responses   []string
 	CalledCount int
+	SleepMillis int
 }
 
 func (m *SpotifyServiceMock) GetAlbumId(ctx *gin.Context, album entities.Album) (string, error) {
@@ -16,6 +19,9 @@ func (m *SpotifyServiceMock) GetAlbumId(ctx *gin.Context, album entities.Album) 
 	}
 	response := m.Responses[m.CalledCount]
 	m.CalledCount++
+	if m.SleepMillis > 0 {
+		time.Sleep(time.Duration(m.SleepMillis) * time.Millisecond)
+	}
 	return response, nil
 }
 
