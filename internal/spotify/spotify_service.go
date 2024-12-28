@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/client"
@@ -108,18 +109,11 @@ func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistId string, 
 }
 
 func (s *HttpSpotifyService) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
-	route := basePath + "/albums"
+	query := url.Values{}
+	query.Set("ids", strings.Join(albums, ","))
+	route := basePath + "/albums" + "?" + query.Encode()
 
-	body := map[string][]string{
-		"ids": albums,
-	}
-
-	jsonBody := new(bytes.Buffer)
-	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return nil, errors.Wrap(ErrRequest, err.Error())
-	}
-
-	resp, err := doRequest[entities.SpotifyAlbumsResponse](s, ctx, http.MethodGet, route, jsonBody)
+	resp, err := doRequest[entities.SpotifyAlbumsResponse](s, ctx, http.MethodGet, route, nil)
 	if err != nil {
 		return nil, err
 	}
