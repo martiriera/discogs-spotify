@@ -25,7 +25,7 @@ func TestSpotifyOauthController(t *testing.T) {
 	t.Run("store token on gorilla session", func(t *testing.T) {
 		t.Setenv("SESSION_KEY", "session_key")
 		s := session.NewGorillaSession()
-		s.Init()
+		s.Init(60)
 		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("POST", "/", nil)

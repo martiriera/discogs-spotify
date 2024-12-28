@@ -26,36 +26,41 @@ func TestAcceptance(t *testing.T) {
 		"client_secret",
 		"http://localhost:8080/callback",
 	)
-	sessionMock := session.NewInMemorySession()
-	sessionMock.Init()
 
-	t.Run("serve main", func(t *testing.T) {
-		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		server := NewServer(controller, oauthController, sessionMock)
+	t.Run("api main get 200", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
 		request := httptest.NewRequest("GET", "/api/", nil)
 		response := httptest.NewRecorder()
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
 
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 200)
 	})
 
-	t.Run("login", func(t *testing.T) {
-		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		server := NewServer(controller, oauthController, sessionMock)
+	t.Run("auth login post 200", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
 		request := httptest.NewRequest("GET", "/auth/login", nil)
 		response := httptest.NewRecorder()
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
 
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 307)
 	})
 
-	t.Run("create playlist", func(t *testing.T) {
-		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+	t.Run("api playlist post 200", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
 		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 
 		token := &oauth2.Token{
 			AccessToken:  "access_token",
@@ -72,11 +77,14 @@ func TestAcceptance(t *testing.T) {
 		assertResponseBody(t, response.Body.String(), "{\"playlist_url\":\"https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6\"}")
 	})
 
-	t.Run("create playlist without username", func(t *testing.T) {
-		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		server := NewServer(controller, oauthController, sessionMock)
+	t.Run("api playlist post 400 no username", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
 		request := httptest.NewRequest("POST", "/api/playlist", nil)
 		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
 
 		server.ServeHTTP(response, request)
 
@@ -84,18 +92,51 @@ func TestAcceptance(t *testing.T) {
 		assertResponseBody(t, response.Body.String(), "{\"error\":\"username is required\"}")
 	})
 
-	t.Run("server error from discogs", func(t *testing.T) {
+	t.Run("api playlist post 500 discogs error", func(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
-		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		server := NewServer(controller, oauthController, sessionMock)
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
+
 		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
 
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 500)
 		assertResponseBody(t, response.Body.String(), "{\"error\":\"discogs unexpected status error\"}")
+	})
+
+	t.Run("api get home 200", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
+		request := httptest.NewRequest("GET", "/api/home", nil)
+		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
+
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 200)
+	})
+
+	t.Run("api get home 302 expired token", func(t *testing.T) {
+		sessionMock := session.NewInMemorySession()
+		sessionMock.Init(90)
+		request := httptest.NewRequest("GET", "/api/home", nil)
+		response := httptest.NewRecorder()
+		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Second)})
+		time.Sleep(1 * time.Second)
+		controller := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		server := NewServer(controller, oauthController, sessionMock)
+
+		server.ServeHTTP(response, request)
+
+		assertResponseStatus(t, response.Code, 302)
 	})
 }
 

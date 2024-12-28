@@ -19,9 +19,10 @@ func NewGorillaSession() *GorillaSession {
 	}
 }
 
-func (gs *GorillaSession) Init() {
+func (gs *GorillaSession) Init(maxAgeSecs int) {
 	gob.Register(&oauth2.Token{})
 	gs.store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+	gs.store.MaxAge(maxAgeSecs)
 }
 
 func (gs *GorillaSession) Get(r *http.Request, sessionName string) (map[any]any, error) {

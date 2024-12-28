@@ -1,9 +1,14 @@
 package session
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+	"time"
+)
 
 type InMemorySession struct {
-	Data map[any]any
+	Data      map[any]any
+	ExpiresAt int
 }
 
 func NewInMemorySession() *InMemorySession {
@@ -12,13 +17,23 @@ func NewInMemorySession() *InMemorySession {
 	}
 }
 
-func (s *InMemorySession) Init() {}
+func (s *InMemorySession) Init(maxAgeSecs int) {
+	s.ExpiresAt = time.Now().Second() + maxAgeSecs
+}
 
 func (s *InMemorySession) Get(r *http.Request, sessionName string) (map[any]any, error) {
 	return s.Data, nil
 }
 
 func (s *InMemorySession) GetData(r *http.Request, key string) (any, error) {
+	if _, exists := s.Data[key]; !exists {
+		return nil, nil
+	}
+
+	if s.ExpiresAt < time.Now().Second() {
+		return nil, errors.New("session expired")
+	}
+
 	return s.Data[key], nil
 }
 

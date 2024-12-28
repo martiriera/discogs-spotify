@@ -26,7 +26,7 @@ func main() {
 	oauthRedirectUrl := "http://localhost:" + port + "/auth/callback"
 
 	session := session.NewGorillaSession()
-	session.Init()
+	session.Init(3600)
 
 	creator := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
