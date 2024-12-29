@@ -32,3 +32,6 @@ steps:
 
 images:
 - 'gcr.io/$PROJECT_ID/go-server:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
