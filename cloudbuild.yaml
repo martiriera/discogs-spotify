@@ -25,6 +25,8 @@ steps:
   - 'go-server'
   - '--image'
   - 'gcr.io/$PROJECT_ID/go-server:$SHORT_SHA'
+  - '--set-secrets'
+  - 'SPOTIFY_CLIENT_ID=projects/$PROJECT_ID/secrets/SPOTIFY_CLIENT_ID/versions/latest'
   - '--region'
   - 'europe-west1'
   - '--platform'
@@ -32,6 +34,9 @@ steps:
 
 images:
 - 'gcr.io/$PROJECT_ID/go-server:$SHORT_SHA'
+
+env_variables:
+  GIN_MODE: 'release'
 
 options:
   logging: CLOUD_LOGGING_ONLY
