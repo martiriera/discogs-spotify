@@ -26,7 +26,7 @@ steps:
   - '--image'
   - 'gcr.io/$PROJECT_ID/go-server:$SHORT_SHA'
   - '--region'
-  - 'us-central1'
+  - 'europe-west1'
   - '--platform'
   - 'managed'
 
