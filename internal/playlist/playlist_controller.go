@@ -45,8 +45,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
-	albumIds = c.filterNotFounds(albumIds)
-	albumIds = c.filterDuplicates(albumIds)
+	albumIds = c.filterValidUnique(albumIds)
 	log.Println("IDs: ", len(albumIds))
 
 	tracks, err := c.getSpotifyTrackUris(ctx, albumIds)
@@ -155,21 +154,11 @@ func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Albu
 	return albums
 }
 
-func (c *PlaylistController) filterNotFounds(uris []string) []string {
-	filtered := []string{}
-	for _, uri := range uris {
-		if uri != "" {
-			filtered = append(filtered, uri)
-		}
-	}
-	return filtered
-}
-
-func (c *PlaylistController) filterDuplicates(uris []string) []string {
+func (c *PlaylistController) filterValidUnique(uris []string) []string {
 	seen := map[string]bool{}
 	filtered := []string{}
 	for _, uri := range uris {
-		if !seen[uri] {
+		if uri != "" && !seen[uri] {
 			filtered = append(filtered, uri)
 			seen[uri] = true
 		}
