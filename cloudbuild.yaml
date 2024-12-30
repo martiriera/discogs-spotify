@@ -31,7 +31,7 @@ steps:
   - 'europe-west1'
   - '--platform'
   - 'managed'
-  - '--update-build-env-vars'
+  - '--update-env-vars'
   - 'GIN_MODE=release'
 
 images:
