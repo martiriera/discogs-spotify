@@ -31,12 +31,11 @@ steps:
   - 'europe-west1'
   - '--platform'
   - 'managed'
+  - '--update-build-env-vars'
+  - 'GIN_MODE=release'
 
 images:
 - 'gcr.io/$PROJECT_ID/go-server:$SHORT_SHA'
-
-env_variables:
-  GIN_MODE: 'release'
 
 options:
   logging: CLOUD_LOGGING_ONLY
