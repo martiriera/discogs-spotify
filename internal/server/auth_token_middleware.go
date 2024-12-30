@@ -8,15 +8,14 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func authMiddleware(store session.Session) gin.HandlerFunc {
+func authTokenMiddleware(service session.Session) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// TODDO: TESTS
 		if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 			ctx.Next()
 			return
 		}
 
-		token, err := store.GetData(ctx.Request, session.SpotifyTokenKey)
+		token, err := service.GetData(ctx.Request, session.SpotifyTokenKey)
 
 		if err != nil || token == nil || isExpired(token) {
 			ctx.Redirect(302, "/auth/login")

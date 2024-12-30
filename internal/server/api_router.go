@@ -14,18 +14,23 @@ import (
 
 type ApiRouter struct {
 	playlistController *playlist.PlaylistController
+	userController     *spotify.UserController
 	session            *session.Session
 }
 
-func NewApiRouter(c *playlist.PlaylistController, s *session.Session) *ApiRouter {
-	router := &ApiRouter{playlistController: c, session: s}
+func NewApiRouter(pc *playlist.PlaylistController, uc *spotify.UserController, s *session.Session) *ApiRouter {
+	router := &ApiRouter{playlistController: pc, userController: uc, session: s}
 	return router
 }
 
 func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
-	rg.GET("/home", authMiddleware(*router.session), router.handleMain)
-	rg.POST("/playlist", authMiddleware(*router.session), router.handlePlaylistCreate)
+	rg.GET("/home", authTokenMiddleware(*router.session), router.handleMain)
+	rg.POST("/playlist",
+		authTokenMiddleware(*router.session),
+		authUserMiddleware(*router.userController),
+		router.handlePlaylistCreate,
+	)
 }
 
 func (router *ApiRouter) handleMain(ctx *gin.Context) {

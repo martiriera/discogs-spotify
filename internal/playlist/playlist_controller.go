@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
-	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/pkg/errors"
 )
@@ -34,14 +33,6 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return "", err
 	}
-
-	// TODO: move to a middleware
-	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
-	if err != nil {
-		return "", errors.Wrap(err, "error getting spotify user id")
-	}
-	ctx.Set(session.SpotifyUserIdKey, userId)
-	//
 
 	// processAlbumIds
 	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
