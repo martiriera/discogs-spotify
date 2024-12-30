@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/server"
@@ -13,9 +14,9 @@ import (
 )
 
 func main() {
-	// if err := godotenv.Load("../.env"); err != nil {
-	// 	log.Fatalf("No .env file found")
-	// }
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("No .env file found")
+	}
 	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
 	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
 	port := util.AssertEnvVar("PORT")
@@ -26,18 +27,20 @@ func main() {
 	session := session.NewGorillaSession()
 	session.Init(3600)
 
-	creator := playlist.NewPlaylistController(
+	playlistController := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
 		spotify.NewHttpSpotifyService(&http.Client{}),
 	)
 
-	oauth := spotify.NewOAuthController(
+	oauthController := spotify.NewOAuthController(
 		clientID,
 		clientSecret,
 		oauthRedirectUrl,
 	)
 
-	s := server.NewServer(creator, oauth, session)
+	userController := spotify.NewUserController(spotify.NewHttpSpotifyService(&http.Client{}))
+
+	s := server.NewServer(playlistController, oauthController, userController, session)
 
 	if port == "" {
 		port = "8080"
