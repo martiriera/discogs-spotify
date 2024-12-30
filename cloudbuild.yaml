@@ -26,7 +26,7 @@ steps:
   - '--image'
   - 'gcr.io/$PROJECT_ID/discogs-spotify:$SHORT_SHA'
   - '--set-secrets'
-  - 'SPOTIFY_CLIENT_ID:latest'
+  - 'SPOTIFY_CLIENT_ID=SPOTIFY_CLIENT_ID:latest'
   - '--region'
   - 'europe-west1'
   - '--platform'
