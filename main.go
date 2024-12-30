@@ -10,14 +10,12 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatalf("No .env file found")
-	}
+	// if err := godotenv.Load("../.env"); err != nil {
+	// 	log.Fatalf("No .env file found")
+	// }
 	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
 	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
 	port := util.AssertEnvVar("PORT")
