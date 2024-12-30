@@ -26,13 +26,13 @@ steps:
   - '--image'
   - 'gcr.io/$PROJECT_ID/discogs-spotify:$SHORT_SHA'
   - '--set-secrets'
-  - 'SPOTIFY_CLIENT_ID=SPOTIFY_CLIENT_ID:latest'
+  - 'SPOTIFY_CLIENT_ID=SPOTIFY_CLIENT_ID:latest,SPOTIFY_CLIENT_SECRET=SPOTIFY_CLIENT_SECRET:latest,SESSION_KEY=SESSION_KEY:latest'
   - '--region'
   - 'europe-west1'
   - '--platform'
   - 'managed'
   - '--update-env-vars'
-  - 'GIN_MODE=release'
+  - 'GIN_MODE=release,PORT=8080'
 
 images:
 - 'gcr.io/$PROJECT_ID/discogs-spotify:$SHORT_SHA'
