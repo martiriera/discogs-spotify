@@ -32,7 +32,7 @@ steps:
   - '--platform'
   - 'managed'
   - '--update-env-vars'
-  - 'GIN_MODE=release,PORT=8080'
+  - 'GIN_MODE=release'
 
 images:
 - 'gcr.io/$PROJECT_ID/discogs-spotify:$SHORT_SHA'
