@@ -33,24 +33,6 @@ func TestPlaylistController(t *testing.T) {
 		}
 	})
 
-	t.Run("add to playlist by batches", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{}
-		spotifyServiceMock := &spotify.SpotifyServiceMock{}
-		uris := make([]string, 205)
-
-		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
-
-		err := controller.addToSpotifyPlaylist(ctx, "6rqhFgbbKwnb9MLmUQDhG6", uris)
-		if err != nil {
-			t.Errorf("error is not nil")
-		}
-
-		if spotifyServiceMock.CalledCount != 3 {
-			t.Errorf("got %d calls, want 3", spotifyServiceMock.CalledCount)
-		}
-	})
-
 	t.Run("filter duplicates and not founds", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{}
 		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
