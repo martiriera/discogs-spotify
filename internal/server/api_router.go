@@ -49,7 +49,7 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 func (router *ApiRouter) handleHome(ctx *gin.Context) {
 	html := `<html>
 				<body>
-					<form action="/api/playlist" method="post">
+					<form action="/playlist" method="post">
 						<label for="username">Discogs username:</label>
 						<input type="text" name="username" name="username">
 						<input type="submit" value="Create playlist">
