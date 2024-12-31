@@ -1,1 +1,3 @@
 runtime: go123
+env_variables:
+  ENV: production

@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	if os.Getenv("GAE_ENV") == "" {
+	if os.Getenv("ENV") == "" {
 		if err := godotenv.Load(".env"); err != nil {
 			log.Fatalf("No .env file found")
 		}
