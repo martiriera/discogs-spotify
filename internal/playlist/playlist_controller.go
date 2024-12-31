@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
-	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/pkg/errors"
 )
@@ -27,6 +26,7 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 }
 
 func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (string, error) {
+	// fetchReleases
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 	log.Println("Releases: ", len(releases))
 
@@ -34,37 +34,26 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return "", err
 	}
 
-	userId, err := c.spotifyService.GetSpotifyUserId(ctx)
-	if err != nil {
-		return "", errors.Wrap(err, "error getting spotify user id")
-	}
-
-	ctx.Set(session.SpotifyUserIdKey, userId)
-
+	// processAlbumIds
 	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify album uris")
 	}
-	albumIds = c.filterNotFounds(albumIds)
-	albumIds = c.filterDuplicates(albumIds)
+	albumIds = c.filterValidUnique(albumIds)
 	log.Println("IDs: ", len(albumIds))
 
-	tracks, err := c.getSpotifyTrackUris(ctx, albumIds)
+	// createPlaylist
+	playlistBuilder := NewPlaylistBuilder(c.spotifyService)
+	err = playlistBuilder.AddAlbums(ctx, albumIds)
 	if err != nil {
-		return "", errors.Wrap(err, "error getting spotify track uris")
+		return "", errors.Wrap(err, "error adding albums to playlist builder")
+	}
+	playlistUrl, err := playlistBuilder.CreateAndPopulate(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	if err != nil {
+		return "", errors.Wrap(err, "error creating and populating playlist")
 	}
 
-	playlist, err := c.spotifyService.CreatePlaylist(ctx, "Discogs Playlist", "Playlist created from Discogs")
-	if err != nil {
-		return "", errors.Wrap(err, "error creating playlist")
-	}
-
-	err = c.addToSpotifyPlaylist(ctx, playlist.ID, tracks)
-	if err != nil {
-		return "", errors.Wrap(err, "error adding to playlist")
-	}
-
-	return playlist.URL, nil
+	return playlistUrl, nil
 }
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
@@ -100,47 +89,16 @@ func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []ent
 	return uris, nil
 }
 
-func (c *PlaylistController) addToSpotifyPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
-	batchSize := 100
-	return batchRequests(ctx, uris, batchSize, func(ctx *gin.Context, batch []string) error {
-		err := c.spotifyService.AddToPlaylist(ctx, playlistId, batch)
-		if err != nil {
-			return errors.Wrap(err, "error adding to playlist")
-		}
-		return nil
-	})
-}
-
-func (c *PlaylistController) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
-	batckSize := 20
-	uris := []string{}
-	err := batchRequests(ctx, albums, batckSize, func(ctx *gin.Context, batch []string) error {
-		tracks, err := c.spotifyService.GetAlbumsTrackUris(ctx, batch)
-		if err != nil {
-			return errors.Wrap(err, "error getting album track uris")
-		}
-		uris = append(uris, tracks...)
-		return nil
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting album track uris")
-	}
-	return uris, nil
-}
-
-func batchRequests(ctx *gin.Context, totalItems []string, batchSize int, fn func(ctx *gin.Context, batch []string) error) error {
-	for i := 0; i < len(totalItems); i += batchSize {
-		end := i + batchSize
-		if end > len(totalItems) {
-			end = len(totalItems)
-		}
-		batch := totalItems[i:end]
-		err := fn(ctx, batch)
-		if err != nil {
-			return errors.Wrap(err, "error processing batch")
+func (c *PlaylistController) filterValidUnique(uris []string) []string {
+	seen := map[string]bool{}
+	filtered := []string{}
+	for _, uri := range uris {
+		if uri != "" && !seen[uri] {
+			filtered = append(filtered, uri)
+			seen[uri] = true
 		}
 	}
-	return nil
+	return filtered
 }
 
 func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
@@ -153,28 +111,6 @@ func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Albu
 		albums = append(albums, album)
 	}
 	return albums
-}
-
-func (c *PlaylistController) filterNotFounds(uris []string) []string {
-	filtered := []string{}
-	for _, uri := range uris {
-		if uri != "" {
-			filtered = append(filtered, uri)
-		}
-	}
-	return filtered
-}
-
-func (c *PlaylistController) filterDuplicates(uris []string) []string {
-	seen := map[string]bool{}
-	filtered := []string{}
-	for _, uri := range uris {
-		if !seen[uri] {
-			filtered = append(filtered, uri)
-			seen[uri] = true
-		}
-	}
-	return filtered
 }
 
 // TODO: Necessary?

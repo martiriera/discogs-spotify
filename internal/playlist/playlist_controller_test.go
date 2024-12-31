@@ -33,63 +33,21 @@ func TestPlaylistController(t *testing.T) {
 		}
 	})
 
-	t.Run("filter not founds", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{
-			Response: entities.MotherTwoAlbums(),
-		}
-		uris := []string{"spotify:album:1", "", "spotify:album:3", "spotify:album:4"}
+	t.Run("filter duplicates and not founds", func(t *testing.T) {
+		discogsServiceMock := &discogs.DiscogsServiceMock{}
+		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
 		spotifyServiceMock := &spotify.SpotifyServiceMock{
 			Responses: uris,
 		}
 
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		filteredUris := controller.filterNotFounds(uris)
+		filteredUris := controller.filterValidUnique(uris)
 
 		if len(filteredUris) != 3 {
 			t.Errorf("got %d uris, want 3", len(filteredUris))
 		}
 
-		expectedUris := []string{"spotify:album:1", "spotify:album:3", "spotify:album:4"}
-		if !reflect.DeepEqual(filteredUris, expectedUris) {
-			t.Errorf("got %v, want %v", filteredUris, expectedUris)
-		}
-	})
-
-	t.Run("add to playlist by batches", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{}
-		spotifyServiceMock := &spotify.SpotifyServiceMock{}
-		uris := make([]string, 205)
-
-		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
-
-		err := controller.addToSpotifyPlaylist(ctx, "6rqhFgbbKwnb9MLmUQDhG6", uris)
-		if err != nil {
-			t.Errorf("error is not nil")
-		}
-
-		if spotifyServiceMock.CalledCount != 3 {
-			t.Errorf("got %d calls, want 3", spotifyServiceMock.CalledCount)
-		}
-	})
-
-	t.Run("filter duplicates", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{
-			Response: entities.MotherTwoAlbums(),
-		}
-		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2"}
-		spotifyServiceMock := &spotify.SpotifyServiceMock{
-			Responses: uris,
-		}
-
-		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		filteredUris := controller.filterDuplicates(uris)
-
-		if len(filteredUris) != 2 {
-			t.Errorf("got %d uris, want 2", len(filteredUris))
-		}
-
-		expectedUris := []string{"spotify:album:1", "spotify:album:2"}
+		expectedUris := []string{"spotify:album:1", "spotify:album:2", "spotify:album:3"}
 		if !reflect.DeepEqual(filteredUris, expectedUris) {
 			t.Errorf("got %v, want %v", filteredUris, expectedUris)
 		}
