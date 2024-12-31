@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -14,8 +15,10 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("No .env file found")
+	if os.Getenv("GAE_ENV") == "" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatalf("No .env file found")
+		}
 	}
 	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
 	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
