@@ -25,7 +25,7 @@ func NewServer(
 	authGroup := s.Engine.Group("/auth")
 	authRouter.SetupRoutes(authGroup)
 
-	apiGroup := s.Engine.Group("/api")
+	apiGroup := s.Engine.Group("/")
 	apiRouter.SetupRoutes(apiGroup)
 
 	return s
