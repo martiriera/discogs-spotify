@@ -1,43 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Discogs to Spotify</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-        <style>
-            .htmx-indicator{
-                opacity: 0;
-                transition: opacity 0.3s ease-in-out;
-            }
-            .htmx-request .htmx-indicator{
-                opacity: 1;
-            }
-        </style>
-    </head>
-    <body class="bg-gray-200 p-10">
-        <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl mb-5 text-center">Discogs to Spotify</h1>
-            <div>
-                <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator">
-                    <div class="flex items-center mb-4">
-                        <label for="discogs_username" class="sr-only">Discogs Username</label>
-                        <input id="discogs_username" name="discogs_username" type="text" class="p-2 border rounded-l w-full" placeholder="Enter your Discogs username" required>
-                        <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2">Submit</button>
-                    </div>
-                </form>
-                <div class="my-2 htmx-indicator">Loading...</div>
 
-                <!-- Results/Error Card -->
-                <div id="results" class="flex justify-center">
-                    <!-- Example Error Card -->
-                    <div class="max-w-sm w-full bg-red-100 text-red-700 p-5 rounded-lg shadow-md mt-4">
-                        <h2 class="text-xl font-semibold">Error</h2>
-                        <p id="error-message" class="mt-2">There was an issue fetching the playlist from Discogs. Please try again.</p>
-                    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discogs to Spotify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-200 p-10">
+    <div class="max-w-xl mx-auto">
+        <h1 class="text-3xl mb-5 text-center">Discogs to Spotify</h1>
+        <div>
+            <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator">
+                <div class="flex items-center mb-4">
+                    <label for="discogs_username" class="sr-only">Discogs Username</label>
+                    <input id="discogs_username" name="discogs_username" type="text" class="p-2 border rounded-l w-full"
+                        placeholder="Enter your Discogs username" required>
+                    <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2">Submit</button>
+                </div>
+            </form>
+            <div class="my-2 htmx-indicator">Loading...</div>
+
+            <!-- Results/Error Card -->
+            <div id="results" class="flex justify-center">
+                <!-- Default empty state -->
+                <div id="error-card"
+                    class="hidden max-w-sm w-full bg-red-100 text-red-700 p-5 rounded-lg shadow-md mt-4">
+                    <h2 class="text-xl font-semibold">Error</h2>
+                    <p id="error-message" class="mt-2">There was an issue fetching the playlist from Discogs. Please try
+                        again.</p>
+                </div>
+
+                <!-- Success JSON Response -->
+                <div id="success-response" class="hidden p-5 bg-green-100 text-green-700 rounded-lg shadow-md mt-4">
+                    <pre id="json-result"></pre>
                 </div>
             </div>
+            <script>
+                document.addEventListener('htmx:responseError', function (event) {
+                    document.getElementById('error-card').classList.remove('hidden');
+                    document.getElementById('error-message').innerText = event.detail.xhr.response;
+                });
+                document.addEventListener('htmx:afterSwap', function (event) {
+                    if (event.detail.elt.id === 'results') {
+                        const jsonResult = document.getElementById('json-result');
+                        jsonResult.innerText = JSON.stringify(event.detail.elt.dataset, null, 2);
+                        document.getElementById('success-response').classList.remove('hidden');
+                    }
+                });
+            </script>
         </div>
-    </body>
+    </div>
+</body>
+
 </html>

@@ -53,25 +53,16 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 }
 
 func (router *ApiRouter) handleHome(ctx *gin.Context) {
-	router.template.ExecuteTemplate(ctx.Writer, "home.html", nil)
+	router.template.ExecuteTemplate(ctx.Writer, "home2.html", nil)
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
-	var requestBody struct {
-		Username string `json:"discogs_username"`
-	}
+	username := ctx.PostForm("discogs_username")
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
-		return
-	}
-
-	if requestBody.Username == "" {
+	if username == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
 		return
 	}
-
-	username := requestBody.Username
 
 	playlist, err := router.playlistController.CreatePlaylist(ctx, username)
 	if err != nil {
@@ -90,8 +81,8 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 	}
 
 	responseBody := gin.H{
-		"id":              playlist.ID,
-		"url":             playlist.URL,
+		"id":               playlist.ID,
+		"url":              playlist.URL,
 		"discogs_releases": playlist.DiscogsReleases,
 		"spotify_albums":   playlist.SpotifyAlbums,
 	}
