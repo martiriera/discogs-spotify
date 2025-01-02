@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +11,10 @@
         }
     </style>
 </head>
+
 <body>
     <h1>Create Playlist</h1>
-    <form id="playlistForm">
+    <form id="playlist_form">
         <label for="discogs_username">Discogs Username:</label>
         <input type="text" id="discogs_username" name="discogs_username" required>
         <button type="submit">Create Playlist</button>
@@ -21,7 +23,7 @@
     <div id="result"></div>
 
     <script>
-        document.getElementById('playlistForm').addEventListener('submit', async function(event) {
+        document.getElementById('playlist_form').addEventListener('submit', async function (event) {
             event.preventDefault();
             document.getElementById('loading').style.display = 'block';
             document.getElementById('result').innerText = '';
@@ -37,7 +39,7 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    document.getElementById('result').innerText = `Playlist URL: ${data.playlistUrl}`;
+                    document.getElementById('result').innerText = `Playlist: ${data}`;
                 } else {
                     document.getElementById('result').innerText = `Error: ${data.error}`;
                 }
@@ -49,4 +51,5 @@
         });
     </script>
 </body>
+
 </html>

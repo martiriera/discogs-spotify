@@ -1,7 +1,6 @@
 package playlist
 
 import (
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -25,35 +24,37 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (string, error) {
+func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (*entities.Playlist, error) {
 	// fetchReleases
 	releases, err := c.discogsService.GetReleases(discogsUsername)
-	log.Println("Releases: ", len(releases))
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// processAlbumIds
 	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
 	if err != nil {
-		return "", errors.Wrap(err, "error getting spotify album uris")
+		return nil, errors.Wrap(err, "error getting spotify album uris")
 	}
 	albumIds = c.filterValidUnique(albumIds)
-	log.Println("IDs: ", len(albumIds))
 
 	// createPlaylist
 	playlistBuilder := NewPlaylistBuilder(c.spotifyService)
 	err = playlistBuilder.AddAlbums(ctx, albumIds)
 	if err != nil {
-		return "", errors.Wrap(err, "error adding albums to playlist builder")
+		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
-	playlistUrl, err := playlistBuilder.CreateAndPopulate(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	playlist, err := playlistBuilder.CreateAndPopulate(ctx, "Discogs Playlist", "Playlist created from Discogs")
 	if err != nil {
-		return "", errors.Wrap(err, "error creating and populating playlist")
+		return nil, errors.Wrap(err, "error creating and populating playlist")
 	}
 
-	return playlistUrl, nil
+	return &entities.Playlist{
+		DiscogsReleases: len(releases),
+		SpotifyAlbums:   len(albumIds),
+		SpotifyPlaylist: *playlist,
+	}, nil
 }
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
