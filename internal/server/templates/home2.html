@@ -28,7 +28,15 @@
                     </div>
                 </form>
                 <div class="my-2 htmx-indicator">Loading...</div>
-                <div id="results" class="flex justify-center"></div>
+
+                <!-- Results/Error Card -->
+                <div id="results" class="flex justify-center">
+                    <!-- Example Error Card -->
+                    <div class="max-w-sm w-full bg-red-100 text-red-700 p-5 rounded-lg shadow-md mt-4">
+                        <h2 class="text-xl font-semibold">Error</h2>
+                        <p id="error-message" class="mt-2">There was an issue fetching the playlist from Discogs. Please try again.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
