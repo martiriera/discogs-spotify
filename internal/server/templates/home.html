@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Playlist</title>
+    <style>
+        #loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create Playlist</h1>
+    <form id="playlistForm">
+        <label for="discogs_username">Discogs Username:</label>
+        <input type="text" id="discogs_username" name="discogs_username" required>
+        <button type="submit">Create Playlist</button>
+    </form>
+    <div id="loading">Loading...</div>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('playlistForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').innerText = '';
+
+            const discogs_username = document.getElementById('discogs_username').value;
+            try {
+                const response = await fetch('/playlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ discogs_username })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('result').innerText = `Playlist URL: ${data.playlistUrl}`;
+                } else {
+                    document.getElementById('result').innerText = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerText = `Error: ${error.message}`;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
