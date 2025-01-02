@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Discogs to Spotify</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+        <style>
+            .htmx-indicator{
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+            }
+            .htmx-request .htmx-indicator{
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-200 p-10">
+        <div class="max-w-xl mx-auto">
+            <h1 class="text-3xl mb-5 text-center">Discogs to Spotify</h1>
+            <div>
+                <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator">
+                    <div class="flex items-center mb-4">
+                        <label for="discogs_username" class="sr-only">Discogs Username</label>
+                        <input id="discogs_username" name="discogs_username" type="text" class="p-2 border rounded-l w-full" placeholder="Enter your Discogs username" required>
+                        <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2">Submit</button>
+                    </div>
+                </form>
+                <div class="my-2 htmx-indicator">Loading...</div>
+                <div id="results" class="flex justify-center"></div>
+            </div>
+        </div>
+    </body>
+</html>
