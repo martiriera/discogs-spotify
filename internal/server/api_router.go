@@ -43,17 +43,12 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
-		html := `<html>
-					<body>
-						<a href="/auth/login">Login with Spotify</a>
-					</body>
-				</html>`
-		ctx.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+		router.template.ExecuteTemplate(ctx.Writer, "index.html", nil)
 	}
 }
 
 func (router *ApiRouter) handleHome(ctx *gin.Context) {
-	router.template.ExecuteTemplate(ctx.Writer, "home2.html", nil)
+	router.template.ExecuteTemplate(ctx.Writer, "home.html", nil)
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
