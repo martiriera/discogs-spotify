@@ -64,7 +64,7 @@ func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []ent
 	errChan := make(chan error, len(albums))
 
 	var wg sync.WaitGroup
-	rateLimiter := time.Tick(100 * time.Millisecond)
+	rateLimiter := time.Tick(200 * time.Millisecond)
 
 	for _, album := range albums {
 		select {
