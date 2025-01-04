@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +32,7 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api main get 200", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("GET", "/api/", nil)
+		request := httptest.NewRequest("GET", "/", nil)
 		response := httptest.NewRecorder()
 		playlistController := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
@@ -54,7 +56,7 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api playlist post 200", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
+		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
@@ -72,12 +74,13 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 200)
-		assertResponseBody(t, response.Body.String(), "{\"playlist_url\":\"https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6\"}")
+		want := "{\"discogs_releases\":2,\"id\":\"6rqhFgbbKwnb9MLmUQDhG6\",\"spotify_albums\":2,\"url\":\"https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6\"}"
+		assertResponseBody(t, response.Body.String(), want)
 	})
 
 	t.Run("api playlist post 400 no username", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("POST", "/api/playlist", nil)
+		request := httptest.NewRequest("POST", "/playlist", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
 		playlistController := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
@@ -93,7 +96,7 @@ func TestAcceptance(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
 		sessionMock := initSessionMock()
 
-		request := httptest.NewRequest("POST", "/api/playlist", strings.NewReader("username=test"))
+		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_username=test"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
@@ -108,12 +111,12 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api get home 200", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("GET", "/api/home", nil)
+		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
 		playlistController := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
-
+		fmt.Println(os.Getwd())
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 200)
@@ -121,7 +124,7 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api get home 302 expired token", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("GET", "/api/home", nil)
+		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Second)})
 		playlistController := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
@@ -136,7 +139,7 @@ func TestAcceptance(t *testing.T) {
 	t.Run("api get home 302 expired session", func(t *testing.T) {
 		sessionMock := initSessionMock()
 		sessionMock.Init(1)
-		request := httptest.NewRequest("GET", "/api/home", nil)
+		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
 		playlistController := playlist.NewPlaylistController(discogsServiceMock, spotifyServiceMock)

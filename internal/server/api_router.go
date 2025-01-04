@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"text/template"
 
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/discogs"
@@ -16,10 +17,15 @@ type ApiRouter struct {
 	playlistController *playlist.PlaylistController
 	userController     *spotify.UserController
 	session            *session.Session
+	template           *template.Template
 }
 
-func NewApiRouter(pc *playlist.PlaylistController, uc *spotify.UserController, s *session.Session) *ApiRouter {
-	router := &ApiRouter{playlistController: pc, userController: uc, session: s}
+func NewApiRouter(
+	pc *playlist.PlaylistController,
+	uc *spotify.UserController,
+	s *session.Session,
+	t *template.Template) *ApiRouter {
+	router := &ApiRouter{playlistController: pc, userController: uc, session: s, template: t}
 	return router
 }
 
@@ -37,37 +43,23 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
-		html := `<html>
-					<body>
-						<a href="/auth/login">Login with Spotify</a>
-					</body>
-				</html>`
-		ctx.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+		router.template.ExecuteTemplate(ctx.Writer, "index.html", nil)
 	}
 }
 
 func (router *ApiRouter) handleHome(ctx *gin.Context) {
-	html := `<html>
-				<body>
-					<form action="/api/playlist" method="post">
-						<label for="username">Discogs username:</label>
-						<input type="text" name="username" name="username">
-						<input type="submit" value="Create playlist">
-					</form>
-				</body>
-			</html>`
-	ctx.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+	router.template.ExecuteTemplate(ctx.Writer, "home.html", nil)
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
-	username := ctx.PostForm("username")
+	username := ctx.PostForm("discogs_username")
 
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
 		return
 	}
 
-	playlistId, err := router.playlistController.CreatePlaylist(ctx, username)
+	playlist, err := router.playlistController.CreatePlaylist(ctx, username)
 	if err != nil {
 		if errors.Cause(err) == discogs.ErrUnauthorized {
 			util.HandleError(ctx, err, http.StatusUnauthorized)
@@ -83,5 +75,12 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"playlist_url": playlistId})
+	responseBody := gin.H{
+		"id":               playlist.ID,
+		"url":              playlist.URL,
+		"discogs_releases": playlist.DiscogsReleases,
+		"spotify_albums":   playlist.SpotifyAlbums,
+	}
+
+	ctx.JSON(http.StatusOK, responseBody)
 }

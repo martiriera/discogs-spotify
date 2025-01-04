@@ -24,12 +24,21 @@ func TestPlaylistController(t *testing.T) {
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-		playlistId, err := controller.CreatePlaylist(ctx, "discogs-digger")
+		playlist, err := controller.CreatePlaylist(ctx, "discogs-digger")
 		if err != nil {
-			t.Errorf("error is not nil")
+			t.Errorf("did not expect error, got %v", err)
 		}
-		if playlistId == "" {
-			t.Errorf("got empty playlist id, want not empty")
+		if playlist.DiscogsReleases != 2 {
+			t.Errorf("got %d releases, want 2", playlist.DiscogsReleases)
+		}
+		if playlist.SpotifyAlbums != 2 {
+			t.Errorf("got %d albums, want 2", playlist.SpotifyAlbums)
+		}
+		if playlist.SpotifyPlaylist.ID != "6rqhFgbbKwnb9MLmUQDhG6" {
+			t.Errorf("got %s, want 6rqhFgbbKwnb9MLmUQDhG6", playlist.SpotifyPlaylist.ID)
+		}
+		if playlist.SpotifyPlaylist.URL != "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6" {
+			t.Errorf("got %s, want https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6", playlist.SpotifyPlaylist.URL)
 		}
 	})
 

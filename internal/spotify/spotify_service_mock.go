@@ -29,8 +29,8 @@ func (m *SpotifyServiceMock) GetSpotifyUserId(ctx *gin.Context) (string, error) 
 	return "wizzler", nil
 }
 
-func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.Playlist, error) {
-	return entities.Playlist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
+func (m *SpotifyServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
+	return entities.SpotifyPlaylist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
 }
 
 func (m *SpotifyServiceMock) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {

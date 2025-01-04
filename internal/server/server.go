@@ -1,6 +1,9 @@
 package server
 
 import (
+	"embed"
+	"text/template"
+
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/session"
@@ -11,6 +14,9 @@ type Server struct {
 	*gin.Engine
 }
 
+//go:embed templates/*
+var templateFS embed.FS
+
 func NewServer(
 	playlistController *playlist.PlaylistController,
 	oauthController *spotify.OAuthController,
@@ -19,13 +25,15 @@ func NewServer(
 ) *Server {
 	s := &Server{Engine: gin.Default()}
 
-	apiRouter := NewApiRouter(playlistController, userController, &session)
+	tmpl := template.Must(template.ParseFS(templateFS, "templates/*.html"))
+
+	apiRouter := NewApiRouter(playlistController, userController, &session, tmpl)
 	authRouter := NewAuthRouter(oauthController, &session)
 
 	authGroup := s.Engine.Group("/auth")
 	authRouter.SetupRoutes(authGroup)
 
-	apiGroup := s.Engine.Group("/api")
+	apiGroup := s.Engine.Group("/")
 	apiRouter.SetupRoutes(apiGroup)
 
 	return s

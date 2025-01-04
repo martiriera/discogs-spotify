@@ -5,7 +5,13 @@ type Album struct {
 	Title  string
 }
 
-type Playlist struct {
+type SpotifyPlaylist struct {
 	ID  string
 	URL string
+}
+
+type Playlist struct {
+	SpotifyPlaylist
+	DiscogsReleases int
+	SpotifyAlbums   int
 }

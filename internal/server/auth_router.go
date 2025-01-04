@@ -40,5 +40,5 @@ func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 		util.HandleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	ctx.Redirect(http.StatusTemporaryRedirect, "/api/home")
+	ctx.Redirect(http.StatusTemporaryRedirect, "/home")
 }
