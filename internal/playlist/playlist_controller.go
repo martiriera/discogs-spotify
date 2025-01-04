@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -59,32 +60,47 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	albums := parseAlbumsFromReleases(releases)
-	uris := make([]string, len(albums))
-	var wg sync.WaitGroup
-	var mu sync.Mutex
+	urisChan := make(chan string, len(albums))
 	errChan := make(chan error, len(albums))
 
-	for i, album := range albums {
-		wg.Add(1)
-		go func(i int, album entities.Album) {
-			defer wg.Done()
-			uri, err := c.spotifyService.GetAlbumId(ctx, album)
-			if err != nil {
-				errChan <- errors.Wrap(err, "error getting album id on channel")
-				return
-			}
-			mu.Lock()
-			uris[i] = uri
-			mu.Unlock()
-		}(i, album)
-		time.Sleep(100 * time.Millisecond)
+	var wg sync.WaitGroup
+	rateLimiter := time.Tick(100 * time.Millisecond)
+
+	for _, album := range albums {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-rateLimiter:
+			wg.Add(1)
+			go func(album entities.Album) {
+				defer wg.Done()
+				uri, err := c.spotifyService.GetAlbumId(ctx, album)
+				if err != nil {
+					errChan <- errors.Wrap(err, "error getting album id")
+					return
+				}
+				urisChan <- uri
+			}(album)
+		}
 	}
 
-	wg.Wait()
-	close(errChan)
+	go func() {
+		wg.Wait()
+		close(urisChan)
+		close(errChan)
+	}()
 
-	if len(errChan) > 0 {
-		return nil, <-errChan
+	var uris []string
+	for uri := range urisChan {
+		uris = append(uris, uri)
+	}
+
+	var errs []error
+	for err := range errChan {
+		errs = append(errs, err)
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("encountered errors: %v", errs)
 	}
 
 	return uris, nil

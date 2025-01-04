@@ -49,6 +49,7 @@ func (s *HttpSpotifyService) GetAlbumId(ctx *gin.Context, album entities.Album) 
 	}
 
 	if len(resp.Albums.Items) == 0 {
+		fmt.Printf("no album found for %s\n", album.Title)
 		return "", nil
 	}
 
