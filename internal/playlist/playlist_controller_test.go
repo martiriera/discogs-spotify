@@ -66,53 +66,59 @@ func TestPlaylistController(t *testing.T) {
 		tcs := []struct {
 			name     string
 			url      string
-			expected string
+			expected entities.DiscogsInputUrl
 		}{
 			{
 				"https es",
 				"https://www.discogs.com/es/user/digger/collection",
-				"digger",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.CollectionType},
 			},
 			{
 				"https en",
 				"https://www.discogs.com/en/user/digger/collection",
-				"digger",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.CollectionType},
 			},
 			{
 				"www es",
 				"www.discogs.com/es/user/digger/collection",
-				"digger",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.CollectionType},
 			},
 			{
 				"https other user",
 				"https://www.discogs.com/es/user/johndoe/collection",
-				"johndoe",
+				entities.DiscogsInputUrl{Id: "johndoe", UrlType: entities.CollectionType},
 			},
 			{
 				"https wish",
 				"https://www.discogs.com/es/lists/wishes/1545836",
-				"1545836",
+				entities.DiscogsInputUrl{Id: "1545836", UrlType: entities.ListType},
 			},
 			{
 				"www wish",
 				"www.discogs.com/es/lists/wishes/1545836",
-				"1545836",
+				entities.DiscogsInputUrl{Id: "1545836", UrlType: entities.ListType},
 			},
 			{
 				"https wantlist",
 				"https://www.discogs.com/es/wantlist?user=digger",
-				"digger",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.WantlistType},
 			},
 			{
 				"www wantlist",
 				"www.discogs.com/es/wantlist?user=digger",
-				"digger",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.WantlistType},
 			},
 		}
 		for _, tc := range tcs {
-			got := parseDiscogsUrl(tc.url)
-			if got != tc.expected {
-				t.Errorf("%s: got %s, want %s", tc.name, got, tc.expected)
+			got, err := parseDiscogsUrl(tc.url)
+			if err != nil {
+				t.Errorf("did not expect error, got %v", err)
+			}
+			if got.Id != tc.expected.Id {
+				t.Errorf("got %s, want %s", got.Id, tc.expected.Id)
+			}
+			if got.UrlType != tc.expected.UrlType {
+				t.Errorf("got %s, want %s", got.UrlType, tc.expected.UrlType)
 			}
 		}
 	})

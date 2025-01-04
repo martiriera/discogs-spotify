@@ -135,15 +135,22 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	return album
 }
 
-func parseDiscogsUrl(url string) string {
-	re := regexp.MustCompile(`^(?:https://)?www\.discogs\.com/[^/]+/(?:user/(.+)/collection|lists/.+/(\d+)|wantlist\?user=(.+))$`)
+func parseDiscogsUrl(url string) (*entities.DiscogsInputUrl, error) {
+	re := regexp.MustCompile(`^(?:https://)?www\.discogs\.com/[^/]+/(?:user/(.+)/collection|wantlist\?user=(.+))$|lists/.+/(\d+)`)
 	matches := re.FindStringSubmatch(url)
-	if len(matches) > 0 {
-		for _, match := range matches[1:] {
-			if match != "" {
-				return match
-			}
+	if matches == nil {
+		return nil, errors.New("invalid Discogs URL")
+	}
+	for i, match := range matches {
+		if i == 1 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.CollectionType}, nil
+		}
+		if i == 2 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.WantlistType}, nil
+		}
+		if i == 3 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.ListType}, nil
 		}
 	}
-	return ""
+	return nil, errors.New("invalid Discogs URL")
 }

@@ -15,3 +15,16 @@ type Playlist struct {
 	DiscogsReleases int
 	SpotifyAlbums   int
 }
+
+type DiscogsInputUrlType string
+
+const (
+	CollectionType DiscogsInputUrlType = "collection"
+	WantlistType   DiscogsInputUrlType = "wantlist"
+	ListType       DiscogsInputUrlType = "list"
+)
+
+type DiscogsInputUrl struct {
+	Id      string
+	UrlType DiscogsInputUrlType
+}
