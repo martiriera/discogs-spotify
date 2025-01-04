@@ -63,14 +63,14 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 }
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
-	albums := parseAlbumsFromReleases(releases)
-	urisChan := make(chan string, len(albums))
-	errChan := make(chan error, len(albums))
+	urisChan := make(chan string, len(releases))
+	errChan := make(chan error, len(releases))
 
 	var wg sync.WaitGroup
 	rateLimiter := time.Tick(200 * time.Millisecond)
 
-	for _, album := range albums {
+	for _, release := range releases {
+		album := getAlbumFromRelease(release)
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -122,16 +122,12 @@ func (c *PlaylistController) filterValidUnique(uris []string) []string {
 	return filtered
 }
 
-func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
-	albums := []entities.Album{}
-	for _, release := range releases {
-		album := entities.Album{
-			Artist: joinArtists(release.BasicInformation.Artists),
-			Title:  strings.TrimSpace(release.BasicInformation.Title),
-		}
-		albums = append(albums, album)
+func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+	album := entities.Album{
+		Artist: joinArtists(release.BasicInformation.Artists),
+		Title:  strings.TrimSpace(release.BasicInformation.Title),
 	}
-	return albums
+	return album
 }
 
 // TODO: Necessary?
