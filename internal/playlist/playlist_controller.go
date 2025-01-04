@@ -10,6 +10,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/util"
 	"github.com/pkg/errors"
 )
 
@@ -26,6 +27,9 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 }
 
 func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (*entities.Playlist, error) {
+	stop := util.StartTimer()
+	defer stop()
+
 	// fetchReleases
 	releases, err := c.discogsService.GetReleases(discogsUsername)
 

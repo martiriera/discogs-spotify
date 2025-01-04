@@ -3,6 +3,7 @@ package util
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,4 +22,12 @@ func AssertEnvVar(name string) string {
 		log.Fatalf("environment variable %s is required", name)
 	}
 	return value
+}
+
+func StartTimer() func() {
+	t := time.Now()
+	return func() {
+		d := time.Since(t)
+		log.Printf("time elapsed: %v", d)
+	}
 }
