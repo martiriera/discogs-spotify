@@ -28,13 +28,9 @@
                     <label for="discogs_username" class="sr-only">Discogs Username</label>
                     <input id="discogs_username" name="discogs_username" type="text" class="p-2 border rounded-l w-full"
                         placeholder="Enter your Discogs username" required>
-                    <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2"
-                        onclick="hideCards()">Submit</button>
+                    <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="hideCards()"
+                        id="submit-button">Submit</button>
                     <script>
-                        function hideCards() {
-                            document.getElementById('error-card').classList.add('hidden');
-                            document.getElementById('playlist-card').classList.add('hidden');
-                        }
                     </script>
                 </div>
             </form>
@@ -60,6 +56,18 @@
                 </div>
             </div>
             <script>
+                function hideCards() {
+                    document.getElementById('error-card').classList.add('hidden');
+                    document.getElementById('playlist-card').classList.add('hidden');
+                }
+
+                document.addEventListener('htmx:configRequest', function (event) {
+                    document.getElementById('submit-button').disabled = true;
+                });
+                document.addEventListener('htmx:afterRequest', function (event) {
+                    document.getElementById('submit-button').disabled = false;
+                });
+
                 document.addEventListener('htmx:responseError', function (event) {
                     const errorResponse = JSON.parse(event.detail.xhr.response);
                     const errorMessage = errorResponse.error ? errorResponse.error.charAt(0).toUpperCase() + errorResponse.error.slice(1) + '.'
@@ -67,12 +75,12 @@
                     document.getElementById('error-card').classList.remove('hidden');
                     document.getElementById('error-message').innerText = errorMessage;
                 });
+
                 document.addEventListener('htmx:beforeSwap', function (event) {
                     if (event.detail.target.id === 'results' && event.detail.xhr.status === 200) {
                         try {
                             const data = JSON.parse(event.detail.xhr.responseText);
 
-                            // Update the relevant fields
                             const discogsReleasesElem = document.getElementById('discogs-releases');
                             if (discogsReleasesElem) {
                                 discogsReleasesElem.innerText = data.discogs_releases || 'N/A';
@@ -94,7 +102,6 @@
                                 playlistCardElem.classList.remove('hidden');
                             }
 
-                            // Prevent HTMX from swapping content
                             event.preventDefault();
                         } catch (error) {
                             console.error('Failed to process JSON response:', error);
