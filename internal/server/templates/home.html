@@ -12,6 +12,7 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
+
         .htmx-request .htmx-indicator {
             opacity: 1;
         }
@@ -60,11 +61,14 @@
             </div>
             <script>
                 document.addEventListener('htmx:responseError', function (event) {
+                    const errorResponse = JSON.parse(event.detail.xhr.response);
+                    const errorMessage = errorResponse.error ? errorResponse.error.charAt(0).toUpperCase() + errorResponse.error.slice(1) + '.'
+                        : 'An unknown error occurred.';
                     document.getElementById('error-card').classList.remove('hidden');
-                    document.getElementById('error-message').innerText = event.detail.xhr.response;
+                    document.getElementById('error-message').innerText = errorMessage;
                 });
                 document.addEventListener('htmx:beforeSwap', function (event) {
-                    if (event.detail.target.id === 'results') {
+                    if (event.detail.target.id === 'results' && event.detail.xhr.status === 200) {
                         try {
                             const data = JSON.parse(event.detail.xhr.responseText);
 
