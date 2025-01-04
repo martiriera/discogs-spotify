@@ -128,17 +128,8 @@ func (c *PlaylistController) filterValidUnique(uris []string) []string {
 
 func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	album := entities.Album{
-		Artist: joinArtists(release.BasicInformation.Artists),
+		Artist: release.BasicInformation.Artists[0].Name,
 		Title:  strings.TrimSpace(release.BasicInformation.Title),
 	}
 	return album
-}
-
-// TODO: Necessary?
-func joinArtists(artists []entities.DiscogsArtist) string {
-	names := []string{}
-	for _, artist := range artists {
-		names = append(names, artist.Name)
-	}
-	return strings.Join(names, ", ")
 }
