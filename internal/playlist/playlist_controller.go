@@ -37,6 +37,10 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 		return nil, err
 	}
 
+	if len(releases) == 0 {
+		return nil, errors.New("no releases found on Discogs list")
+	}
+
 	// processAlbumIds
 	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
 	if err != nil {
