@@ -2,6 +2,7 @@ package playlist
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -132,4 +133,17 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 		Title:  strings.TrimSpace(release.BasicInformation.Title),
 	}
 	return album
+}
+
+func parseDiscogsUrl(url string) string {
+	re := regexp.MustCompile(`^(?:https://)?www\.discogs\.com/[^/]+/(?:user/(.+)/collection|lists/.+/(\d+)|wantlist\?user=(.+))$`)
+	matches := re.FindStringSubmatch(url)
+	if len(matches) > 0 {
+		for _, match := range matches[1:] {
+			if match != "" {
+				return match
+			}
+		}
+	}
+	return ""
 }

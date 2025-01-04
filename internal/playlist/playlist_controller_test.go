@@ -14,7 +14,7 @@ import (
 )
 
 func TestPlaylistController(t *testing.T) {
-	t.Run("create playlist", func(t *testing.T) {
+	t.Run("create playlist flow", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
@@ -59,6 +59,61 @@ func TestPlaylistController(t *testing.T) {
 		expectedUris := []string{"spotify:album:1", "spotify:album:2", "spotify:album:3"}
 		if !reflect.DeepEqual(filteredUris, expectedUris) {
 			t.Errorf("got %v, want %v", filteredUris, expectedUris)
+		}
+	})
+
+	t.Run("parse discogs url", func(t *testing.T) {
+		tcs := []struct {
+			name     string
+			url      string
+			expected string
+		}{
+			{
+				"https es",
+				"https://www.discogs.com/es/user/digger/collection",
+				"digger",
+			},
+			{
+				"https en",
+				"https://www.discogs.com/en/user/digger/collection",
+				"digger",
+			},
+			{
+				"www es",
+				"www.discogs.com/es/user/digger/collection",
+				"digger",
+			},
+			{
+				"https other user",
+				"https://www.discogs.com/es/user/johndoe/collection",
+				"johndoe",
+			},
+			{
+				"https wish",
+				"https://www.discogs.com/es/lists/wishes/1545836",
+				"1545836",
+			},
+			{
+				"www wish",
+				"www.discogs.com/es/lists/wishes/1545836",
+				"1545836",
+			},
+			{
+				"https wantlist",
+				"https://www.discogs.com/es/wantlist?user=digger",
+				"digger",
+			},
+			{
+				"www wantlist",
+				"www.discogs.com/es/wantlist?user=digger",
+				"digger",
+			},
+		}
+		for _, tc := range tcs {
+			got := parseDiscogsUrl(tc.url)
+			if got != tc.expected {
+				t.Errorf("%s: got %s, want %s", tc.name, got, tc.expected)
+			}
 		}
 	})
 }
