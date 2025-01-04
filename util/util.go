@@ -24,10 +24,10 @@ func AssertEnvVar(name string) string {
 	return value
 }
 
-func StartTimer() func() {
+func StartTimer(name string) func() {
 	t := time.Now()
 	return func() {
 		d := time.Since(t)
-		log.Printf("time elapsed: %v", d)
+		log.Println(name, "took", d)
 	}
 }

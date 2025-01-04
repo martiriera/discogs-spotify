@@ -27,7 +27,7 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 }
 
 func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (*entities.Playlist, error) {
-	stop := util.StartTimer()
+	stop := util.StartTimer("CreatePlaylist")
 	defer stop()
 
 	// fetchReleases
