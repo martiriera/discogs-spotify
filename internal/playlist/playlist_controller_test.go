@@ -115,10 +115,10 @@ func TestPlaylistController(t *testing.T) {
 				t.Errorf("did not expect error, got %v", err)
 			}
 			if got.Id != tc.expected.Id {
-				t.Errorf("got %s, want %s", got.Id, tc.expected.Id)
+				t.Errorf("got %s, want %s: %s", got.Id, tc.expected.Id, tc.name)
 			}
 			if got.UrlType != tc.expected.UrlType {
-				t.Errorf("got %s, want %s", got.UrlType, tc.expected.UrlType)
+				t.Errorf("got %s, want %s: %s", got.UrlType, tc.expected.UrlType, tc.name)
 			}
 		}
 	})
