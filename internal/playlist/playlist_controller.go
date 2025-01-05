@@ -141,6 +141,10 @@ func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
 		return nil, errors.Wrap(err, "invalid URL")
 	}
 
+	if parsedUrl.Host != "www.discogs.com" && !strings.Contains(parsedUrl.Path, "discogs.com") {
+		return nil, errors.New("URL must be from discogs.com")
+	}
+
 	path := parsedUrl.Path
 	query := parsedUrl.Query()
 

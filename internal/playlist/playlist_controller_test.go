@@ -69,6 +69,11 @@ func TestPlaylistController(t *testing.T) {
 			expected entities.DiscogsInputUrl
 		}{
 			{
+				"es",
+				"discogs.com/es/user/digger/collection",
+				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.CollectionType},
+			},
+			{
 				"https es",
 				"https://www.discogs.com/es/user/digger/collection",
 				entities.DiscogsInputUrl{Id: "digger", UrlType: entities.CollectionType},
