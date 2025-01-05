@@ -3,6 +3,7 @@ package playlist
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -149,32 +150,51 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	return album
 }
 
+var ErrInvalidDiscogsUrl = errors.New("invalid Discogs URL")
+
 func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
+	// validate host
 	parsedUrl, err := url.Parse(urlStr)
+
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid URL")
+		return nil, err
 	}
 
-	if parsedUrl.Host != "www.discogs.com" && !strings.Contains(parsedUrl.Path, "discogs.com") {
-		return nil, errors.New("URL must be from discogs.com")
+	pathWithQuery := parsedUrl.Path
+	if parsedUrl.RawQuery != "" {
+		pathWithQuery += "?" + parsedUrl.RawQuery
 	}
 
-	path := parsedUrl.Path
-	query := parsedUrl.Query()
-
-	if strings.Contains(path, "/collection") {
-		user := strings.Split(path, "/")[3]
-		return &entities.DiscogsInputUrl{Id: user, UrlType: entities.CollectionType}, nil
+	matchingUrl := ""
+	if parsedUrl.Host == "www.discogs.com" {
+		matchingUrl = pathWithQuery
+	} else if parsedUrl.Host == "" {
+		matchingUrl = "/" + strings.SplitN(pathWithQuery, "/", 2)[1]
+	} else {
+		return nil, ErrInvalidDiscogsUrl
 	}
 
-	if wantlistUser := query.Get("user"); wantlistUser != "" {
-		return &entities.DiscogsInputUrl{Id: wantlistUser, UrlType: entities.WantlistType}, nil
+	// validate path
+	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(?:user/(.+)/collection|wantlist\?user=(.+))$|lists/.+/(\d+)`)
+	matches := re.FindStringSubmatch(matchingUrl)
+	if matches == nil {
+		return nil, ErrInvalidDiscogsUrl
 	}
 
-	if strings.Contains(path, "/lists/") {
-		listId := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
-		return &entities.DiscogsInputUrl{Id: listId, UrlType: entities.ListType}, nil
-	}
+	for i, match := range matches {
+		// https://www.discogs.com/es/user/digger/collection
+		if i == 1 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.CollectionType}, nil
+		}
+		// https://www.discogs.com/es/wantlist?user=digger
+		if i == 2 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.WantlistType}, nil
+		}
 
-	return nil, errors.New("unrecognized Discogs URL")
+		// https://www.discogs.com/es/lists/MyList/1545836
+		if i == 3 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, UrlType: entities.ListType}, nil
+		}
+	}
+	return nil, ErrInvalidDiscogsUrl
 }
