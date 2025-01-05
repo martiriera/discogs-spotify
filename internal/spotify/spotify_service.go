@@ -41,7 +41,7 @@ func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
 
 func (s *HttpSpotifyService) GetAlbumId(ctx *gin.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
-	route := fmt.Sprintf("%s?q=%s&type=album", basePath+"/search", query)
+	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
 
 	resp, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route, nil)
 	if err != nil {
@@ -49,6 +49,7 @@ func (s *HttpSpotifyService) GetAlbumId(ctx *gin.Context, album entities.Album) 
 	}
 
 	if len(resp.Albums.Items) == 0 {
+		fmt.Println("no album found for", album.Artist, album.Title)
 		return "", nil
 	}
 

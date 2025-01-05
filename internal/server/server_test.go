@@ -56,7 +56,7 @@ func TestAcceptance(t *testing.T) {
 
 	t.Run("api playlist post 200", func(t *testing.T) {
 		sessionMock := initSessionMock()
-		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_username=test"))
+		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_url=https://www.discogs.com/user/martireir/collection"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
@@ -96,7 +96,7 @@ func TestAcceptance(t *testing.T) {
 		discogsServiceMock.Error = discogs.ErrUnexpectedStatus
 		sessionMock := initSessionMock()
 
-		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_username=test"))
+		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_url=https://www.discogs.com/user/martireir/collection"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 		sessionMock.SetData(request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})

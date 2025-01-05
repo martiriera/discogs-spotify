@@ -1,6 +1,9 @@
 package playlist
 
 import (
+	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -9,7 +12,10 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/util"
 	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type PlaylistController struct {
@@ -24,12 +30,34 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (*entities.Playlist, error) {
+func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string) (*entities.Playlist, error) {
+	stop := util.StartTimer("CreatePlaylist")
+	defer stop()
+
 	// fetchReleases
-	releases, err := c.discogsService.GetReleases(discogsUsername)
+	parsedDiscogsUrl, err := parseDiscogsUrl(discogsUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing Discogs URL")
+	}
+
+	var releases []entities.DiscogsRelease
+	if parsedDiscogsUrl.Type == entities.CollectionType {
+		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsUrl.Id)
+	} else if parsedDiscogsUrl.Type == entities.WantlistType {
+		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsUrl.Id)
+	} else if parsedDiscogsUrl.Type == entities.ListType {
+		// releases, err = c.discogsService.GetListReleases(discogsUrl)
+		return nil, errors.New("list type not supported yet")
+	} else {
+		return nil, errors.New("unrecognized URL type")
+	}
 
 	if err != nil {
 		return nil, err
+	}
+
+	if len(releases) == 0 {
+		return nil, errors.New("no releases found on Discogs list")
 	}
 
 	// processAlbumIds
@@ -45,7 +73,11 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
-	playlist, err := playlistBuilder.CreateAndPopulate(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	playlist, err := playlistBuilder.CreateAndPopulate(
+		ctx,
+		"Discogs "+cases.Title(language.English).String(parsedDiscogsUrl.Type.String())+" by "+parsedDiscogsUrl.Id,
+		"Created from: "+discogsUrl,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating and populating playlist")
 	}
@@ -58,33 +90,48 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername st
 }
 
 func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
-	albums := parseAlbumsFromReleases(releases)
-	uris := make([]string, len(albums))
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	errChan := make(chan error, len(albums))
+	urisChan := make(chan string, len(releases))
+	errChan := make(chan error, len(releases))
 
-	for i, album := range albums {
-		wg.Add(1)
-		go func(i int, album entities.Album) {
-			defer wg.Done()
-			uri, err := c.spotifyService.GetAlbumId(ctx, album)
-			if err != nil {
-				errChan <- errors.Wrap(err, "error getting album id on channel")
-				return
-			}
-			mu.Lock()
-			uris[i] = uri
-			mu.Unlock()
-		}(i, album)
-		time.Sleep(100 * time.Millisecond)
+	var wg sync.WaitGroup
+	rateLimiter := time.Tick(200 * time.Millisecond)
+
+	for _, release := range releases {
+		album := getAlbumFromRelease(release)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-rateLimiter:
+			wg.Add(1)
+			go func(album entities.Album) {
+				defer wg.Done()
+				uri, err := c.spotifyService.GetAlbumId(ctx, album)
+				if err != nil {
+					errChan <- errors.Wrap(err, "error getting album id")
+					return
+				}
+				urisChan <- uri
+			}(album)
+		}
 	}
 
-	wg.Wait()
-	close(errChan)
+	go func() {
+		wg.Wait()
+		close(urisChan)
+		close(errChan)
+	}()
 
-	if len(errChan) > 0 {
-		return nil, <-errChan
+	var uris []string
+	for uri := range urisChan {
+		uris = append(uris, uri)
+	}
+
+	var errs []error
+	for err := range errChan {
+		errs = append(errs, err)
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("encountered errors: %v", errs)
 	}
 
 	return uris, nil
@@ -102,23 +149,59 @@ func (c *PlaylistController) filterValidUnique(uris []string) []string {
 	return filtered
 }
 
-func parseAlbumsFromReleases(releases []entities.DiscogsRelease) []entities.Album {
-	albums := []entities.Album{}
-	for _, release := range releases {
-		album := entities.Album{
-			Artist: joinArtists(release.BasicInformation.Artists),
-			Title:  strings.TrimSpace(release.BasicInformation.Title),
-		}
-		albums = append(albums, album)
+func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+	album := entities.Album{
+		Artist: release.BasicInformation.Artists[0].Name,
+		Title:  strings.TrimSpace(release.BasicInformation.Title),
 	}
-	return albums
+	return album
 }
 
-// TODO: Necessary?
-func joinArtists(artists []entities.DiscogsArtist) string {
-	names := []string{}
-	for _, artist := range artists {
-		names = append(names, artist.Name)
+var ErrInvalidDiscogsUrl = errors.New("invalid Discogs URL")
+
+func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
+	// validate host
+	parsedUrl, err := url.Parse(urlStr)
+
+	if err != nil {
+		return nil, err
 	}
-	return strings.Join(names, ", ")
+
+	pathWithQuery := parsedUrl.Path
+	if parsedUrl.RawQuery != "" {
+		pathWithQuery += "?" + parsedUrl.RawQuery
+	}
+
+	matchingUrl := ""
+	if parsedUrl.Host == "www.discogs.com" {
+		matchingUrl = pathWithQuery
+	} else if parsedUrl.Host == "" {
+		matchingUrl = "/" + strings.SplitN(pathWithQuery, "/", 2)[1]
+	} else {
+		return nil, ErrInvalidDiscogsUrl
+	}
+
+	// validate path
+	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(?:user/(.+)/collection|wantlist\?user=(.+))$|lists/.+/(\d+)`)
+	matches := re.FindStringSubmatch(matchingUrl)
+	if matches == nil {
+		return nil, ErrInvalidDiscogsUrl
+	}
+
+	for i, match := range matches {
+		// https://www.discogs.com/es/user/digger/collection
+		if i == 1 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, Type: entities.CollectionType}, nil
+		}
+		// https://www.discogs.com/es/wantlist?user=digger
+		if i == 2 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, Type: entities.WantlistType}, nil
+		}
+
+		// https://www.discogs.com/es/lists/MyList/1545836
+		if i == 3 && match != "" {
+			return &entities.DiscogsInputUrl{Id: match, Type: entities.ListType}, nil
+		}
+	}
+	return nil, ErrInvalidDiscogsUrl
 }

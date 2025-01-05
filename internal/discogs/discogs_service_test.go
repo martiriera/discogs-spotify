@@ -55,7 +55,7 @@ func TestDiscogsService(t *testing.T) {
 
 	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
 	service := NewHttpDiscogsService(stubClient)
-	response, err := service.GetReleases("digger")
+	response, err := service.GetCollectionReleases("digger")
 	if err != nil {
 		t.Errorf("did not expect an error, got %v", err)
 	}
@@ -87,8 +87,8 @@ func TestDiscogsServicePagination(t *testing.T) {
 					"per_page": 1,
 					"items": 2,
 					"urls": {
-						"last": "test.com?page=2",
-						"next": "test.com?page=2"
+						"last": "https://api.discogs.com/users/digger/collection/folders/0/releases?per_page=1&page=2",
+						"next": "https://api.discogs.com/users/digger/collection/folders/0/releases?per_page=1&page=2"
 					}
 				},
 				"releases": [{
@@ -140,7 +140,7 @@ func TestDiscogsServicePagination(t *testing.T) {
 
 	stubClient := &StubDiscogsHttpClient{Responses: stubResponses}
 	service := NewHttpDiscogsService(stubClient)
-	response, err := service.GetReleases("digger")
+	response, err := service.GetCollectionReleases("digger")
 	if err != nil {
 		t.Errorf("did not expect an error, got %v", err)
 	}
@@ -165,7 +165,7 @@ func TestDiscogsServiceError(t *testing.T) {
 	}
 	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
 	service := NewHttpDiscogsService(stubClient)
-	_, err := service.GetReleases("digger")
+	_, err := service.GetCollectionReleases("digger")
 	if err == nil {
 		t.Errorf("error is nil")
 	}
@@ -178,7 +178,7 @@ func TestDiscogsServiceUnauthorized(t *testing.T) {
 	}
 	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
 	service := NewHttpDiscogsService(stubClient)
-	_, err := service.GetReleases("digger")
+	_, err := service.GetCollectionReleases("digger")
 	if err == nil {
 		t.Errorf("error is nil")
 	}

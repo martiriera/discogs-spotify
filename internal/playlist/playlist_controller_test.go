@@ -14,7 +14,7 @@ import (
 )
 
 func TestPlaylistController(t *testing.T) {
-	t.Run("create playlist", func(t *testing.T) {
+	t.Run("create playlist flow", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
@@ -24,7 +24,7 @@ func TestPlaylistController(t *testing.T) {
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-		playlist, err := controller.CreatePlaylist(ctx, "discogs-digger")
+		playlist, err := controller.CreatePlaylist(ctx, "https://www.discogs.com/user/digger/collection")
 		if err != nil {
 			t.Errorf("did not expect error, got %v", err)
 		}
@@ -59,6 +59,115 @@ func TestPlaylistController(t *testing.T) {
 		expectedUris := []string{"spotify:album:1", "spotify:album:2", "spotify:album:3"}
 		if !reflect.DeepEqual(filteredUris, expectedUris) {
 			t.Errorf("got %v, want %v", filteredUris, expectedUris)
+		}
+	})
+
+	t.Run("parse discogs url", func(t *testing.T) {
+		tcs := []struct {
+			name        string
+			url         string
+			expected    *entities.DiscogsInputUrl
+			expectError bool
+		}{
+			{
+				"short",
+				"discogs.com/user/digger/collection",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				false,
+			},
+			{
+				"https",
+				"https://www.discogs.com/user/digger/collection",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				false,
+			},
+			{
+				"https es",
+				"https://www.discogs.com/es/user/digger/collection",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				false,
+			},
+			{
+				"www es",
+				"www.discogs.com/es/user/digger/collection",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				false,
+			},
+			{
+				"https other user",
+				"https://www.discogs.com/user/johndoe/collection",
+				&entities.DiscogsInputUrl{Id: "johndoe", Type: entities.CollectionType},
+				false,
+			},
+			{
+				"https wish",
+				"https://www.discogs.com/lists/MyList/1545836",
+				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
+				false,
+			},
+			{
+				"www wish",
+				"www.discogs.com/lists/MyList/1545836",
+				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
+				false,
+			},
+			{
+				"https wantlist",
+				"https://www.discogs.com/wantlist?user=digger",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				false,
+			},
+			{
+				"www wantlist",
+				"www.discogs.com/wantlist?user=digger",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				false,
+			},
+			{
+				"short wantlist es",
+				"discogs.com/es/wantlist?user=digger",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				false,
+			},
+			{
+				"wrong",
+				"https://www.discogs.com",
+				nil,
+				true,
+			},
+			{
+				"wrong collection",
+				"www.discogs.com/user/digger",
+				nil,
+				true,
+			},
+			{
+				"incomplete collection",
+				"www.discogs.com/user/digger/collectio",
+				nil,
+				true,
+			},
+			{
+				"wrong query",
+				"https://www.discogs.com/wantlist?digger",
+				nil,
+				true,
+			},
+			{
+				"wrong lists",
+				"https://www.discogs.com/user/digger/lists",
+				nil,
+				true,
+			},
+		}
+		for _, tc := range tcs {
+			got, err := parseDiscogsUrl(tc.url)
+			if (err != nil) != tc.expectError {
+				t.Errorf("error = %v, expectError = %v", err, tc.expectError)
+			}
+			if !reflect.DeepEqual(got, tc.expected) {
+				t.Errorf("got %v, want %v: %s", got, tc.expected, tc.name)
+			}
 		}
 	})
 }
