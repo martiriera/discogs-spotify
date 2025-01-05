@@ -40,7 +40,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 
 	var releases []entities.DiscogsRelease
 	if discogsUrlParsed.UrlType == entities.CollectionType {
-		releases, err = c.discogsService.GetReleases(discogsUrl)
+		releases, err = c.discogsService.GetCollectionReleases(discogsUrl)
 	} else if discogsUrlParsed.UrlType == entities.WantlistType {
 		releases, err = c.discogsService.GetWantlistReleases(discogsUrl)
 	} else if discogsUrlParsed.UrlType == entities.ListType {

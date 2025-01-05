@@ -16,7 +16,7 @@ var ErrRequest = errors.New("discogs request error")
 var ErrResponse = errors.New("discogs response error")
 
 type DiscogsService interface {
-	GetReleases(username string) ([]entities.DiscogsRelease, error)
+	GetCollectionReleases(username string) ([]entities.DiscogsRelease, error)
 	GetWantlistReleases(username string) ([]entities.DiscogsRelease, error)
 }
 
@@ -30,7 +30,7 @@ func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
 	return &HttpDiscogsService{client: client}
 }
 
-func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HttpDiscogsService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100"
 	result := make([]entities.DiscogsRelease, 0)
 	response, err := doRequest(s.client, url)

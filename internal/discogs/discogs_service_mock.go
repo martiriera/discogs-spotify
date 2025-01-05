@@ -7,7 +7,7 @@ type DiscogsServiceMock struct {
 	Error    error
 }
 
-func (m *DiscogsServiceMock) GetReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
+func (m *DiscogsServiceMock) GetCollectionReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
 	return m.Response, m.Error
 }
 
