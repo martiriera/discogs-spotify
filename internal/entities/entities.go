@@ -18,6 +18,10 @@ type Playlist struct {
 
 type DiscogsInputUrlType string
 
+func (t DiscogsInputUrlType) String() string {
+	return string(t)
+}
+
 const (
 	CollectionType DiscogsInputUrlType = "collection"
 	WantlistType   DiscogsInputUrlType = "wantlist"

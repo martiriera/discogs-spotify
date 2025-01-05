@@ -14,6 +14,8 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type PlaylistController struct {
@@ -50,7 +52,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 		return nil, errors.New("unrecognized URL type")
 	}
 
- 	if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -71,7 +73,11 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
-	playlist, err := playlistBuilder.CreateAndPopulate(ctx, "Discogs Playlist", "Playlist created from Discogs")
+	playlist, err := playlistBuilder.CreateAndPopulate(
+		ctx,
+		"Discogs "+cases.Title(language.English).String(parsedDiscogsUrl.Type.String())+" by "+parsedDiscogsUrl.Id,
+		"Created from: "+discogsUrl,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating and populating playlist")
 	}
