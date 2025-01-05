@@ -89,6 +89,8 @@ func doRequest(client client.HttpClient, url string) (entities.DiscogsResponse, 
 		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 			return nil, errors.Wrap(ErrResponse, err.Error())
 		}
+		return &response, nil
 	}
+
 	return nil, errors.Wrapf(ErrResponse, "unknown response type for URL: %s", url)
 }
