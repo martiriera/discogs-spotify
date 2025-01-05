@@ -37,6 +37,7 @@ func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 		authUserMiddleware(*router.userController),
 		router.handlePlaylistCreate,
 	)
+	rg.Static("/static", "./static")
 }
 
 func (router *ApiRouter) handleMain(ctx *gin.Context) {
