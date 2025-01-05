@@ -32,32 +32,23 @@ func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
 
 func (s *HttpDiscogsService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100"
-	result := make([]entities.DiscogsRelease, 0)
-	response, err := doRequest(s.client, url)
-	if err != nil {
-		return nil, err
-	}
-	result = append(result, response.Releases...)
-	for response.Pagination.Urls.Next != "" {
-		response, err = doRequest(s.client, response.Pagination.Urls.Next)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, response.Releases...)
-	}
-	return result, nil
+	return paginate(s.client, url)
 }
 
 func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/wants?per_page=100"
+	return paginate(s.client, url)
+}
+
+func paginate(client client.HttpClient, url string) ([]entities.DiscogsRelease, error) {
 	result := make([]entities.DiscogsRelease, 0)
-	response, err := doRequest(s.client, url)
+	response, err := doRequest(client, url)
 	if err != nil {
 		return nil, err
 	}
 	result = append(result, response.Releases...)
 	for response.Pagination.Urls.Next != "" {
-		response, err = doRequest(s.client, response.Pagination.Urls.Next)
+		response, err = doRequest(client, response.Pagination.Urls.Next)
 		if err != nil {
 			return nil, err
 		}
@@ -65,8 +56,6 @@ func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.Di
 	}
 	return result, nil
 }
-
-// TODO: common pagination logic
 
 func doRequest(client client.HttpClient, url string) (*entities.DiscogsCollectionResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
