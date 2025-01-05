@@ -32,12 +32,12 @@ func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
 }
 
 func (s *HttpDiscogsService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
-	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100"
+	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
 func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
-	url := basePath + "/users/" + username + "/wants?per_page=100"
+	url := basePath + "/users/" + username + "/wants?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
