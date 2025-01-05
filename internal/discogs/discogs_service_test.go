@@ -87,8 +87,8 @@ func TestDiscogsServicePagination(t *testing.T) {
 					"per_page": 1,
 					"items": 2,
 					"urls": {
-						"last": "test.com?page=2",
-						"next": "test.com?page=2"
+						"last": "https://api.discogs.com/users/digger/collection/folders/0/releases?per_page=1&page=2",
+						"next": "https://api.discogs.com/users/digger/collection/folders/0/releases?per_page=1&page=2"
 					}
 				},
 				"releases": [{

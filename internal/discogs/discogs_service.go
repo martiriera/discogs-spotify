@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
@@ -46,18 +47,18 @@ func paginate(client client.HttpClient, url string) ([]entities.DiscogsRelease, 
 	if err != nil {
 		return nil, err
 	}
-	result = append(result, response.Releases...)
-	for response.Pagination.Urls.Next != "" {
-		response, err = doRequest(client, response.Pagination.Urls.Next)
+	result = append(result, response.GetReleases()...)
+	for response.GetPagination().Urls.Next != "" {
+		response, err = doRequest(client, response.GetPagination().Urls.Next)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, response.Releases...)
+		result = append(result, response.GetReleases()...)
 	}
 	return result, nil
 }
 
-func doRequest(client client.HttpClient, url string) (*entities.DiscogsCollectionResponse, error) {
+func doRequest(client client.HttpClient, url string) (entities.DiscogsResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
@@ -69,7 +70,7 @@ func doRequest(client client.HttpClient, url string) (*entities.DiscogsCollectio
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, errors.Wrap(ErrUnauthorized, "private collection")
+		return nil, errors.Wrap(ErrUnauthorized, "private resource")
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -77,10 +78,17 @@ func doRequest(client client.HttpClient, url string) (*entities.DiscogsCollectio
 		return nil, errors.Wrapf(ErrUnexpectedStatus, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var response entities.DiscogsCollectionResponse
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		return nil, errors.Wrap(ErrResponse, err.Error())
+	if strings.Contains(url, "collection") {
+		var response entities.DiscogsCollectionResponse
+		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			return nil, errors.Wrap(ErrResponse, err.Error())
+		}
+		return &response, nil
+	} else if strings.Contains(url, "wants") {
+		var response entities.DiscogsWantlistResponse
+		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			return nil, errors.Wrap(ErrResponse, err.Error())
+		}
 	}
-	return &response, nil
+	return nil, errors.Wrapf(ErrResponse, "unknown response type for URL: %s", url)
 }

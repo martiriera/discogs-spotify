@@ -1,5 +1,26 @@
 package entities
 
+type DiscogsResponse interface {
+	GetPagination() DiscogsPagination
+	GetReleases() []DiscogsRelease
+}
+
+func (r *DiscogsCollectionResponse) GetPagination() DiscogsPagination {
+	return r.Pagination
+}
+
+func (r *DiscogsCollectionResponse) GetReleases() []DiscogsRelease {
+	return r.Releases
+}
+
+func (r *DiscogsWantlistResponse) GetPagination() DiscogsPagination {
+	return r.Pagination
+}
+
+func (r *DiscogsWantlistResponse) GetReleases() []DiscogsRelease {
+	return r.Wants
+}
+
 type DiscogsCollectionResponse struct {
 	Pagination DiscogsPagination `json:"pagination"`
 	Releases   []DiscogsRelease  `json:"releases"`
