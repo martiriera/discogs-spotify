@@ -25,8 +25,8 @@
         <div>
             <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator">
                 <div class="flex items-center mb-4">
-                    <label for="discogs_username" class="sr-only">Discogs Username</label>
-                    <input id="discogs_username" name="discogs_username" type="text" class="p-2 border rounded-l w-full"
+                    <label for="discogs_url" class="sr-only">Discogs Username</label>
+                    <input id="discogs_url" name="discogs_url" type="text" class="p-2 border rounded-l w-full"
                         placeholder="Enter your Discogs username" required>
                     <button type="submit" class="p-2 bg-blue-500 text-white rounded-r ml-2 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="hideCards()"
                         id="submit-button">Submit</button>

@@ -17,6 +17,7 @@ var ErrResponse = errors.New("discogs response error")
 
 type DiscogsService interface {
 	GetReleases(username string) ([]entities.DiscogsRelease, error)
+	GetWantlistReleases(username string) ([]entities.DiscogsRelease, error)
 }
 
 type HttpDiscogsService struct {
@@ -47,7 +48,27 @@ func (s *HttpDiscogsService) GetReleases(username string) ([]entities.DiscogsRel
 	return result, nil
 }
 
-func doRequest(client client.HttpClient, url string) (*entities.DiscogsResponse, error) {
+func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
+	url := basePath + "/users/" + username + "/wants?per_page=100"
+	result := make([]entities.DiscogsRelease, 0)
+	response, err := doRequest(s.client, url)
+	if err != nil {
+		return nil, err
+	}
+	result = append(result, response.Releases...)
+	for response.Pagination.Urls.Next != "" {
+		response, err = doRequest(s.client, response.Pagination.Urls.Next)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, response.Releases...)
+	}
+	return result, nil
+}
+
+// TODO: common pagination logic
+
+func doRequest(client client.HttpClient, url string) (*entities.DiscogsCollectionResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
@@ -67,7 +88,7 @@ func doRequest(client client.HttpClient, url string) (*entities.DiscogsResponse,
 		return nil, errors.Wrapf(ErrUnexpectedStatus, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var response entities.DiscogsResponse
+	var response entities.DiscogsCollectionResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, errors.Wrap(ErrResponse, err.Error())

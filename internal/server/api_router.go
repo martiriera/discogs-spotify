@@ -52,7 +52,7 @@ func (router *ApiRouter) handleHome(ctx *gin.Context) {
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
-	username := ctx.PostForm("discogs_username")
+	username := ctx.PostForm("discogs_url")
 
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})

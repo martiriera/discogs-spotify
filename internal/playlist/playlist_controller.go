@@ -2,7 +2,7 @@ package playlist
 
 import (
 	"fmt"
-	"regexp"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -27,12 +27,26 @@ func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUsername string) (*entities.Playlist, error) {
+func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string) (*entities.Playlist, error) {
 	stop := util.StartTimer("CreatePlaylist")
 	defer stop()
 
 	// fetchReleases
-	releases, err := c.discogsService.GetReleases(discogsUsername)
+	discogsUrlParsed, err := parseDiscogsUrl(discogsUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing Discogs URL")
+	}
+
+	var releases []entities.DiscogsRelease
+	if discogsUrlParsed.UrlType == entities.CollectionType {
+		releases, err = c.discogsService.GetReleases(discogsUrl)
+	} else if discogsUrlParsed.UrlType == entities.WantlistType {
+		releases, err = c.discogsService.GetWantlistReleases(discogsUrl)
+	} else if discogsUrlParsed.UrlType == entities.ListType {
+		// releases, err = c.discogsService.GetListReleases(discogsUrl)
+	} else {
+		return nil, errors.New("unrecognized URL type")
+	}
 
 	if err != nil {
 		return nil, err
@@ -151,16 +165,16 @@ func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
 	if strings.Contains(path, "/collection") {
 		user := strings.Split(path, "/")[3]
 		return &entities.DiscogsInputUrl{Id: user, UrlType: entities.CollectionType}, nil
-		}
+	}
 
 	if wantlistUser := query.Get("user"); wantlistUser != "" {
 		return &entities.DiscogsInputUrl{Id: wantlistUser, UrlType: entities.WantlistType}, nil
-		}
+	}
 
 	if strings.Contains(path, "/lists/") {
 		listId := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
 		return &entities.DiscogsInputUrl{Id: listId, UrlType: entities.ListType}, nil
-		}
+	}
 
 	return nil, errors.New("unrecognized Discogs URL")
 }

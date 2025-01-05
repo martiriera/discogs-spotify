@@ -1,17 +1,24 @@
 package entities
 
-type DiscogsResponse struct {
-	Pagination struct {
-		Page    int `json:"page"`
-		Pages   int `json:"pages"`
-		PerPage int `json:"per_page"`
-		Items   int `json:"items"`
-		Urls    struct {
-			Last string `json:"last"`
-			Next string `json:"next"`
-		} `json:"urls"`
-	} `json:"pagination"`
-	Releases []DiscogsRelease `json:"releases"`
+type DiscogsCollectionResponse struct {
+	Pagination DiscogsPagination `json:"pagination"`
+	Releases   []DiscogsRelease  `json:"releases"`
+}
+
+type DiscogsWantlistResponse struct {
+	Pagination DiscogsPagination `json:"pagination"`
+	Wants      []DiscogsRelease  `json:"wants"`
+}
+
+type DiscogsPagination struct {
+	Page    int `json:"page"`
+	Pages   int `json:"pages"`
+	PerPage int `json:"per_page"`
+	Items   int `json:"items"`
+	Urls    struct {
+		Last string `json:"last"`
+		Next string `json:"next"`
+	} `json:"urls"`
 }
 
 type DiscogsRelease struct {

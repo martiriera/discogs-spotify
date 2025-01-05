@@ -24,7 +24,7 @@ func TestPlaylistController(t *testing.T) {
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-		playlist, err := controller.CreatePlaylist(ctx, "discogs-digger")
+		playlist, err := controller.CreatePlaylist(ctx, "www.discogs.com/es/wantlist?user=digger")
 		if err != nil {
 			t.Errorf("did not expect error, got %v", err)
 		}
