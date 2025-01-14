@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/output.css">
+    <title>Discogs to Spotify</title>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-200 p-10">
+    <div class="max-w-xl mx-auto text-center">
+        <h1 class="text-3xl mb-5 text-center">Discogs to Spotify</h1>
+        <div class="flex justify-center h-screen">
+            <a class="block" href="/auth/login">
+                <img src="https://img.shields.io/badge/Login_with-Spotify-green?logo=spotify" alt="Login with Spotify">
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>
