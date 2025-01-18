@@ -100,6 +100,12 @@ func TestPlaylistController(t *testing.T) {
 				false,
 			},
 			{
+				"https with header",
+				"https://www.discogs.com/user/digger/collection?header=1",
+				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				false,
+			},
+			{
 				"https wish",
 				"https://www.discogs.com/lists/MyList/1545836",
 				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
