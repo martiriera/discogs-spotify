@@ -168,7 +168,7 @@ func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
 	}
 
 	pathWithQuery := parsedUrl.Path
-	if parsedUrl.RawQuery != "" {
+	if parsedUrl.RawQuery != "" && strings.Contains(parsedUrl.RawQuery, "user=") {
 		pathWithQuery += "?" + parsedUrl.RawQuery
 	}
 
