@@ -60,10 +60,15 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 		return
 	}
 
-	playlist, err := router.playlistController.CreatePlaylist(ctx, username)
+	pl, err := router.playlistController.CreatePlaylist(ctx, username)
 	if err != nil {
 		if errors.Cause(err) == discogs.ErrUnauthorized {
 			util.HandleError(ctx, err, http.StatusUnauthorized)
+			return
+		}
+
+		if errors.Cause(err) == playlist.ErrInvalidDiscogsUrl {
+			util.HandleError(ctx, err, http.StatusBadRequest)
 			return
 		}
 
@@ -77,10 +82,10 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 	}
 
 	responseBody := gin.H{
-		"id":               playlist.ID,
-		"url":              playlist.URL,
-		"discogs_releases": playlist.DiscogsReleases,
-		"spotify_albums":   playlist.SpotifyAlbums,
+		"id":               pl.ID,
+		"url":              pl.URL,
+		"discogs_releases": pl.DiscogsReleases,
+		"spotify_albums":   pl.SpotifyAlbums,
 	}
 
 	ctx.JSON(http.StatusOK, responseBody)
