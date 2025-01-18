@@ -2,6 +2,9 @@
 
 This project is a web application that converts a [Discogs](https://www.discogs.com/) URL into a Spotify playlist. It leverages Go for the backend logic and server-side rendering, enhanced with HTMX for interactivity and styled using Tailwind CSS.
 
+![image](https://github.com/user-attachments/assets/b0f843b2-f2f7-4745-9a5e-80f40b737e42)
+
+
 ## Usage
 
 1. Login to Spotify. Your playlist will be created automatically in your account.
