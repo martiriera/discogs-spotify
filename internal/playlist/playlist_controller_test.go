@@ -193,7 +193,10 @@ func BenchmarkGetAlbumUris(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		start := time.Now()
-		controller.getSpotifyAlbumIds(ctx, discogsResponses)
+		_, err := controller.getSpotifyAlbumIds(ctx, discogsResponses)
+		if err != nil {
+			b.Errorf("did not expect error, got %v", err)
+		}
 		elapsed := time.Since(start).Seconds()
 		b.Logf("Iteration %d took %f seconds", i, elapsed)
 	}
