@@ -1,22 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discogs to Spotify Converter - Enter URL</title>
     <link rel="stylesheet" href="/static/css/output.css">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
     <style>
         .htmx-indicator {
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
+
         .htmx-request .htmx-indicator {
             opacity: 1;
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-purple-500 to-indigo-600 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
         <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Discogs to Spotify</h1>
@@ -27,9 +33,12 @@
                 <p class="text-gray-600 mb-4">Paste the URL of your Discogs collection, wantlist, or list below.</p>
                 <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator" class="space-y-4">
                     <div class="relative">
-                        <input type="text" id="discogs_url" name="discogs_url" placeholder="https://www.discogs.com/user/..."
-                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                        <button type="submit" id="submit-button" class="absolute right-2 top-2 text-purple-500 hover:text-purple-600">
+                        <input type="text" id="discogs_url" name="discogs_url"
+                            placeholder="https://www.discogs.com/user/..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            required>
+                        <button type="submit" id="submit-button"
+                            class="absolute right-2 top-2 text-purple-500 hover:text-purple-600">
                             <i class="fas fa-arrow-right" aria-hidden="true"></i>
                             <span class="sr-only">Submit</span>
                         </button>
@@ -42,13 +51,15 @@
             </div>
 
             <div class="flex justify-center space-x-6 text-sm text-gray-600">
-                <span class="flex items-center">
+                <span class="flex items-center cursor-help"
+                    data-tippy-content="Find it on your avatar > Collection. For example https://www.discogs.com/user/username/collection">
                     <i class="fas fa-record-vinyl mr-1" aria-hidden="true"></i> Collection
                 </span>
-                <span class="flex items-center">
+                <span class="flex items-center cursor-help"
+                    data-tippy-content="Find it on your avatar > Profile > Wantlist. For example https://www.discogs.com/wantlist?user=username">
                     <i class="fas fa-heart mr-1" aria-hidden="true"></i> Wantlist
                 </span>
-                <span class="flex items-center">
+                <span class="flex items-center cursor-help" data-tippy-content="Find yours on your avatar > Lists, or on other users' profiles. For example https://www.discogs.com/es/lists/MyList/123456">
                     <i class="fas fa-list mr-1" aria-hidden="true"></i> List
                 </span>
             </div>
@@ -58,7 +69,8 @@
                 <!-- Error -->
                 <div id="error-card" class="hidden bg-red-100 text-red-700 p-5 rounded-lg shadow-md">
                     <h2 class="text-xl font-semibold mb-2">Error</h2>
-                    <p id="error-message" class="text-sm">There was an issue fetching the playlist from Discogs. Please try again.</p>
+                    <p id="error-message" class="text-sm">There was an issue fetching the playlist from Discogs. Please
+                        try again.</p>
                 </div>
 
                 <!-- Success -->
@@ -75,7 +87,7 @@
                         </div>
                         <div class="pt-2">
                             <a id="playlist-url" href="#" target="_blank" rel="noopener noreferrer"
-                               class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+                                class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
                                 Open in Spotify
                             </a>
                         </div>
@@ -132,6 +144,13 @@
                 }
             }
         });
+
+        tippy('[data-tippy-content]', {
+            animation: 'scale',
+            theme: 'light-border',
+        });
+
     </script>
 </body>
+
 </html>
