@@ -44,12 +44,16 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
-		router.template.ExecuteTemplate(ctx.Writer, "index.html", nil)
+		if err := router.template.ExecuteTemplate(ctx.Writer, "index.html", nil); err != nil {
+			util.HandleError(ctx, err, http.StatusInternalServerError)
+		}
 	}
 }
 
 func (router *ApiRouter) handleHome(ctx *gin.Context) {
-	router.template.ExecuteTemplate(ctx.Writer, "home.html", nil)
+	if err := router.template.ExecuteTemplate(ctx.Writer, "home.html", nil); err != nil {
+		util.HandleError(ctx, err, http.StatusInternalServerError)
+	}
 }
 
 func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
