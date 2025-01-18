@@ -1,4 +1,4 @@
-name: Test and Analyze
+name: Pre-merge checks
 
 on:
   pull_request:
@@ -9,27 +9,6 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Set up Go environment
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.23
-
-      # Install dependencies
-      - name: Install dependencies
-        run: go mod tidy
-
-      # Run tests
-      - name: Run tests
-        run: go test -v ./...
-
   analyze:
     runs-on: ubuntu-latest
     steps:
@@ -41,7 +20,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.23
+          go-version: '1.21'  # Changed from 1.23 to 1.21
 
       # Run static code analysis (e.g., golangci-lint)
       - name: Run golangci-lint
@@ -49,3 +28,24 @@ jobs:
         with:
           version: latest
           args: run --timeout 5m
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'  # Changed from 1.23 to 1.21
+
+      # Install dependencies
+      - name: Install dependencies
+        run: go mod tidy
+
+      # Run tests
+      - name: Run tests
+        run: go test -v ./...
