@@ -25,6 +25,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 COPY --from=builder /app/server .
+COPY --from=builder /app/static/css/output.css ./static/css/
 
 EXPOSE 8080
 
