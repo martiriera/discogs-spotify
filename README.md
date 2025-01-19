@@ -69,6 +69,7 @@ This project is a web application that converts a [Discogs](https://www.discogs.
 ## Contributing
 
 Contributions and feedback are welcome! Feel free to submit a pull request or open an issue for discussion.
+(🚧 CONTRIBUTE.md WIP 🚧)
 
 ## License
 
