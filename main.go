@@ -26,9 +26,9 @@ func main() {
 	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
 	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
 	port := util.AssertEnvVar("PORT")
-	util.AssertEnvVar("SESSION_KEY")
+	spotifyAuthRedirectUrl := util.AssertEnvVar("SPOTIFY_REDIRECT_URI")
 
-	oauthRedirectUrl := "http://localhost:" + port + "/auth/callback"
+	util.AssertEnvVar("SESSION_KEY")
 
 	session := session.NewGorillaSession()
 	session.Init(3600)
@@ -41,7 +41,7 @@ func main() {
 	oauthController := spotify.NewOAuthController(
 		clientID,
 		clientSecret,
-		oauthRedirectUrl,
+		spotifyAuthRedirectUrl,
 	)
 
 	userController := spotify.NewUserController(spotify.NewHttpSpotifyService(&http.Client{}))

@@ -27,7 +27,7 @@ func TestAcceptance(t *testing.T) {
 	oauthController := spotify.NewOAuthController(
 		"client_id",
 		"client_secret",
-		"http://localhost:8080/callback",
+		"http://localhost:8080/auth/callback",
 	)
 	userController := spotify.NewUserController(spotifyServiceMock)
 
