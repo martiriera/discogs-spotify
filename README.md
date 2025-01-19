@@ -49,7 +49,7 @@ This project is a web application that converts a [Discogs](https://www.discogs.
    SESSION_KEY=random_secret_for_gorilla_session
    PORT=optionally_set_the_port (8080 by default)
    ```
-   2.1. Don't forget to set the _Redirect URI_ on your Spotify app settings.
+   2.1. ⚠️ Don't forget to set the _Redirect URI_ on your Spotify app settings.
 
 3. Install dependencies:
 
