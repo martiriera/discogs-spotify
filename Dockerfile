@@ -6,14 +6,11 @@ COPY Makefile /app/Makefile
 COPY ./static/css/styles.css /app/static/css/styles.css
 
 RUN apk add --no-cache make curl
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && \
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64-musl && \
     chmod +x tailwindcss-linux-x64 && \
     mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
-ENV PATH="/usr/local/bin:${PATH}"
-RUN ls -l /usr/local/bin/ && /usr/local/bin/tailwindcss --version
-
-# RUN make tailwind-build
+RUN make tailwind-build
 
 COPY go.mod go.sum ./
 
