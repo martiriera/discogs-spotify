@@ -5,10 +5,8 @@ WORKDIR /app
 COPY Makefile /app/Makefile
 COPY ./static/css/styles.css /app/static/css/styles.css
 
-RUN apk add --no-cache make curl
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64-musl && \
-    chmod +x tailwindcss-linux-x64-musl && \
-    mv tailwindcss-linux-x64-musl /usr/local/bin/tailwindcss
+RUN apk add --no-cache make nodejs npm
+RUN npm install -g tailwindcss
 
 RUN make tailwind-build
 
