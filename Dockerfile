@@ -7,8 +7,8 @@ COPY ./static/css/styles.css /app/static/css/styles.css
 
 RUN apk add --no-cache make curl
 RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64-musl && \
-    chmod +x tailwindcss-linux-x64 && \
-    mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
+    chmod +x tailwindcss-linux-x64-musl && \
+    mv tailwindcss-linux-x64-musl /usr/local/bin/tailwindcss
 
 RUN make tailwind-build
 
