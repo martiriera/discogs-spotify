@@ -2,15 +2,16 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-# COPY Makefile /app/Makefile
-# COPY ./static/css/styles.css /app/static/css/styles.css
+COPY Makefile /app/Makefile
+COPY ./static/css/styles.css /app/static/css/styles.css
 
-# RUN apk add --no-cache make curl
-# RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && \
-#     chmod +x tailwindcss-linux-x64 && \
-#     mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
+RUN apk add --no-cache make curl
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && \
+    chmod +x tailwindcss-linux-x64 && \
+    mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
-# ENV PATH="/usr/local/bin:${PATH}"
+ENV PATH="/usr/local/bin:${PATH}"
+RUN ls -l /usr/local/bin/ && /usr/local/bin/tailwindcss --version
 
 # RUN make tailwind-build
 
