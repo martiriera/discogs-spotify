@@ -10,6 +10,7 @@ RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/downlo
     chmod +x tailwindcss-linux-x64 && \
     mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
+ENV PATH="/usr/local/bin:${PATH}"
 RUN make tailwind-build
 
 COPY go.mod go.sum ./
