@@ -10,12 +10,12 @@ services:
       - key: ENV
         value: production
       - key: SPOTIFY_CLIENT_ID
-        value: ${SPOTIFY_CLIENT_ID}
+        sync: false
       - key: SPOTIFY_CLIENT_SECRET
-        value: ${SPOTIFY_CLIENT_SECRET}
+        sync: false
       - key: SESSION_KEY
-        value: ${SESSION_KEY}
+        sync: false
       - key: SPOTIFY_REDIRECT_URI
-        value: ${SPOTIFY_REDIRECT_URI}
+        sync: false
     dockerContext: .
     dockerfilePath: Dockerfile
