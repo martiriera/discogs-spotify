@@ -1,0 +1,21 @@
+services:
+  - name: discogs-spotify
+    type: web
+    runtime: docker
+    region: frankfurt
+    plan: free
+    envVars:
+      - key: GIN_MODE
+        value: release
+      - key: ENV
+        value: production
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: SESSION_KEY
+        sync: false
+      - key: SPOTIFY_REDIRECT_URI
+        sync: false
+    dockerContext: .
+    dockerfilePath: Dockerfile
