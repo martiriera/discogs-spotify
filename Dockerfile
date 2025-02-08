@@ -13,8 +13,13 @@ RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/downlo
 RUN which tailwindcss
 RUN ls -l /usr/local/bin/tailwindcss
 RUN echo $PATH
-RUN /usr/local/bin/tailwindcss --version
 RUN uname -m
+RUN dmesg | tail
+RUN ldd /usr/local/bin/tailwindcss
+RUN exec /usr/local/bin/tailwindcss --version
+RUN file /usr/local/bin/tailwindcss | grep -o "x86-64\|aarch64"
+RUN file /usr/local/bin/tailwindcss
+
 
 RUN make tailwind-build
 
