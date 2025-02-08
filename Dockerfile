@@ -12,7 +12,9 @@ RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/downlo
 
 RUN which tailwindcss
 RUN ls -l /usr/local/bin/tailwindcss
-RUN tailwindcss --version
+RUN echo $PATH
+RUN /usr/local/bin/tailwindcss --version
+RUN uname -m
 
 RUN make tailwind-build
 
