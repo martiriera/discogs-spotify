@@ -2,6 +2,7 @@ package server
 
 import (
 	"embed"
+	"net/http"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,10 @@ import (
 
 type Server struct {
 	*gin.Engine
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.Engine.ServeHTTP(w, r)
 }
 
 //go:embed templates/*
