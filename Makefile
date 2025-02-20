@@ -1,6 +1,9 @@
 lint:
 	golangci-lint run
 
+test:
+	go test -v -cover ./...
+
 tailwind-build:
 	tailwindcss -i ./static/css/styles.css -o ./static/css/output.css --minify
 
