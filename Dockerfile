@@ -1,11 +1,11 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.23-bullseye AS builder
 
 WORKDIR /app
 
 COPY Makefile /app/Makefile
 COPY ./static/css/styles.css /app/static/css/styles.css
 
-RUN apk add --no-cache make curl
+RUN apt-get update && apt-get install -y --no-install-recommends make curl && rm -rf /var/lib/apt/lists/*
 RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && \
     chmod +x tailwindcss-linux-x64 && \
     mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
