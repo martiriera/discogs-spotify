@@ -1,10 +1,9 @@
-name: CI
+name: Pre-Merge
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  pull_request:
 
 permissions:
   contents: read
