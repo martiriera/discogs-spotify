@@ -62,10 +62,11 @@ func TestSpotifyOauthController(t *testing.T) {
 		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", nil)
+		const expectedError = ErrErrorInCallback + ": access_denied"
 
 		_, err := controller.GenerateToken(ctx)
-		if err == nil || err.Error() != "spotify: error in callback: access_denied" {
-			t.Errorf("expected error 'spotify: error in callback: access_denied', got %v", err)
+		if err == nil || err.Error() != expectedError {
+			t.Errorf("expected error %v, got %v", expectedError, err)
 		}
 	})
 
@@ -75,8 +76,8 @@ func TestSpotifyOauthController(t *testing.T) {
 		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, nil)
 
 		_, err := controller.GenerateToken(ctx)
-		if err == nil || err.Error() != "spotify: no code in callback" {
-			t.Errorf("expected error 'spotify: no code in callback', got %v", err)
+		if err == nil || err.Error() != ErrNoCode {
+			t.Errorf("expected error %v, got %v", ErrNoCode, err)
 		}
 	})
 
@@ -86,8 +87,8 @@ func TestSpotifyOauthController(t *testing.T) {
 		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", nil)
 
 		_, err := controller.GenerateToken(ctx)
-		if err == nil || err.Error() != "spotify: redirect state parameter doesn't match" {
-			t.Errorf("expected error 'spotify: redirect state parameter doesn't match', got %v", err)
+		if err == nil || err.Error() != ErrRedirectStateParamMismatch {
+			t.Errorf("expected error %v, got %v", ErrRedirectStateParamMismatch, err)
 		}
 	})
 }
