@@ -1,6 +1,9 @@
 package spotify
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/pkg/errors"
@@ -8,7 +11,7 @@ import (
 	"golang.org/x/oauth2/spotify"
 )
 
-const oauthState = "AOWTCN2KHZ"
+var oauthState = generateRandomState()
 
 const (
 	ErrNoCode                     = "spotify: no code in callback"
@@ -76,4 +79,14 @@ func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token 
 	}
 
 	return nil
+}
+
+func generateRandomState() string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, 16)
+	for i := range b {
+		b[i] = letters[r.Intn(len(letters))]
+	}
+	return string(b)
 }
