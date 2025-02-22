@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/martiriera/discogs-spotify/internal/entities"
 )
 
 type StubDiscogsHttpClient struct {
@@ -55,24 +57,49 @@ func TestDiscogsService(t *testing.T) {
 
 	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
 	service := NewHttpDiscogsService(stubClient)
-	response, err := service.GetCollectionReleases("digger")
-	if err != nil {
-		t.Errorf("did not expect an error, got %v", err)
+
+	tcs := []struct {
+		name         string
+		fn           func(string) ([]entities.DiscogsRelease, error)
+		responseBody string
+	}{
+		{
+			name:         "GetCollectionReleases",
+			fn:           service.GetCollectionReleases,
+			responseBody: generateResponseBody(t, "releases"),
+		},
+		{
+			name:         "GetWantlistReleases",
+			fn:           service.GetWantlistReleases,
+			responseBody: generateResponseBody(t, "wants"),
+		},
 	}
-	if len(response) != 1 {
-		t.Errorf("got %d albums, want 1", len(response))
-	}
-	if response[0].BasicInformation.Title != "The Queen Is Dead" {
-		t.Errorf("got %s, want The Queen Is Dead", response[0].BasicInformation.Title)
-	}
-	if response[0].BasicInformation.Year != 1986 {
-		t.Errorf("got %d, want 1986 {", response[0].BasicInformation.Year)
-	}
-	if response[0].BasicInformation.Artists[0].Name != "The Smiths" {
-		t.Errorf("got %s, want The Smiths", response[0].BasicInformation.Artists[0].Name)
-	}
-	if stubClient.CalledCount != 1 {
-		t.Errorf("got %d calls, want 1", stubClient.CalledCount)
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			stubClient.Responses[0].Body = io.NopCloser(bytes.NewBufferString(tc.responseBody))
+			stubClient.CalledCount = 0
+
+			response, err := tc.fn("digger")
+			if err != nil {
+				t.Errorf("did not expect an error, got %v", err)
+			}
+			if len(response) != 1 {
+				t.Errorf("got %d albums, want 1", len(response))
+			}
+			if response[0].BasicInformation.Title != "The Queen Is Dead" {
+				t.Errorf("got %s, want The Queen Is Dead", response[0].BasicInformation.Title)
+			}
+			if response[0].BasicInformation.Year != 1986 {
+				t.Errorf("got %d, want 1986", response[0].BasicInformation.Year)
+			}
+			if response[0].BasicInformation.Artists[0].Name != "The Smiths" {
+				t.Errorf("got %s, want The Smiths", response[0].BasicInformation.Artists[0].Name)
+			}
+			if stubClient.CalledCount != 1 {
+				t.Errorf("got %d calls, want 1", stubClient.CalledCount)
+			}
+		})
 	}
 }
 
@@ -182,4 +209,34 @@ func TestDiscogsServiceUnauthorized(t *testing.T) {
 	if err == nil {
 		t.Errorf("error is nil")
 	}
+}
+
+func generateResponseBody(t *testing.T, property string) string {
+	t.Helper()
+	return `{
+		"pagination": {
+			"page": 1,
+			"pages": 1,
+			"per_page": 50,
+			"items": 1,
+			"urls": {
+				"last": "",
+				"next": ""
+			}
+		},
+		"` + property + `": [{
+			"id": 1,
+			"instance_id": 1,
+			"date_added": "2021-01-01",
+			"basic_information": {
+				"id": 1,
+				"master_id": 1,
+				"title": "The Queen Is Dead",
+				"year": 1986,
+				"artists": [{
+					"name": "The Smiths"
+				}]
+			}
+		}]
+	}`
 }
