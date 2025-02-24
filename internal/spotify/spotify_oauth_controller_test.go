@@ -57,4 +57,38 @@ func TestSpotifyOauthController(t *testing.T) {
 			t.Errorf("got %s, want %s", storedToken.AccessToken, token.AccessToken)
 		}
 	})
+
+	t.Run("generate token with error in callback", func(t *testing.T) {
+		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", nil)
+		const expectedError = ErrErrorInCallback + ": access_denied"
+
+		_, err := controller.GenerateToken(ctx)
+		if err == nil || err.Error() != expectedError {
+			t.Errorf("expected error %v, got %v", expectedError, err)
+		}
+	})
+
+	t.Run("generate token with no code in callback", func(t *testing.T) {
+		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, nil)
+
+		_, err := controller.GenerateToken(ctx)
+		if err == nil || err.Error() != ErrNoCode {
+			t.Errorf("expected error %v, got %v", ErrNoCode, err)
+		}
+	})
+
+	t.Run("generate token with state mismatch", func(t *testing.T) {
+		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", nil)
+
+		_, err := controller.GenerateToken(ctx)
+		if err == nil || err.Error() != ErrRedirectStateParamMismatch {
+			t.Errorf("expected error %v, got %v", ErrRedirectStateParamMismatch, err)
+		}
+	})
 }

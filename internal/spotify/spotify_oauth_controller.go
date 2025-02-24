@@ -1,6 +1,9 @@
 package spotify
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/pkg/errors"
@@ -8,7 +11,15 @@ import (
 	"golang.org/x/oauth2/spotify"
 )
 
-const oauthState = "AOWTCN2KHZ"
+var oauthState = generateRandomState()
+
+const (
+	ErrNoCode                     = "spotify: no code in callback"
+	ErrRedirectStateParamMismatch = "spotify: redirect state parameter doesn't match"
+	ErrErrorInCallback            = "spotify: error in callback"
+	ErrrExchangingCodeForToken    = "spotify: error exchanging code for token"
+	ErrSavingSession              = "spotify: error saving session"
+)
 
 var scopes = []string{
 	"user-read-private",
@@ -42,20 +53,20 @@ func (o *OAuthController) GetAuthUrl() string {
 func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
 	values := ctx.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
-		return nil, errors.Wrap(errors.New(err), "spotify: error in callback")
+		return nil, errors.Wrap(errors.New(err), ErrErrorInCallback)
 	}
 	code := values.Get("code")
 	if code == "" {
-		return nil, errors.New("spotify: no code in callback")
+		return nil, errors.New(ErrNoCode)
 	}
 	actualState := values.Get("state")
 	if actualState != o.oauthState {
-		return nil, errors.New("spotify: redirect state parameter doesn't match")
+		return nil, errors.New(ErrRedirectStateParamMismatch)
 	}
 
 	token, err := o.config.Exchange(ctx, code)
 	if err != nil {
-		return nil, errors.Wrap(err, "spotify: error exchanging code for token")
+		return nil, errors.Wrap(err, ErrrExchangingCodeForToken)
 	}
 	return token, nil
 }
@@ -64,8 +75,18 @@ func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token 
 	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {
-		return errors.Wrap(err, "spotify: error saving session")
+		return errors.Wrap(err, ErrSavingSession)
 	}
 
 	return nil
+}
+
+func generateRandomState() string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, 16)
+	for i := range b {
+		b[i] = letters[r.Intn(len(letters))]
+	}
+	return string(b)
 }

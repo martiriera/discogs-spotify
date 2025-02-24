@@ -1,20 +1,37 @@
-name: Pre-merge checks
+name: Pre-Merge
 
 on:
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
 
 jobs:
-  lint-and-test:
+  golangci:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: stable
-    - name: Lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: v1.60
-    - name: Test
-      run: go test -v ./...
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+
+  test:
+    name: Test
+    needs: golangci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Run tests
+        run: go test -v ./...
