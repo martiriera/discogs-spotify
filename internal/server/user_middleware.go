@@ -8,20 +8,20 @@ import (
 
 func authUserMiddleware(controller spotify.UserController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if _, exists := ctx.Get(session.SpotifyUserIdKey); exists {
+		if _, exists := ctx.Get(session.SpotifyUserIDKey); exists {
 			ctx.Next()
 			return
 		}
 
-		userId, err := controller.GetSpotifyUserId(ctx)
+		userID, err := controller.GetSpotifyUserID(ctx)
 
-		if err != nil || userId == "" {
+		if err != nil || userID == "" {
 			ctx.Redirect(302, "/auth/login")
 			ctx.Abort()
 			return
 		}
 
-		ctx.Set(session.SpotifyUserIdKey, userId)
+		ctx.Set(session.SpotifyUserIDKey, userID)
 		ctx.Next()
 	}
 }

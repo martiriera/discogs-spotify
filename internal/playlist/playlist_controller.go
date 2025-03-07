@@ -42,11 +42,11 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 
 	var releases []entities.DiscogsRelease
 	if parsedDiscogsUrl.Type == entities.CollectionType {
-		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsUrl.Id)
+		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsUrl.ID)
 	} else if parsedDiscogsUrl.Type == entities.WantlistType {
-		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsUrl.Id)
+		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsUrl.ID)
 	} else if parsedDiscogsUrl.Type == entities.ListType {
-		releases, err = c.discogsService.GetListReleases(parsedDiscogsUrl.Id)
+		releases, err = c.discogsService.GetListReleases(parsedDiscogsUrl.ID)
 	} else {
 		return nil, errors.New("unrecognized URL type")
 	}
@@ -60,21 +60,21 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 	}
 
 	// process album IDs
-	albumIds, err := c.getSpotifyAlbumIds(ctx, releases)
+	albumIDs, err := c.getSpotifyAlbumIDs(ctx, releases)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting spotify album uris")
 	}
-	albumIds = c.filterValidUnique(albumIds)
+	albumIDs = c.filterValidUnique(albumIDs)
 
 	// create playlist
 	playlistBuilder := NewPlaylistBuilder(c.spotifyService)
-	err = playlistBuilder.AddAlbums(ctx, albumIds)
+	err = playlistBuilder.AddAlbums(ctx, albumIDs)
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
 	playlist, err := playlistBuilder.CreateAndPopulate(
 		ctx,
-		"Discogs "+cases.Title(language.English).String(parsedDiscogsUrl.Type.String())+" by "+parsedDiscogsUrl.Id,
+		"Discogs "+cases.Title(language.English).String(parsedDiscogsUrl.Type.String())+" by "+parsedDiscogsUrl.ID,
 		"Created from: "+discogsUrl,
 	)
 	if err != nil {
@@ -83,12 +83,12 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 
 	return &entities.Playlist{
 		DiscogsReleases: len(releases),
-		SpotifyAlbums:   len(albumIds),
+		SpotifyAlbums:   len(albumIDs),
 		SpotifyPlaylist: *playlist,
 	}, nil
 }
 
-func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
+func (c *PlaylistController) getSpotifyAlbumIDs(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	urisChan := make(chan string, len(releases))
 	errChan := make(chan error, len(releases))
 
@@ -104,7 +104,7 @@ func (c *PlaylistController) getSpotifyAlbumIds(ctx *gin.Context, releases []ent
 			wg.Add(1)
 			go func(album entities.Album) {
 				defer wg.Done()
-				uri, err := c.spotifyService.GetAlbumId(ctx, album)
+				uri, err := c.spotifyService.GetAlbumID(ctx, album)
 				if err != nil {
 					errChan <- errors.Wrap(err, "error getting album id")
 					return
@@ -190,16 +190,16 @@ func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
 	for i, match := range matches {
 		// https://www.discogs.com/es/user/digger/collection
 		if i == 1 && match != "" {
-			return &entities.DiscogsInputUrl{Id: match, Type: entities.CollectionType}, nil
+			return &entities.DiscogsInputUrl{ID: match, Type: entities.CollectionType}, nil
 		}
 		// https://www.discogs.com/es/wantlist?user=digger
 		if i == 2 && match != "" {
-			return &entities.DiscogsInputUrl{Id: match, Type: entities.WantlistType}, nil
+			return &entities.DiscogsInputUrl{ID: match, Type: entities.WantlistType}, nil
 		}
 
 		// https://www.discogs.com/es/lists/MyList/1545836
 		if i == 3 && match != "" {
-			return &entities.DiscogsInputUrl{Id: match, Type: entities.ListType}, nil
+			return &entities.DiscogsInputUrl{ID: match, Type: entities.ListType}, nil
 		}
 	}
 	return nil, ErrInvalidDiscogsUrl

@@ -29,6 +29,6 @@ const (
 )
 
 type DiscogsInputUrl struct {
-	Id   string
+	ID   string
 	Type DiscogsInputUrlType
 }

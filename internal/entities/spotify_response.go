@@ -95,6 +95,6 @@ type SpotifyExternalUrls struct {
 	Spotify string `json:"spotify"`
 }
 
-type SpotifySnapshotId struct {
+type SpotifySnapshotID struct {
 	SnapshotID string `json:"snapshot_id"`
 }

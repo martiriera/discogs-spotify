@@ -24,10 +24,10 @@ var ErrUnauthorized = errors.New("spotify API unauthorized error")
 const basePath = "https://api.spotify.com/v1"
 
 type SpotifyService interface {
-	GetAlbumId(ctx *gin.Context, album entities.Album) (string, error)
-	GetSpotifyUserId(ctx *gin.Context) (string, error)
+	GetAlbumID(ctx *gin.Context, album entities.Album) (string, error)
+	GetSpotifyUserID(ctx *gin.Context) (string, error)
 	CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error)
-	AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error
+	AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error
 	GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error)
 }
 
@@ -39,7 +39,7 @@ func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
 	return &HttpSpotifyService{client: client}
 }
 
-func (s *HttpSpotifyService) GetAlbumId(ctx *gin.Context, album entities.Album) (string, error) {
+func (s *HttpSpotifyService) GetAlbumID(ctx *gin.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
 
@@ -56,7 +56,7 @@ func (s *HttpSpotifyService) GetAlbumId(ctx *gin.Context, album entities.Album) 
 	return resp.Albums.Items[0].ID, nil
 }
 
-func (s *HttpSpotifyService) GetSpotifyUserId(ctx *gin.Context) (string, error) {
+func (s *HttpSpotifyService) GetSpotifyUserID(ctx *gin.Context) (string, error) {
 	route := basePath + "/me"
 
 	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route, nil)
@@ -68,12 +68,12 @@ func (s *HttpSpotifyService) GetSpotifyUserId(ctx *gin.Context) (string, error) 
 }
 
 func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
-	userId := ctx.GetString(session.SpotifyUserIdKey)
-	if userId == "" {
+	userID := ctx.GetString(session.SpotifyUserIDKey)
+	if userID == "" {
 		return entities.SpotifyPlaylist{}, errors.Wrap(ErrRequest, "no user id found on ctx")
 	}
 
-	route := basePath + "/users/" + userId + "/playlists"
+	route := basePath + "/users/" + userID + "/playlists"
 
 	body := map[string]string{
 		"name":        name,
@@ -93,8 +93,8 @@ func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, descr
 	return entities.SpotifyPlaylist{ID: resp.ID, URL: resp.ExternalUrls.Spotify}, nil
 }
 
-func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistId string, uris []string) error {
-	route := basePath + "/playlists/" + playlistId + "/tracks"
+func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error {
+	route := basePath + "/playlists/" + playlistID + "/tracks"
 
 	body := map[string][]string{
 		"uris": uris,
@@ -105,7 +105,7 @@ func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistId string, 
 		return errors.Wrap(ErrRequest, err.Error())
 	}
 
-	_, err := doRequest[entities.SpotifySnapshotId](s, ctx, http.MethodPost, route, jsonBody)
+	_, err := doRequest[entities.SpotifySnapshotID](s, ctx, http.MethodPost, route, jsonBody)
 	return err
 }
 
