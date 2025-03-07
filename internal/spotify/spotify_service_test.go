@@ -41,7 +41,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return album id",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -69,7 +69,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -90,7 +90,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return user info",
 			request: func(service SpotifyService) (string, error) {
-				return service.GetSpotifyUserId(ctx)
+				return service.GetSpotifyUserID(ctx)
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -118,7 +118,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should create playlist",
 			request: func(service SpotifyService) (string, error) {
-				ctx.Set(session.SpotifyUserIdKey, "wizzler")
+				ctx.Set(session.SpotifyUserIDKey, "wizzler")
 				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
 			},
@@ -205,7 +205,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
 	if err == nil {
@@ -229,7 +229,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHttpSpotifyService(stubClient)
-	_, err := service.GetAlbumId(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {
 		t.Errorf("did expect error, got nil")

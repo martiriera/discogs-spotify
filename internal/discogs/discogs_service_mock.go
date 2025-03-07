@@ -14,3 +14,7 @@ func (m *DiscogsServiceMock) GetCollectionReleases(discogsUsername string) ([]en
 func (m *DiscogsServiceMock) GetWantlistReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
 	return m.Response, m.Error
 }
+
+func (m *DiscogsServiceMock) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+	return m.Response, m.Error
+}

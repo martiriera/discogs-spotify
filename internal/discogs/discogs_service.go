@@ -19,6 +19,7 @@ var ErrResponse = errors.New("discogs response error")
 type DiscogsService interface {
 	GetCollectionReleases(username string) ([]entities.DiscogsRelease, error)
 	GetWantlistReleases(username string) ([]entities.DiscogsRelease, error)
+	GetListReleases(listID string) ([]entities.DiscogsRelease, error)
 }
 
 type HttpDiscogsService struct {
@@ -39,6 +40,15 @@ func (s *HttpDiscogsService) GetCollectionReleases(username string) ([]entities.
 func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/wants?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
+}
+
+func (s *HttpDiscogsService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+	url := basePath + "/lists/" + listID
+	response, err := doRequest(s.client, url)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetReleases(), nil
 }
 
 func paginate(client client.HttpClient, url string) ([]entities.DiscogsRelease, error) {
@@ -86,6 +96,12 @@ func doRequest(client client.HttpClient, url string) (entities.DiscogsResponse, 
 		return &response, nil
 	} else if strings.Contains(url, "wants") {
 		var response entities.DiscogsWantlistResponse
+		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			return nil, errors.Wrap(ErrResponse, err.Error())
+		}
+		return &response, nil
+	} else if strings.Contains(url, "lists") {
+		var response entities.DiscogsListResponse
 		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 			return nil, errors.Wrap(ErrResponse, err.Error())
 		}

@@ -72,67 +72,67 @@ func TestPlaylistController(t *testing.T) {
 			{
 				"short",
 				"discogs.com/user/digger/collection",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https",
 				"https://www.discogs.com/user/digger/collection",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https es",
 				"https://www.discogs.com/es/user/digger/collection",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"www es",
 				"www.discogs.com/es/user/digger/collection",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https other user",
 				"https://www.discogs.com/user/johndoe/collection",
-				&entities.DiscogsInputUrl{Id: "johndoe", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "johndoe", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https with header",
 				"https://www.discogs.com/user/digger/collection?header=1",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
-				"https wish",
+				"https list",
 				"https://www.discogs.com/lists/MyList/1545836",
-				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
+				&entities.DiscogsInputUrl{ID: "1545836", Type: entities.ListType},
 				false,
 			},
 			{
-				"www wish",
+				"www list",
 				"www.discogs.com/lists/MyList/1545836",
-				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
+				&entities.DiscogsInputUrl{ID: "1545836", Type: entities.ListType},
 				false,
 			},
 			{
 				"https wantlist",
 				"https://www.discogs.com/wantlist?user=digger",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
 				"www wantlist",
 				"www.discogs.com/wantlist?user=digger",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
 				"short wantlist es",
 				"discogs.com/es/wantlist?user=digger",
-				&entities.DiscogsInputUrl{Id: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
@@ -193,7 +193,7 @@ func BenchmarkGetAlbumUris(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		start := time.Now()
-		_, err := controller.getSpotifyAlbumIds(ctx, discogsResponses)
+		_, err := controller.getSpotifyAlbumIDs(ctx, discogsResponses)
 		if err != nil {
 			b.Errorf("did not expect error, got %v", err)
 		}

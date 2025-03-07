@@ -56,10 +56,10 @@ func (pb *PlaylistBuilder) getSpotifyTrackUris(ctx *gin.Context, albums []string
 	return uris, nil
 }
 
-func (pb *PlaylistBuilder) addToSpotifyPlaylist(ctx *gin.Context, playlistId string, tracks []string) error {
+func (pb *PlaylistBuilder) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
 	batchSize := 100
 	return batchRequests(ctx, tracks, batchSize, func(ctx *gin.Context, batch []string) error {
-		err := pb.spotifyService.AddToPlaylist(ctx, playlistId, batch)
+		err := pb.spotifyService.AddToPlaylist(ctx, playlistID, batch)
 		if err != nil {
 			return errors.Wrap(err, "error adding to playlist")
 		}

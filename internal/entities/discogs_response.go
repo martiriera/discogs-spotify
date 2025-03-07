@@ -1,5 +1,7 @@
 package entities
 
+import "strings"
+
 type DiscogsResponse interface {
 	GetPagination() DiscogsPagination
 	GetReleases() []DiscogsRelease
@@ -19,6 +21,27 @@ func (r *DiscogsWantlistResponse) GetPagination() DiscogsPagination {
 
 func (r *DiscogsWantlistResponse) GetReleases() []DiscogsRelease {
 	return r.Wants
+}
+
+func (r *DiscogsListResponse) GetPagination() DiscogsPagination {
+	return DiscogsPagination{}
+}
+
+func (r *DiscogsListResponse) GetReleases() []DiscogsRelease {
+	releases := make([]DiscogsRelease, len(r.Items))
+	for i, item := range r.Items {
+		titleParts := strings.SplitN(item.DisplayTitle, " - ", 2)
+		artist := DiscogsArtist{Name: titleParts[0]}
+		title := titleParts[1]
+		releases[i] = DiscogsRelease{
+			BasicInformation: DiscogsBasicInformation{
+				ID:      item.ID,
+				Title:   title,
+				Artists: []DiscogsArtist{artist},
+			},
+		}
+	}
+	return releases
 }
 
 type DiscogsCollectionResponse struct {
@@ -59,4 +82,26 @@ type DiscogsBasicInformation struct {
 
 type DiscogsArtist struct {
 	Name string `json:"name"`
+}
+
+type DiscogsListResponse struct {
+	CreatedTs   string            `json:"created_ts"`
+	ModifiedTs  string            `json:"modified_ts"`
+	Name        string            `json:"name"`
+	ListID      int               `json:"list_id"`
+	URL         string            `json:"url"`
+	Items       []DiscogsListItem `json:"items"`
+	ResourceURL string            `json:"resource_url"`
+	Public      bool              `json:"public"`
+	Description string            `json:"description"`
+}
+
+type DiscogsListItem struct {
+	Comment      string `json:"comment"`
+	DisplayTitle string `json:"display_title"`
+	URI          string `json:"uri"`
+	ImageURL     string `json:"image_url"`
+	ResourceURL  string `json:"resource_url"`
+	Type         string `json:"type"`
+	ID           int    `json:"id"`
 }
