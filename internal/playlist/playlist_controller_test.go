@@ -106,13 +106,13 @@ func TestPlaylistController(t *testing.T) {
 				false,
 			},
 			{
-				"https wish",
+				"https list",
 				"https://www.discogs.com/lists/MyList/1545836",
 				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
 				false,
 			},
 			{
-				"www wish",
+				"www list",
 				"www.discogs.com/lists/MyList/1545836",
 				&entities.DiscogsInputUrl{Id: "1545836", Type: entities.ListType},
 				false,
