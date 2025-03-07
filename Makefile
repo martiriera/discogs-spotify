@@ -1,5 +1,5 @@
 lint:
-	golangci-lint run
+	golangci-lint run -c .golangci.yaml --sort-results --allow-parallel-runners ./...
 
 test:
 	go test -v ./...
