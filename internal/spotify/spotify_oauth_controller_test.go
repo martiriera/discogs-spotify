@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/martiriera/discogs-spotify/internal/session"
 	"golang.org/x/oauth2"
+
+	"github.com/martiriera/discogs-spotify/internal/session"
 )
 
 func TestSpotifyOauthController(t *testing.T) {

@@ -4,9 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/server"
@@ -26,7 +28,7 @@ func main() {
 	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
 	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
 	port := util.AssertEnvVar("PORT")
-	spotifyAuthRedirectUrl := util.AssertEnvVar("SPOTIFY_REDIRECT_URI")
+	spotifyAuthRedirectURL := util.AssertEnvVar("SPOTIFY_REDIRECT_URI")
 
 	util.AssertEnvVar("SESSION_KEY")
 
@@ -35,16 +37,16 @@ func main() {
 
 	playlistController := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
-		spotify.NewHttpSpotifyService(&http.Client{}),
+		spotify.NewHTTPSpotifyService(&http.Client{}),
 	)
 
 	oauthController := spotify.NewOAuthController(
 		clientID,
 		clientSecret,
-		spotifyAuthRedirectUrl,
+		spotifyAuthRedirectURL,
 	)
 
-	userController := spotify.NewUserController(spotify.NewHttpSpotifyService(&http.Client{}))
+	userController := spotify.NewUserController(spotify.NewHTTPSpotifyService(&http.Client{}))
 
 	s := server.NewServer(playlistController, oauthController, userController, session)
 
@@ -52,7 +54,15 @@ func main() {
 		port = "8080"
 	}
 
-	if err := http.ListenAndServe(":"+port, s); err != nil {
+	server := &http.Server{
+		Addr:         ":" + port,
+		Handler:      s,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("could not listen on port %s: %v", port, err)
 	}
 }

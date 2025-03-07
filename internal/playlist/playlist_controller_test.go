@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
-	"golang.org/x/oauth2"
 )
 
 func TestPlaylistController(t *testing.T) {
@@ -18,7 +19,7 @@ func TestPlaylistController(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
-		spotifyServiceMock := &spotify.SpotifyServiceMock{
+		spotifyServiceMock := &spotify.ServiceMock{
 			Responses: []string{"spotify:album:1", "spotify:album:2"},
 		}
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
@@ -45,7 +46,7 @@ func TestPlaylistController(t *testing.T) {
 	t.Run("filter duplicates and not founds", func(t *testing.T) {
 		discogsServiceMock := &discogs.DiscogsServiceMock{}
 		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
-		spotifyServiceMock := &spotify.SpotifyServiceMock{
+		spotifyServiceMock := &spotify.ServiceMock{
 			Responses: uris,
 		}
 
@@ -66,73 +67,73 @@ func TestPlaylistController(t *testing.T) {
 		tcs := []struct {
 			name        string
 			url         string
-			expected    *entities.DiscogsInputUrl
+			expected    *entities.DiscogsInputURL
 			expectError bool
 		}{
 			{
 				"short",
 				"discogs.com/user/digger/collection",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https",
 				"https://www.discogs.com/user/digger/collection",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https es",
 				"https://www.discogs.com/es/user/digger/collection",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"www es",
 				"www.discogs.com/es/user/digger/collection",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https other user",
 				"https://www.discogs.com/user/johndoe/collection",
-				&entities.DiscogsInputUrl{ID: "johndoe", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "johndoe", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https with header",
 				"https://www.discogs.com/user/digger/collection?header=1",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.CollectionType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
 				false,
 			},
 			{
 				"https list",
 				"https://www.discogs.com/lists/MyList/1545836",
-				&entities.DiscogsInputUrl{ID: "1545836", Type: entities.ListType},
+				&entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
 				false,
 			},
 			{
 				"www list",
 				"www.discogs.com/lists/MyList/1545836",
-				&entities.DiscogsInputUrl{ID: "1545836", Type: entities.ListType},
+				&entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
 				false,
 			},
 			{
 				"https wantlist",
 				"https://www.discogs.com/wantlist?user=digger",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
 				"www wantlist",
 				"www.discogs.com/wantlist?user=digger",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
 				"short wantlist es",
 				"discogs.com/es/wantlist?user=digger",
-				&entities.DiscogsInputUrl{ID: "digger", Type: entities.WantlistType},
+				&entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
 				false,
 			},
 			{
@@ -167,7 +168,7 @@ func TestPlaylistController(t *testing.T) {
 			},
 		}
 		for _, tc := range tcs {
-			got, err := parseDiscogsUrl(tc.url)
+			got, err := parseDiscogsURL(tc.url)
 			if (err != nil) != tc.expectError {
 				t.Errorf("error = %v, expectError = %v", err, tc.expectError)
 			}
@@ -183,7 +184,7 @@ func BenchmarkGetAlbumUris(b *testing.B) {
 	discogsServiceMock := &discogs.DiscogsServiceMock{
 		Response: discogsResponses,
 	}
-	spotifyServiceMock := &spotify.SpotifyServiceMock{
+	spotifyServiceMock := &spotify.ServiceMock{
 		Responses:   []string{"spotify:album:1", "spotify:album:2"},
 		SleepMillis: 600,
 	}

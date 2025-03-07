@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
@@ -23,7 +24,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 var templateFS embed.FS
 
 func NewServer(
-	playlistController *playlist.PlaylistController,
+	playlistController *playlist.Controller,
 	oauthController *spotify.OAuthController,
 	userController *spotify.UserController,
 	session session.Session,
@@ -32,7 +33,7 @@ func NewServer(
 
 	tmpl := template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
-	apiRouter := NewApiRouter(playlistController, userController, &session, tmpl)
+	apiRouter := NewAPIRouter(playlistController, userController, &session, tmpl)
 	authRouter := NewAuthRouter(oauthController, &session)
 
 	authGroup := s.Engine.Group("/auth")

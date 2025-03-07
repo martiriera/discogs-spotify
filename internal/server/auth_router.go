@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"

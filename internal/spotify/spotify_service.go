@@ -10,11 +10,13 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/session"
-	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 )
 
 var ErrRequest = errors.New("spotify API request error")
@@ -31,15 +33,15 @@ type SpotifyService interface {
 	GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error)
 }
 
-type HttpSpotifyService struct {
-	client client.HttpClient
+type HTTPSpotifyService struct {
+	client client.HTTPClient
 }
 
-func NewHttpSpotifyService(client client.HttpClient) *HttpSpotifyService {
-	return &HttpSpotifyService{client: client}
+func NewHTTPSpotifyService(client client.HTTPClient) *HTTPSpotifyService {
+	return &HTTPSpotifyService{client: client}
 }
 
-func (s *HttpSpotifyService) GetAlbumID(ctx *gin.Context, album entities.Album) (string, error) {
+func (s *HTTPSpotifyService) GetAlbumID(ctx *gin.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
 
@@ -56,7 +58,7 @@ func (s *HttpSpotifyService) GetAlbumID(ctx *gin.Context, album entities.Album) 
 	return resp.Albums.Items[0].ID, nil
 }
 
-func (s *HttpSpotifyService) GetSpotifyUserID(ctx *gin.Context) (string, error) {
+func (s *HTTPSpotifyService) GetSpotifyUserID(ctx *gin.Context) (string, error) {
 	route := basePath + "/me"
 
 	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route, nil)
@@ -67,7 +69,7 @@ func (s *HttpSpotifyService) GetSpotifyUserID(ctx *gin.Context) (string, error) 
 	return fmt.Sprintf("%v", resp.ID), nil
 }
 
-func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
+func (s *HTTPSpotifyService) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
 	userID := ctx.GetString(session.SpotifyUserIDKey)
 	if userID == "" {
 		return entities.SpotifyPlaylist{}, errors.Wrap(ErrRequest, "no user id found on ctx")
@@ -93,7 +95,7 @@ func (s *HttpSpotifyService) CreatePlaylist(ctx *gin.Context, name string, descr
 	return entities.SpotifyPlaylist{ID: resp.ID, URL: resp.ExternalUrls.Spotify}, nil
 }
 
-func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error {
+func (s *HTTPSpotifyService) AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error {
 	route := basePath + "/playlists/" + playlistID + "/tracks"
 
 	body := map[string][]string{
@@ -109,7 +111,7 @@ func (s *HttpSpotifyService) AddToPlaylist(ctx *gin.Context, playlistID string, 
 	return err
 }
 
-func (s *HttpSpotifyService) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+func (s *HTTPSpotifyService) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
 	query := url.Values{}
 	query.Set("ids", strings.Join(albums, ","))
 	route := basePath + "/albums" + "?" + query.Encode()
@@ -129,7 +131,7 @@ func (s *HttpSpotifyService) GetAlbumsTrackUris(ctx *gin.Context, albums []strin
 	return tracks, nil
 }
 
-func doRequest[T any](s *HttpSpotifyService, ctx *gin.Context, method, route string, body io.Reader) (*T, error) {
+func doRequest[T any](s *HTTPSpotifyService, ctx *gin.Context, method, route string, body io.Reader) (*T, error) {
 	token, ok := ctx.Get(session.SpotifyTokenKey)
 	if !ok {
 		return nil, errors.Wrap(ErrUnauthorized, "no token found")

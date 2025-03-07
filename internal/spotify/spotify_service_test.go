@@ -9,6 +9,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/util"
+
 	"golang.org/x/oauth2"
 )
 
@@ -133,7 +134,7 @@ func TestSpotifyService(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
-			service := NewHttpSpotifyService(stubClient)
+			service := NewHTTPSpotifyService(stubClient)
 			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
@@ -184,7 +185,7 @@ func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
 		}`)),
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
-	service := NewHttpSpotifyService(stubClient)
+	service := NewHTTPSpotifyService(stubClient)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
 		t.Errorf("did not expect error, got %v", err)
@@ -204,7 +205,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHttpSpotifyService(stubClient)
+	service := NewHTTPSpotifyService(stubClient)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
@@ -228,7 +229,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHttpSpotifyService(stubClient)
+	service := NewHTTPSpotifyService(stubClient)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {

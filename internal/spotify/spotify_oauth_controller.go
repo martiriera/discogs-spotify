@@ -1,23 +1,25 @@
 package spotify
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"encoding/base64"
 
 	"github.com/gin-gonic/gin"
-	"github.com/martiriera/discogs-spotify/internal/session"
+
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
+
+	"github.com/martiriera/discogs-spotify/internal/session"
 )
 
-var oauthState = generateRandomState()
+var oauthState, _ = generateRandomState()
 
 const (
 	ErrNoCode                     = "spotify: no code in callback"
 	ErrRedirectStateParamMismatch = "spotify: redirect state parameter doesn't match"
 	ErrErrorInCallback            = "spotify: error in callback"
-	ErrrExchangingCodeForToken    = "spotify: error exchanging code for token"
+	ErrExchangingCode             = "spotify: error exchanging code"
 	ErrSavingSession              = "spotify: error saving session"
 )
 
@@ -66,7 +68,7 @@ func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error)
 
 	token, err := o.config.Exchange(ctx, code)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrrExchangingCodeForToken)
+		return nil, errors.Wrap(err, ErrExchangingCode)
 	}
 	return token, nil
 }
@@ -81,12 +83,11 @@ func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token 
 	return nil
 }
 
-func generateRandomState() string {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+func generateRandomState() (string, error) {
 	b := make([]byte, 16)
-	for i := range b {
-		b[i] = letters[r.Intn(len(letters))]
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
 	}
-	return string(b)
+	return base64.URLEncoding.EncodeToString(b), nil
 }

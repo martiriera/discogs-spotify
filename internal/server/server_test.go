@@ -9,19 +9,20 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
-	"golang.org/x/oauth2"
 )
 
 func TestAcceptance(t *testing.T) {
 	discogsServiceMock := &discogs.DiscogsServiceMock{
 		Response: entities.MotherTwoAlbums(),
 	}
-	spotifyServiceMock := &spotify.SpotifyServiceMock{
+	spotifyServiceMock := &spotify.ServiceMock{
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
 	oauthController := spotify.NewOAuthController(
@@ -173,7 +174,14 @@ func initSessionMock() *session.InMemorySession {
 	return sessionMock
 }
 
-func setSessionData(t testing.TB, sessionMock *session.InMemorySession, request *http.Request, response *httptest.ResponseRecorder, key string, value interface{}) {
+func setSessionData(
+	t testing.TB,
+	sessionMock *session.InMemorySession,
+	request *http.Request,
+	response *httptest.ResponseRecorder,
+	key string,
+	value any,
+) {
 	t.Helper()
 	err := sessionMock.SetData(request, response, key, value)
 	if err != nil {

@@ -4,15 +4,17 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+
+	"golang.org/x/oauth2"
+
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
-	"golang.org/x/oauth2"
 )
 
 func TestPlaylistBuilder(t *testing.T) {
 	t.Run("add to playlist by batches", func(t *testing.T) {
-		spotifyServiceMock := &spotify.SpotifyServiceMock{}
+		spotifyServiceMock := &spotify.ServiceMock{}
 		uris := make([]string, 205)
 
 		builder := NewPlaylistBuilder(spotifyServiceMock)
