@@ -37,7 +37,7 @@ func main() {
 
 	playlistController := playlist.NewPlaylistController(
 		discogs.NewHttpDiscogsService(&http.Client{}),
-		spotify.NewHTTPSpotifyService(&http.Client{}),
+		spotify.NewHTTPService(&http.Client{}),
 	)
 
 	oauthController := spotify.NewOAuthController(
@@ -46,7 +46,7 @@ func main() {
 		spotifyAuthRedirectURL,
 	)
 
-	userController := spotify.NewUserController(spotify.NewHTTPSpotifyService(&http.Client{}))
+	userController := spotify.NewUserController(spotify.NewHTTPService(&http.Client{}))
 
 	s := server.NewServer(playlistController, oauthController, userController, session)
 

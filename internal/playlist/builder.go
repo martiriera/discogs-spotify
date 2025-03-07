@@ -10,11 +10,11 @@ import (
 )
 
 type Builder struct {
-	spotifyService spotify.SpotifyService
+	spotifyService spotify.Service
 	tracks         []string
 }
 
-func NewPlaylistBuilder(spotifyService spotify.SpotifyService) *Builder {
+func NewPlaylistBuilder(spotifyService spotify.Service) *Builder {
 	return &Builder{
 		spotifyService: spotifyService,
 	}

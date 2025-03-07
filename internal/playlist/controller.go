@@ -22,10 +22,10 @@ import (
 
 type Controller struct {
 	discogsService discogs.Service
-	spotifyService spotify.SpotifyService
+	spotifyService spotify.Service
 }
 
-func NewPlaylistController(discogsService discogs.Service, spotifyService spotify.SpotifyService) *Controller {
+func NewPlaylistController(discogsService discogs.Service, spotifyService spotify.Service) *Controller {
 	return &Controller{
 		discogsService: discogsService,
 		spotifyService: spotifyService,

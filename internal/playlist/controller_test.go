@@ -16,7 +16,7 @@ import (
 
 func TestPlaylistController(t *testing.T) {
 	t.Run("create playlist flow", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{
+		discogsServiceMock := &discogs.ServiceMock{
 			Response: entities.MotherTwoAlbums(),
 		}
 		spotifyServiceMock := &spotify.ServiceMock{
@@ -44,7 +44,7 @@ func TestPlaylistController(t *testing.T) {
 	})
 
 	t.Run("filter duplicates and not founds", func(t *testing.T) {
-		discogsServiceMock := &discogs.DiscogsServiceMock{}
+		discogsServiceMock := &discogs.ServiceMock{}
 		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
 		spotifyServiceMock := &spotify.ServiceMock{
 			Responses: uris,
@@ -181,7 +181,7 @@ func TestPlaylistController(t *testing.T) {
 
 func BenchmarkGetAlbumUris(b *testing.B) {
 	discogsResponses := entities.MotherNAlbums(300)
-	discogsServiceMock := &discogs.DiscogsServiceMock{
+	discogsServiceMock := &discogs.ServiceMock{
 		Response: discogsResponses,
 	}
 	spotifyServiceMock := &spotify.ServiceMock{

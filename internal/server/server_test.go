@@ -19,7 +19,7 @@ import (
 )
 
 func TestAcceptance(t *testing.T) {
-	discogsServiceMock := &discogs.DiscogsServiceMock{
+	discogsServiceMock := &discogs.ServiceMock{
 		Response: entities.MotherTwoAlbums(),
 	}
 	spotifyServiceMock := &spotify.ServiceMock{

@@ -35,13 +35,13 @@ func TestSpotifyService(t *testing.T) {
 
 	tcs := []struct {
 		name     string
-		request  func(service SpotifyService) (string, error)
+		request  func(service Service) (string, error)
 		response *http.Response
 		want     string
 	}{
 		{
 			name: "should return album id",
-			request: func(service SpotifyService) (string, error) {
+			request: func(service Service) (string, error) {
 				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
@@ -69,7 +69,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should return empty string as uri when not found",
-			request: func(service SpotifyService) (string, error) {
+			request: func(service Service) (string, error) {
 				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
@@ -90,7 +90,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should return user info",
-			request: func(service SpotifyService) (string, error) {
+			request: func(service Service) (string, error) {
 				return service.GetSpotifyUserID(ctx)
 			},
 			response: &http.Response{
@@ -118,7 +118,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should create playlist",
-			request: func(service SpotifyService) (string, error) {
+			request: func(service Service) (string, error) {
 				ctx.Set(session.SpotifyUserIDKey, "wizzler")
 				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
@@ -134,7 +134,7 @@ func TestSpotifyService(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
-			service := NewHTTPSpotifyService(stubClient)
+			service := NewHTTPService(stubClient)
 			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
@@ -185,7 +185,7 @@ func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
 		}`)),
 	}
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
-	service := NewHTTPSpotifyService(stubClient)
+	service := NewHTTPService(stubClient)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
 		t.Errorf("did not expect error, got %v", err)
@@ -205,7 +205,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPSpotifyService(stubClient)
+	service := NewHTTPService(stubClient)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
@@ -229,7 +229,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPSpotifyService(stubClient)
+	service := NewHTTPService(stubClient)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {

@@ -7,10 +7,10 @@ import (
 )
 
 type UserController struct {
-	spotifyService SpotifyService
+	spotifyService Service
 }
 
-func NewUserController(s SpotifyService) *UserController {
+func NewUserController(s Service) *UserController {
 	return &UserController{spotifyService: s}
 }
 
