@@ -1,6 +1,6 @@
 package discogs
 
-import "github.com/martiriera/discogs-spotify/internal/entities"
+import "github.com/martiriera/discogs-spotify/internal/core/entities"
 
 type ServiceMock struct {
 	Response []entities.DiscogsRelease

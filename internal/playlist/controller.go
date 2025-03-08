@@ -14,18 +14,17 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/martiriera/discogs-spotify/internal/discogs"
-	"github.com/martiriera/discogs-spotify/internal/entities"
-	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
 type Controller struct {
-	discogsService discogs.Service
-	spotifyService spotify.Service
+	discogsService ports.DiscogsPort
+	spotifyService ports.SpotifyPort
 }
 
-func NewPlaylistController(discogsService discogs.Service, spotifyService spotify.Service) *Controller {
+func NewPlaylistController(discogsService ports.DiscogsPort, spotifyService ports.SpotifyPort) *Controller {
 	return &Controller{
 		discogsService: discogsService,
 		spotifyService: spotifyService,

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/client"
-	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
 
 	"github.com/pkg/errors"
 )
@@ -16,12 +16,6 @@ var ErrUnauthorized = errors.New("discogs unauthorized error")
 var ErrUnexpectedStatus = errors.New("discogs unexpected status error")
 var ErrRequest = errors.New("discogs request error")
 var ErrResponse = errors.New("discogs response error")
-
-type Service interface {
-	GetCollectionReleases(username string) ([]entities.DiscogsRelease, error)
-	GetWantlistReleases(username string) ([]entities.DiscogsRelease, error)
-	GetListReleases(listID string) ([]entities.DiscogsRelease, error)
-}
 
 type HTTPService struct {
 	client client.HTTPClient

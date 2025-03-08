@@ -15,7 +15,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/martiriera/discogs-spotify/internal/client"
-	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/session"
 )
 
@@ -24,14 +24,6 @@ var ErrResponse = errors.New("spotify API response error")
 var ErrUnauthorized = errors.New("spotify API unauthorized error")
 
 const basePath = "https://api.spotify.com/v1"
-
-type Service interface {
-	GetAlbumID(ctx *gin.Context, album entities.Album) (string, error)
-	GetSpotifyUserID(ctx *gin.Context) (string, error)
-	CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error)
-	AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error
-	GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error)
-}
 
 type HTTPService struct {
 	client client.HTTPClient

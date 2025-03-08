@@ -4,13 +4,15 @@ package spotify
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
 type UserController struct {
-	spotifyService Service
+	spotifyService ports.SpotifyPort
 }
 
-func NewUserController(s Service) *UserController {
+func NewUserController(s ports.SpotifyPort) *UserController {
 	return &UserController{spotifyService: s}
 }
 

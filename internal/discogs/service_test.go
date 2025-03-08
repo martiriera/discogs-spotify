@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 
 type StubDiscogsHTTPClient struct {

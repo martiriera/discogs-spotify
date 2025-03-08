@@ -5,16 +5,16 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/martiriera/discogs-spotify/internal/entities"
-	"github.com/martiriera/discogs-spotify/internal/spotify"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
 type Builder struct {
-	spotifyService spotify.Service
+	spotifyService ports.SpotifyPort
 	tracks         []string
 }
 
-func NewPlaylistBuilder(spotifyService spotify.Service) *Builder {
+func NewPlaylistBuilder(spotifyService ports.SpotifyPort) *Builder {
 	return &Builder{
 		spotifyService: spotifyService,
 	}

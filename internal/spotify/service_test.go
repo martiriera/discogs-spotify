@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/util"
 
@@ -35,13 +36,13 @@ func TestSpotifyService(t *testing.T) {
 
 	tcs := []struct {
 		name     string
-		request  func(service Service) (string, error)
+		request  func(service ports.SpotifyPort) (string, error)
 		response *http.Response
 		want     string
 	}{
 		{
 			name: "should return album id",
-			request: func(service Service) (string, error) {
+			request: func(service ports.SpotifyPort) (string, error) {
 				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
@@ -69,7 +70,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should return empty string as uri when not found",
-			request: func(service Service) (string, error) {
+			request: func(service ports.SpotifyPort) (string, error) {
 				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
@@ -90,7 +91,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should return user info",
-			request: func(service Service) (string, error) {
+			request: func(service ports.SpotifyPort) (string, error) {
 				return service.GetSpotifyUserID(ctx)
 			},
 			response: &http.Response{
@@ -118,7 +119,7 @@ func TestSpotifyService(t *testing.T) {
 		},
 		{
 			name: "should create playlist",
-			request: func(service Service) (string, error) {
+			request: func(service ports.SpotifyPort) (string, error) {
 				ctx.Set(session.SpotifyUserIDKey, "wizzler")
 				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/martiriera/discogs-spotify/internal/entities"
+	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 
 type ServiceMock struct {
