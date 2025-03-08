@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
+	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
-	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 

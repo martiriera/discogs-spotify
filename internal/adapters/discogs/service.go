@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/martiriera/discogs-spotify/internal/client"
+	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 
 	"github.com/pkg/errors"
