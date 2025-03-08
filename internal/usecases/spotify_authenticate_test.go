@@ -1,4 +1,4 @@
-package spotify
+package usecases
 
 import (
 	"net/http/httptest"
@@ -12,9 +12,9 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 )
 
-func TestSpotifyOauthController(t *testing.T) {
+func TestSpotifyAuthenticate(t *testing.T) {
 	t.Run("get auth url", func(t *testing.T) {
-		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		controller := NewSpotifyAuthenticate("client_id", "client_secret", "redirect_uri")
 		redirectURL := controller.GetAuthURL()
 
 		want := "https://accounts.spotify.com/authorize?access_type=offline&client_id=client_id&redirect_uri=redirect_uri&response_type=code&scope=user-read-private+user-read-email+playlist-modify-public+playlist-modify-private&state=" +
@@ -29,7 +29,7 @@ func TestSpotifyOauthController(t *testing.T) {
 		t.Setenv("SESSION_KEY", "session_key")
 		s := session.NewGorillaSession()
 		s.Init(60)
-		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		controller := NewSpotifyAuthenticate("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("POST", "/", nil)
 
@@ -62,7 +62,7 @@ func TestSpotifyOauthController(t *testing.T) {
 	})
 
 	t.Run("generate token with error in callback", func(t *testing.T) {
-		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		controller := NewSpotifyAuthenticate("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", nil)
 		const expectedError = ErrErrorInCallback + ": access_denied"
@@ -74,7 +74,7 @@ func TestSpotifyOauthController(t *testing.T) {
 	})
 
 	t.Run("generate token with no code in callback", func(t *testing.T) {
-		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		controller := NewSpotifyAuthenticate("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, nil)
 
@@ -85,7 +85,7 @@ func TestSpotifyOauthController(t *testing.T) {
 	})
 
 	t.Run("generate token with state mismatch", func(t *testing.T) {
-		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
+		controller := NewSpotifyAuthenticate("client_id", "client_secret", "redirect_uri")
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", nil)
 

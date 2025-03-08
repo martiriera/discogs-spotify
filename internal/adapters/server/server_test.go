@@ -16,6 +16,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
 func TestAcceptance(t *testing.T) {
@@ -25,7 +26,7 @@ func TestAcceptance(t *testing.T) {
 	spotifyServiceMock := &spotify.ServiceMock{
 		Responses: []string{"spotify:album:1", "spotify:album:2"},
 	}
-	oauthController := spotify.NewOAuthController(
+	oauthController := usecases.NewSpotifyAuthenticate(
 		"client_id",
 		"client_secret",
 		"http://localhost:8080/auth/callback",

@@ -5,17 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
 type AuthRouter struct {
-	oauthController *spotify.OAuthController
+	oauthController *usecases.SpotifyAuthenticate
 	session         *ports.SessionPort
 }
 
-func NewAuthRouter(c *spotify.OAuthController, session *ports.SessionPort) *AuthRouter {
+func NewAuthRouter(c *usecases.SpotifyAuthenticate, session *ports.SessionPort) *AuthRouter {
 	router := &AuthRouter{oauthController: c, session: session}
 	return router
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
 type Server struct {
@@ -25,7 +26,7 @@ var templateFS embed.FS
 
 func NewServer(
 	playlistController *playlist.Controller,
-	oauthController *spotify.OAuthController,
+	oauthController *usecases.SpotifyAuthenticate,
 	userController *spotify.UserController,
 	session ports.SessionPort,
 ) *Server {

@@ -1,4 +1,4 @@
-package spotify
+package usecases
 
 import (
 	"crypto/rand"
@@ -31,13 +31,13 @@ var scopes = []string{
 	"playlist-modify-private",
 }
 
-type OAuthController struct {
+type SpotifyAuthenticate struct {
 	config     *oauth2.Config
 	oauthState string
 }
 
-func NewOAuthController(clientID, clientSecret, redirectURL string) *OAuthController {
-	return &OAuthController{
+func NewSpotifyAuthenticate(clientID, clientSecret, redirectURL string) *SpotifyAuthenticate {
+	return &SpotifyAuthenticate{
 		config: &oauth2.Config{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
@@ -49,11 +49,11 @@ func NewOAuthController(clientID, clientSecret, redirectURL string) *OAuthContro
 	}
 }
 
-func (o *OAuthController) GetAuthURL() string {
+func (o *SpotifyAuthenticate) GetAuthURL() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
+func (o *SpotifyAuthenticate) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
 	values := ctx.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
 		return nil, errors.Wrap(errors.New(err), ErrErrorInCallback)
@@ -74,7 +74,7 @@ func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error)
 	return token, nil
 }
 
-func (o *OAuthController) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
+func (o *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
 	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
@@ -40,7 +41,7 @@ func main() {
 		spotify.NewHTTPService(&http.Client{}),
 	)
 
-	oauthController := spotify.NewOAuthController(
+	oauthController := usecases.NewSpotifyAuthenticate(
 		clientID,
 		clientSecret,
 		spotifyAuthRedirectURL,
