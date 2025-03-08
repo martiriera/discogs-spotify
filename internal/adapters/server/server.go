@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
@@ -26,16 +25,16 @@ var templateFS embed.FS
 
 func NewServer(
 	playlistController *playlist.Controller,
-	oauthController *usecases.SpotifyAuthenticate,
-	userController *spotify.UserController,
+	authenticateSpotify *usecases.SpotifyAuthenticate,
+	getSpotifyUser *usecases.GetSpotifyUser,
 	session ports.SessionPort,
 ) *Server {
 	s := &Server{Engine: gin.Default()}
 
 	tmpl := template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
-	apiRouter := NewAPIRouter(playlistController, userController, &session, tmpl)
-	authRouter := NewAuthRouter(oauthController, &session)
+	apiRouter := NewAPIRouter(playlistController, getSpotifyUser, &session, tmpl)
+	authRouter := NewAuthRouter(authenticateSpotify, &session)
 
 	authGroup := s.Engine.Group("/auth")
 	authRouter.SetupRoutes(authGroup)

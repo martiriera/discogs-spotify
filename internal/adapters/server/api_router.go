@@ -12,22 +12,23 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
 type APIRouter struct {
 	playlistController *playlist.Controller
-	userController     *spotify.UserController
+	userController     *usecases.GetSpotifyUser
 	session            *ports.SessionPort
 	template           *template.Template
 }
 
 func NewAPIRouter(
 	pc *playlist.Controller,
-	uc *spotify.UserController,
-	s *ports.SessionPort,
-	t *template.Template) *APIRouter {
-	router := &APIRouter{playlistController: pc, userController: uc, session: s, template: t}
+	getSpotifyUserUseCase *usecases.GetSpotifyUser,
+	session *ports.SessionPort,
+	template *template.Template) *APIRouter {
+	router := &APIRouter{playlistController: pc, userController: getSpotifyUserUseCase, session: session, template: template}
 	return router
 }
 

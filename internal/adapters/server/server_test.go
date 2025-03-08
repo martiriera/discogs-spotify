@@ -31,7 +31,7 @@ func TestAcceptance(t *testing.T) {
 		"client_secret",
 		"http://localhost:8080/auth/callback",
 	)
-	userController := spotify.NewUserController(spotifyServiceMock)
+	userController := usecases.NewGetSpotifyUser(spotifyServiceMock)
 
 	t.Run("api main get 200", func(t *testing.T) {
 		sessionMock := initSessionMock()
