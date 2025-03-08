@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/session"
-	"github.com/martiriera/discogs-spotify/internal/spotify"
 )
 
 func authUserMiddleware(controller spotify.UserController) gin.HandlerFunc {

@@ -7,10 +7,10 @@ import (
 
 	"golang.org/x/oauth2"
 
+	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
+	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
-	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/session"
-	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
