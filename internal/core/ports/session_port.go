@@ -1,14 +1,10 @@
-package session
+package ports
 
 import (
 	"net/http"
 )
 
-var AuthSessionName = "auth-session"
-var SpotifyTokenKey = "spotify-token"
-var SpotifyUserIDKey = "spotify-user-id"
-
-type Session interface {
+type SessionPort interface {
 	Init(maxAgeSecs int)
 	Get(r *http.Request, sessionName string) (map[any]any, error)
 	GetData(r *http.Request, key string) (any, error)

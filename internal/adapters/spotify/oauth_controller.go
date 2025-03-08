@@ -10,7 +10,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
 
-	"github.com/martiriera/discogs-spotify/internal/session"
+	"github.com/martiriera/discogs-spotify/internal/adapters/session"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
 var oauthState, _ = generateRandomState()
@@ -73,7 +74,7 @@ func (o *OAuthController) GenerateToken(ctx *gin.Context) (*oauth2.Token, error)
 	return token, nil
 }
 
-func (o *OAuthController) StoreToken(ctx *gin.Context, s session.Session, token *oauth2.Token) error {
+func (o *OAuthController) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
 	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {

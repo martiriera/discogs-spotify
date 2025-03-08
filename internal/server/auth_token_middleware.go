@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 
-	"github.com/martiriera/discogs-spotify/internal/session"
+	"github.com/martiriera/discogs-spotify/internal/adapters/session"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
-func authTokenMiddleware(service session.Session) gin.HandlerFunc {
+func authTokenMiddleware(service ports.SessionPort) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 			ctx.Next()

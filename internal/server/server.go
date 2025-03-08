@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
-	"github.com/martiriera/discogs-spotify/internal/session"
 )
 
 type Server struct {
@@ -27,7 +27,7 @@ func NewServer(
 	playlistController *playlist.Controller,
 	oauthController *spotify.OAuthController,
 	userController *spotify.UserController,
-	session session.Session,
+	session ports.SessionPort,
 ) *Server {
 	s := &Server{Engine: gin.Default()}
 
