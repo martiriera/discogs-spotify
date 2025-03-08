@@ -65,7 +65,7 @@ func TestPlaylistBuilder(t *testing.T) {
 		}
 
 		gotCalls := 0
-		testFunc := func(ctx *gin.Context, batch []string) error {
+		testFunc := func(_ *gin.Context, _ []string) error {
 			gotCalls++
 			return nil
 		}

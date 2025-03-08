@@ -36,7 +36,7 @@ func main() {
 	session.Init(3600)
 
 	playlistController := playlist.NewPlaylistController(
-		discogs.NewHttpDiscogsService(&http.Client{}),
+		discogs.NewHTTPService(&http.Client{}),
 		spotify.NewHTTPService(&http.Client{}),
 	)
 

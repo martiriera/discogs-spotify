@@ -26,7 +26,7 @@ func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *AuthRouter) handleLogin(ctx *gin.Context) {
-	url := router.oauthController.GetAuthUrl()
+	url := router.oauthController.GetAuthURL()
 	ctx.Redirect(http.StatusTemporaryRedirect, url)
 }
 

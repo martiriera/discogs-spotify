@@ -15,7 +15,7 @@ import (
 func TestSpotifyOauthController(t *testing.T) {
 	t.Run("get auth url", func(t *testing.T) {
 		controller := NewOAuthController("client_id", "client_secret", "redirect_uri")
-		redirectURL := controller.GetAuthUrl()
+		redirectURL := controller.GetAuthURL()
 
 		want := "https://accounts.spotify.com/authorize?access_type=offline&client_id=client_id&redirect_uri=redirect_uri&response_type=code&scope=user-read-private+user-read-email+playlist-modify-public+playlist-modify-private&state=" +
 			url.QueryEscape(oauthState)

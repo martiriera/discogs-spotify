@@ -7,14 +7,14 @@ type ServiceMock struct {
 	Error    error
 }
 
-func (m *ServiceMock) GetCollectionReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
+func (m *ServiceMock) GetCollectionReleases(_ string) ([]entities.DiscogsRelease, error) {
 	return m.Response, m.Error
 }
 
-func (m *ServiceMock) GetWantlistReleases(discogsUsername string) ([]entities.DiscogsRelease, error) {
+func (m *ServiceMock) GetWantlistReleases(_ string) ([]entities.DiscogsRelease, error) {
 	return m.Response, m.Error
 }
 
-func (m *ServiceMock) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+func (m *ServiceMock) GetListReleases(_ string) ([]entities.DiscogsRelease, error) {
 	return m.Response, m.Error
 }

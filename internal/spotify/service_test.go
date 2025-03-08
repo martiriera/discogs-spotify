@@ -13,13 +13,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type StubSpotifyHttpClient struct {
+type StubSpotifyHTTPClient struct {
 	Responses []*http.Response
 	index     int
 	Error     error
 }
 
-func (s *StubSpotifyHttpClient) Do(req *http.Request) (*http.Response, error) {
+func (s *StubSpotifyHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	if s.index >= len(s.Responses) {
 		return nil, s.Error
 	}
@@ -133,7 +133,7 @@ func TestSpotifyService(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{tc.response}}
+			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
 			service := NewHTTPService(stubClient)
 			response, err := tc.request(service)
 			if err != nil {
@@ -184,7 +184,7 @@ func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
 			]
 		}`)),
 	}
-	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
+	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
 	service := NewHTTPService(stubClient)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
@@ -202,7 +202,7 @@ func TestSpotifyServiceError(t *testing.T) {
 		StatusCode: 400,
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Bad Request"}`)),
 	}
-	stubClient := &StubSpotifyHttpClient{Responses: []*http.Response{stubResponse}}
+	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHTTPService(stubClient)
@@ -226,7 +226,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 			Body:       io.NopCloser(bytes.NewBufferString(`{"error": "Unauthorized"}`)),
 		},
 	}
-	stubClient := &StubSpotifyHttpClient{Responses: stubResponses}
+	stubClient := &StubSpotifyHTTPClient{Responses: stubResponses}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	service := NewHTTPService(stubClient)

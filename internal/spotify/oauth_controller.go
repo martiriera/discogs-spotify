@@ -48,7 +48,7 @@ func NewOAuthController(clientID, clientSecret, redirectURL string) *OAuthContro
 	}
 }
 
-func (o *OAuthController) GetAuthUrl() string {
+func (o *OAuthController) GetAuthURL() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 

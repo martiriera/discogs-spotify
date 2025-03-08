@@ -14,7 +14,7 @@ type ServiceMock struct {
 	SleepMillis int
 }
 
-func (m *ServiceMock) GetAlbumID(ctx *gin.Context, album entities.Album) (string, error) {
+func (m *ServiceMock) GetAlbumID(_ *gin.Context, _ entities.Album) (string, error) {
 	if m.CalledCount >= len(m.Responses) {
 		return "", nil
 	}
@@ -26,19 +26,19 @@ func (m *ServiceMock) GetAlbumID(ctx *gin.Context, album entities.Album) (string
 	return response, nil
 }
 
-func (m *ServiceMock) GetSpotifyUserID(ctx *gin.Context) (string, error) {
+func (m *ServiceMock) GetSpotifyUserID(_ *gin.Context) (string, error) {
 	return "wizzler", nil
 }
 
-func (m *ServiceMock) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
+func (m *ServiceMock) CreatePlaylist(_ *gin.Context, _ string, _ string) (entities.SpotifyPlaylist, error) {
 	return entities.SpotifyPlaylist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
 }
 
-func (m *ServiceMock) AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error {
+func (m *ServiceMock) AddToPlaylist(_ *gin.Context, _ string, _ []string) error {
 	m.CalledCount++
 	return nil
 }
 
-func (m *ServiceMock) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+func (m *ServiceMock) GetAlbumsTrackUris(_ *gin.Context, _ []string) ([]string, error) {
 	return []string{"spotify:track:1", "spotify:track:2"}, nil
 }

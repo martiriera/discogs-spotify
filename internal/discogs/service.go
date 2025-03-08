@@ -23,27 +23,27 @@ type Service interface {
 	GetListReleases(listID string) ([]entities.DiscogsRelease, error)
 }
 
-type HttpService struct {
+type HTTPService struct {
 	client client.HTTPClient
 }
 
 const basePath = "https://api.discogs.com"
 
-func NewHttpDiscogsService(client client.HTTPClient) *HttpService {
-	return &HttpService{client: client}
+func NewHTTPService(client client.HTTPClient) *HTTPService {
+	return &HTTPService{client: client}
 }
 
-func (s *HttpService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
-func (s *HttpService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/wants?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
-func (s *HttpService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/lists/" + listID
 	response, err := doRequest(s.client, url)
 	if err != nil {
