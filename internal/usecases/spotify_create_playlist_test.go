@@ -1,4 +1,4 @@
-package playlist
+package usecases
 
 import (
 	"testing"
@@ -12,12 +12,12 @@ import (
 	"github.com/martiriera/discogs-spotify/util"
 )
 
-func TestPlaylistBuilder(t *testing.T) {
+func TestSpotifyCreatePlaylist(t *testing.T) {
 	t.Run("add to playlist by batches", func(t *testing.T) {
 		spotifyServiceMock := &spotify.ServiceMock{}
 		uris := make([]string, 205)
 
-		builder := NewPlaylistBuilder(spotifyServiceMock)
+		builder := NewSpotifyCreatePlaylist(spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 		err := builder.addToSpotifyPlaylist(ctx, "6rqhFgbbKwnb9MLmUQDhG6", uris)

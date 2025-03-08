@@ -1,4 +1,4 @@
-package playlist
+package usecases
 
 import (
 	"github.com/gin-gonic/gin"
@@ -9,43 +9,43 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
-type Builder struct {
+type SpotifyCreatePlaylist struct {
 	spotifyService ports.SpotifyPort
 	tracks         []string
 }
 
-func NewPlaylistBuilder(spotifyService ports.SpotifyPort) *Builder {
-	return &Builder{
+func NewSpotifyCreatePlaylist(spotifyService ports.SpotifyPort) *SpotifyCreatePlaylist {
+	return &SpotifyCreatePlaylist{
 		spotifyService: spotifyService,
 	}
 }
 
-func (pb *Builder) AddAlbums(ctx *gin.Context, albums []string) error {
-	trackUris, err := pb.getSpotifyTrackUris(ctx, albums)
+func (u *SpotifyCreatePlaylist) AppendAlbumsTracks(ctx *gin.Context, albums []string) error {
+	trackUris, err := u.getSpotifyTrackUris(ctx, albums)
 	if err != nil {
 		return err
 	}
-	pb.tracks = append(pb.tracks, trackUris...)
+	u.tracks = append(u.tracks, trackUris...)
 	return nil
 }
 
-func (pb *Builder) CreateAndPopulate(ctx *gin.Context, name, description string) (*entities.SpotifyPlaylist, error) {
-	playlist, err := pb.spotifyService.CreatePlaylist(ctx, name, description)
+func (u *SpotifyCreatePlaylist) CreateAndPopulate(ctx *gin.Context, name, description string) (*entities.SpotifyPlaylist, error) {
+	playlist, err := u.spotifyService.CreatePlaylist(ctx, name, description)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating playlist")
 	}
-	err = pb.addToSpotifyPlaylist(ctx, playlist.ID, pb.tracks)
+	err = u.addToSpotifyPlaylist(ctx, playlist.ID, u.tracks)
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding to playlist")
 	}
 	return &playlist, nil
 }
 
-func (pb *Builder) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+func (u *SpotifyCreatePlaylist) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
 	batckSize := 20
 	uris := []string{}
 	err := batchRequests(ctx, albums, batckSize, func(ctx *gin.Context, batch []string) error {
-		tracks, err := pb.spotifyService.GetAlbumsTrackUris(ctx, batch)
+		tracks, err := u.spotifyService.GetAlbumsTrackUris(ctx, batch)
 		if err != nil {
 			return errors.Wrap(err, "error getting album track uris")
 		}
@@ -58,10 +58,10 @@ func (pb *Builder) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]str
 	return uris, nil
 }
 
-func (pb *Builder) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
+func (u *SpotifyCreatePlaylist) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
 	batchSize := 100
 	return batchRequests(ctx, tracks, batchSize, func(ctx *gin.Context, batch []string) error {
-		err := pb.spotifyService.AddToPlaylist(ctx, playlistID, batch)
+		err := u.spotifyService.AddToPlaylist(ctx, playlistID, batch)
 		if err != nil {
 			return errors.Wrap(err, "error adding to playlist")
 		}

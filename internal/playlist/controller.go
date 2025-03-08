@@ -16,6 +16,7 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
@@ -68,12 +69,12 @@ func (c *Controller) CreatePlaylist(ctx *gin.Context, discogsURL string) (*entit
 	albumIDs = c.filterValidUnique(albumIDs)
 
 	// create playlist
-	playlistBuilder := NewPlaylistBuilder(c.spotifyService)
-	err = playlistBuilder.AddAlbums(ctx, albumIDs)
+	createPlaylist := usecases.NewSpotifyCreatePlaylist(c.spotifyService)
+	err = createPlaylist.AppendAlbumsTracks(ctx, albumIDs)
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
-	playlist, err := playlistBuilder.CreateAndPopulate(
+	playlist, err := createPlaylist.CreateAndPopulate(
 		ctx,
 		"Discogs "+cases.Title(language.English).String(parsedDiscogsURL.Type.String())+" by "+parsedDiscogsURL.ID,
 		"Created from: "+discogsURL,
