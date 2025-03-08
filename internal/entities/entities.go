@@ -16,19 +16,19 @@ type Playlist struct {
 	SpotifyAlbums   int
 }
 
-type DiscogsInputUrlType string
+type DiscogsInputURLType string
 
-func (t DiscogsInputUrlType) String() string {
+func (t DiscogsInputURLType) String() string {
 	return string(t)
 }
 
 const (
-	CollectionType DiscogsInputUrlType = "collection"
-	WantlistType   DiscogsInputUrlType = "wantlist"
-	ListType       DiscogsInputUrlType = "list"
+	CollectionType DiscogsInputURLType = "collection"
+	WantlistType   DiscogsInputURLType = "wantlist"
+	ListType       DiscogsInputURLType = "list"
 )
 
-type DiscogsInputUrl struct {
+type DiscogsInputURL struct {
 	ID   string
-	Type DiscogsInputUrlType
+	Type DiscogsInputURLType
 }

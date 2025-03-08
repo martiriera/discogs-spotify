@@ -9,44 +9,46 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
-	"github.com/pkg/errors"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
-type PlaylistController struct {
-	discogsService discogs.DiscogsService
-	spotifyService spotify.SpotifyService
+type Controller struct {
+	discogsService discogs.Service
+	spotifyService spotify.Service
 }
 
-func NewPlaylistController(discogsService discogs.DiscogsService, spotifyService spotify.SpotifyService) *PlaylistController {
-	return &PlaylistController{
+func NewPlaylistController(discogsService discogs.Service, spotifyService spotify.Service) *Controller {
+	return &Controller{
 		discogsService: discogsService,
 		spotifyService: spotifyService,
 	}
 }
 
-func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string) (*entities.Playlist, error) {
+func (c *Controller) CreatePlaylist(ctx *gin.Context, discogsURL string) (*entities.Playlist, error) {
 	stop := util.StartTimer("CreatePlaylist")
 	defer stop()
 
 	// fetch releases
-	parsedDiscogsUrl, err := parseDiscogsUrl(discogsUrl)
+	parsedDiscogsURL, err := parseDiscogsURL(discogsURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing Discogs URL")
 	}
 
 	var releases []entities.DiscogsRelease
-	if parsedDiscogsUrl.Type == entities.CollectionType {
-		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsUrl.ID)
-	} else if parsedDiscogsUrl.Type == entities.WantlistType {
-		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsUrl.ID)
-	} else if parsedDiscogsUrl.Type == entities.ListType {
-		releases, err = c.discogsService.GetListReleases(parsedDiscogsUrl.ID)
+	if parsedDiscogsURL.Type == entities.CollectionType {
+		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsURL.ID)
+	} else if parsedDiscogsURL.Type == entities.WantlistType {
+		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsURL.ID)
+	} else if parsedDiscogsURL.Type == entities.ListType {
+		releases, err = c.discogsService.GetListReleases(parsedDiscogsURL.ID)
 	} else {
 		return nil, errors.New("unrecognized URL type")
 	}
@@ -74,8 +76,8 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 	}
 	playlist, err := playlistBuilder.CreateAndPopulate(
 		ctx,
-		"Discogs "+cases.Title(language.English).String(parsedDiscogsUrl.Type.String())+" by "+parsedDiscogsUrl.ID,
-		"Created from: "+discogsUrl,
+		"Discogs "+cases.Title(language.English).String(parsedDiscogsURL.Type.String())+" by "+parsedDiscogsURL.ID,
+		"Created from: "+discogsURL,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating and populating playlist")
@@ -88,7 +90,7 @@ func (c *PlaylistController) CreatePlaylist(ctx *gin.Context, discogsUrl string)
 	}, nil
 }
 
-func (c *PlaylistController) getSpotifyAlbumIDs(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
+func (c *Controller) getSpotifyAlbumIDs(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	urisChan := make(chan string, len(releases))
 	errChan := make(chan error, len(releases))
 
@@ -136,7 +138,7 @@ func (c *PlaylistController) getSpotifyAlbumIDs(ctx *gin.Context, releases []ent
 	return uris, nil
 }
 
-func (c *PlaylistController) filterValidUnique(uris []string) []string {
+func (c *Controller) filterValidUnique(uris []string) []string {
 	seen := map[string]bool{}
 	filtered := []string{}
 	for _, uri := range uris {
@@ -156,51 +158,51 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	return album
 }
 
-var ErrInvalidDiscogsUrl = errors.New("invalid Discogs URL")
+var ErrInvalidDiscogsURL = errors.New("invalid Discogs URL")
 
-func parseDiscogsUrl(urlStr string) (*entities.DiscogsInputUrl, error) {
+func parseDiscogsURL(urlStr string) (*entities.DiscogsInputURL, error) {
 	// validate host
-	parsedUrl, err := url.Parse(urlStr)
+	parsedURL, err := url.Parse(urlStr)
 
 	if err != nil {
 		return nil, err
 	}
 
-	pathWithQuery := parsedUrl.Path
-	if parsedUrl.RawQuery != "" && strings.Contains(parsedUrl.RawQuery, "user=") {
-		pathWithQuery += "?" + parsedUrl.RawQuery
+	pathWithQuery := parsedURL.Path
+	if parsedURL.RawQuery != "" && strings.Contains(parsedURL.RawQuery, "user=") {
+		pathWithQuery += "?" + parsedURL.RawQuery
 	}
 
-	matchingUrl := ""
-	if parsedUrl.Host == "www.discogs.com" {
-		matchingUrl = pathWithQuery
-	} else if parsedUrl.Host == "" {
-		matchingUrl = "/" + strings.SplitN(pathWithQuery, "/", 2)[1]
+	matchingURL := ""
+	if parsedURL.Host == "www.discogs.com" {
+		matchingURL = pathWithQuery
+	} else if parsedURL.Host == "" {
+		matchingURL = "/" + strings.SplitN(pathWithQuery, "/", 2)[1]
 	} else {
-		return nil, ErrInvalidDiscogsUrl
+		return nil, ErrInvalidDiscogsURL
 	}
 
 	// validate path
 	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(?:user/(.+)/collection|wantlist\?user=(.+))$|lists/.+/(\d+)`)
-	matches := re.FindStringSubmatch(matchingUrl)
+	matches := re.FindStringSubmatch(matchingURL)
 	if matches == nil {
-		return nil, ErrInvalidDiscogsUrl
+		return nil, ErrInvalidDiscogsURL
 	}
 
 	for i, match := range matches {
 		// https://www.discogs.com/es/user/digger/collection
 		if i == 1 && match != "" {
-			return &entities.DiscogsInputUrl{ID: match, Type: entities.CollectionType}, nil
+			return &entities.DiscogsInputURL{ID: match, Type: entities.CollectionType}, nil
 		}
 		// https://www.discogs.com/es/wantlist?user=digger
 		if i == 2 && match != "" {
-			return &entities.DiscogsInputUrl{ID: match, Type: entities.WantlistType}, nil
+			return &entities.DiscogsInputURL{ID: match, Type: entities.WantlistType}, nil
 		}
 
 		// https://www.discogs.com/es/lists/MyList/1545836
 		if i == 3 && match != "" {
-			return &entities.DiscogsInputUrl{ID: match, Type: entities.ListType}, nil
+			return &entities.DiscogsInputURL{ID: match, Type: entities.ListType}, nil
 		}
 	}
-	return nil, ErrInvalidDiscogsUrl
+	return nil, ErrInvalidDiscogsURL
 }

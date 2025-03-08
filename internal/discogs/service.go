@@ -8,6 +8,7 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/client"
 	"github.com/martiriera/discogs-spotify/internal/entities"
+
 	"github.com/pkg/errors"
 )
 
@@ -16,33 +17,33 @@ var ErrUnexpectedStatus = errors.New("discogs unexpected status error")
 var ErrRequest = errors.New("discogs request error")
 var ErrResponse = errors.New("discogs response error")
 
-type DiscogsService interface {
+type Service interface {
 	GetCollectionReleases(username string) ([]entities.DiscogsRelease, error)
 	GetWantlistReleases(username string) ([]entities.DiscogsRelease, error)
 	GetListReleases(listID string) ([]entities.DiscogsRelease, error)
 }
 
-type HttpDiscogsService struct {
-	client client.HttpClient
+type HTTPService struct {
+	client client.HTTPClient
 }
 
 const basePath = "https://api.discogs.com"
 
-func NewHttpDiscogsService(client client.HttpClient) *HttpDiscogsService {
-	return &HttpDiscogsService{client: client}
+func NewHTTPService(client client.HTTPClient) *HTTPService {
+	return &HTTPService{client: client}
 }
 
-func (s *HttpDiscogsService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
-func (s *HttpDiscogsService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/wants?per_page=100&sort=artist&sort_order=asc"
 	return paginate(s.client, url)
 }
 
-func (s *HttpDiscogsService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/lists/" + listID
 	response, err := doRequest(s.client, url)
 	if err != nil {
@@ -51,7 +52,7 @@ func (s *HttpDiscogsService) GetListReleases(listID string) ([]entities.DiscogsR
 	return response.GetReleases(), nil
 }
 
-func paginate(client client.HttpClient, url string) ([]entities.DiscogsRelease, error) {
+func paginate(client client.HTTPClient, url string) ([]entities.DiscogsRelease, error) {
 	result := make([]entities.DiscogsRelease, 0)
 	response, err := doRequest(client, url)
 	if err != nil {
@@ -68,7 +69,7 @@ func paginate(client client.HttpClient, url string) ([]entities.DiscogsRelease, 
 	return result, nil
 }
 
-func doRequest(client client.HttpClient, url string) (entities.DiscogsResponse, error) {
+func doRequest(client client.HTTPClient, url string) (entities.DiscogsResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())

@@ -2,23 +2,25 @@ package playlist
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/pkg/errors"
+
 	"github.com/martiriera/discogs-spotify/internal/entities"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
-	"github.com/pkg/errors"
 )
 
-type PlaylistBuilder struct {
-	spotifyService spotify.SpotifyService
+type Builder struct {
+	spotifyService spotify.Service
 	tracks         []string
 }
 
-func NewPlaylistBuilder(spotifyService spotify.SpotifyService) *PlaylistBuilder {
-	return &PlaylistBuilder{
+func NewPlaylistBuilder(spotifyService spotify.Service) *Builder {
+	return &Builder{
 		spotifyService: spotifyService,
 	}
 }
 
-func (pb *PlaylistBuilder) AddAlbums(ctx *gin.Context, albums []string) error {
+func (pb *Builder) AddAlbums(ctx *gin.Context, albums []string) error {
 	trackUris, err := pb.getSpotifyTrackUris(ctx, albums)
 	if err != nil {
 		return err
@@ -27,7 +29,7 @@ func (pb *PlaylistBuilder) AddAlbums(ctx *gin.Context, albums []string) error {
 	return nil
 }
 
-func (pb *PlaylistBuilder) CreateAndPopulate(ctx *gin.Context, name, description string) (*entities.SpotifyPlaylist, error) {
+func (pb *Builder) CreateAndPopulate(ctx *gin.Context, name, description string) (*entities.SpotifyPlaylist, error) {
 	playlist, err := pb.spotifyService.CreatePlaylist(ctx, name, description)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating playlist")
@@ -39,7 +41,7 @@ func (pb *PlaylistBuilder) CreateAndPopulate(ctx *gin.Context, name, description
 	return &playlist, nil
 }
 
-func (pb *PlaylistBuilder) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
+func (pb *Builder) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
 	batckSize := 20
 	uris := []string{}
 	err := batchRequests(ctx, albums, batckSize, func(ctx *gin.Context, batch []string) error {
@@ -56,7 +58,7 @@ func (pb *PlaylistBuilder) getSpotifyTrackUris(ctx *gin.Context, albums []string
 	return uris, nil
 }
 
-func (pb *PlaylistBuilder) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
+func (pb *Builder) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
 	batchSize := 100
 	return batchRequests(ctx, tracks, batchSize, func(ctx *gin.Context, batch []string) error {
 		err := pb.spotifyService.AddToPlaylist(ctx, playlistID, batch)

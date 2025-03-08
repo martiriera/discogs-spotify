@@ -9,13 +9,13 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/entities"
 )
 
-type StubDiscogsHttpClient struct {
+type StubDiscogsHTTPClient struct {
 	Responses   []http.Response
 	CalledCount int
 	Error       error
 }
 
-func (s *StubDiscogsHttpClient) Do(req *http.Request) (*http.Response, error) {
+func (s *StubDiscogsHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	if s.CalledCount >= len(s.Responses) {
 		return nil, s.Error
 	}
@@ -55,8 +55,8 @@ func TestDiscogsService(t *testing.T) {
 			}`)),
 	}
 
-	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
-	service := NewHttpDiscogsService(stubClient)
+	stubClient := &StubDiscogsHTTPClient{Responses: []http.Response{*stubResponse}}
+	service := NewHTTPService(stubClient)
 
 	tcs := []struct {
 		name         string
@@ -165,8 +165,8 @@ func TestDiscogsServicePagination(t *testing.T) {
 		},
 	}
 
-	stubClient := &StubDiscogsHttpClient{Responses: stubResponses}
-	service := NewHttpDiscogsService(stubClient)
+	stubClient := &StubDiscogsHTTPClient{Responses: stubResponses}
+	service := NewHTTPService(stubClient)
 	response, err := service.GetCollectionReleases("digger")
 	if err != nil {
 		t.Errorf("did not expect an error, got %v", err)
@@ -190,8 +190,8 @@ func TestDiscogsServiceError(t *testing.T) {
 		StatusCode: 500,
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Internal server error"}`)),
 	}
-	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
-	service := NewHttpDiscogsService(stubClient)
+	stubClient := &StubDiscogsHTTPClient{Responses: []http.Response{*stubResponse}}
+	service := NewHTTPService(stubClient)
 	_, err := service.GetCollectionReleases("digger")
 	if err == nil {
 		t.Errorf("error is nil")
@@ -203,8 +203,8 @@ func TestDiscogsServiceUnauthorized(t *testing.T) {
 		StatusCode: 401,
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "You must authenticate to access this resource"}`)),
 	}
-	stubClient := &StubDiscogsHttpClient{Responses: []http.Response{*stubResponse}}
-	service := NewHttpDiscogsService(stubClient)
+	stubClient := &StubDiscogsHTTPClient{Responses: []http.Response{*stubResponse}}
+	service := NewHTTPService(stubClient)
 	_, err := service.GetCollectionReleases("digger")
 	if err == nil {
 		t.Errorf("error is nil")

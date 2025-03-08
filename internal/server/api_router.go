@@ -5,31 +5,32 @@ import (
 	"text/template"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+
 	"github.com/martiriera/discogs-spotify/internal/discogs"
 	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
-	"github.com/pkg/errors"
 )
 
-type ApiRouter struct {
-	playlistController *playlist.PlaylistController
+type APIRouter struct {
+	playlistController *playlist.Controller
 	userController     *spotify.UserController
 	session            *session.Session
 	template           *template.Template
 }
 
-func NewApiRouter(
-	pc *playlist.PlaylistController,
+func NewAPIRouter(
+	pc *playlist.Controller,
 	uc *spotify.UserController,
 	s *session.Session,
-	t *template.Template) *ApiRouter {
-	router := &ApiRouter{playlistController: pc, userController: uc, session: s, template: t}
+	t *template.Template) *APIRouter {
+	router := &APIRouter{playlistController: pc, userController: uc, session: s, template: t}
 	return router
 }
 
-func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
+func (router *APIRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
 	rg.GET("/home", authTokenMiddleware(*router.session), router.handleMain)
 	rg.POST("/playlist",
@@ -40,7 +41,7 @@ func (router *ApiRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.Static("/static", "./static")
 }
 
-func (router *ApiRouter) handleMain(ctx *gin.Context) {
+func (router *APIRouter) handleMain(ctx *gin.Context) {
 	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
@@ -50,13 +51,13 @@ func (router *ApiRouter) handleMain(ctx *gin.Context) {
 	}
 }
 
-func (router *ApiRouter) handleHome(ctx *gin.Context) {
+func (router *APIRouter) handleHome(ctx *gin.Context) {
 	if err := router.template.ExecuteTemplate(ctx.Writer, "home.html", nil); err != nil {
 		util.HandleError(ctx, err, http.StatusInternalServerError)
 	}
 }
 
-func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
+func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 	username := ctx.PostForm("discogs_url")
 
 	if username == "" {
@@ -71,7 +72,7 @@ func (router *ApiRouter) handlePlaylistCreate(ctx *gin.Context) {
 			return
 		}
 
-		if errors.Cause(err) == playlist.ErrInvalidDiscogsUrl {
+		if errors.Cause(err) == playlist.ErrInvalidDiscogsURL {
 			util.HandleError(ctx, err, http.StatusBadRequest)
 			return
 		}

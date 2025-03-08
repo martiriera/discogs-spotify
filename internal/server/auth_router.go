@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/martiriera/discogs-spotify/internal/session"
 	"github.com/martiriera/discogs-spotify/internal/spotify"
 	"github.com/martiriera/discogs-spotify/util"
@@ -25,7 +26,7 @@ func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *AuthRouter) handleLogin(ctx *gin.Context) {
-	url := router.oauthController.GetAuthUrl()
+	url := router.oauthController.GetAuthURL()
 	ctx.Redirect(http.StatusTemporaryRedirect, url)
 }
 

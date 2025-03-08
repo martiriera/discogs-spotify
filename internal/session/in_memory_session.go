@@ -21,11 +21,11 @@ func (s *InMemorySession) Init(maxAgeSecs int) {
 	s.ExpiresAt = int(time.Now().Add(time.Duration(maxAgeSecs) * time.Second).Unix())
 }
 
-func (s *InMemorySession) Get(r *http.Request, sessionName string) (map[any]any, error) {
+func (s *InMemorySession) Get(_ *http.Request, _ string) (map[any]any, error) {
 	return s.Data, nil
 }
 
-func (s *InMemorySession) GetData(r *http.Request, key string) (any, error) {
+func (s *InMemorySession) GetData(_ *http.Request, key string) (any, error) {
 	if _, exists := s.Data[key]; !exists {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func (s *InMemorySession) GetData(r *http.Request, key string) (any, error) {
 	return s.Data[key], nil
 }
 
-func (s *InMemorySession) SetData(r *http.Request, w http.ResponseWriter, key string, value any) error {
+func (s *InMemorySession) SetData(_ *http.Request, _ http.ResponseWriter, key string, value any) error {
 	s.Data[key] = value
 	return nil
 }
