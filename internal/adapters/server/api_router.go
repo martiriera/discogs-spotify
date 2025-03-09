@@ -12,7 +12,6 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
-	"github.com/martiriera/discogs-spotify/util"
 )
 
 type APIRouter struct {
@@ -47,14 +46,14 @@ func (router *APIRouter) handleMain(ctx *gin.Context) {
 		router.handleHome(ctx)
 	} else {
 		if err := router.template.ExecuteTemplate(ctx.Writer, "index.html", nil); err != nil {
-			util.HandleError(ctx, err, http.StatusInternalServerError)
+			handleError(ctx, err, http.StatusInternalServerError)
 		}
 	}
 }
 
 func (router *APIRouter) handleHome(ctx *gin.Context) {
 	if err := router.template.ExecuteTemplate(ctx.Writer, "home.html", nil); err != nil {
-		util.HandleError(ctx, err, http.StatusInternalServerError)
+		handleError(ctx, err, http.StatusInternalServerError)
 	}
 }
 
@@ -69,12 +68,12 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 	pl, err := router.playlistController.CreatePlaylist(ctx, username)
 	if err != nil {
 		if errors.Cause(err) == discogs.ErrUnauthorized {
-			util.HandleError(ctx, err, http.StatusUnauthorized)
+			handleError(ctx, err, http.StatusUnauthorized)
 			return
 		}
 
 		if errors.Cause(err) == usecases.ErrInvalidDiscogsURL {
-			util.HandleError(ctx, err, http.StatusBadRequest)
+			handleError(ctx, err, http.StatusBadRequest)
 			return
 		}
 
@@ -83,7 +82,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 			return
 		}
 
-		util.HandleError(ctx, err, http.StatusInternalServerError)
+		handleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
 

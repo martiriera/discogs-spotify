@@ -9,7 +9,6 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
-	"github.com/martiriera/discogs-spotify/util"
 )
 
 var ErrInvalidDiscogsURL = errors.New("invalid Discogs URL")
@@ -25,9 +24,6 @@ func NewDiscogsProcessURL(discogsService ports.DiscogsPort) *DiscogsProcessURL {
 }
 
 func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.DiscogsRelease, *entities.DiscogsInputURL, error) {
-	stop := util.StartTimer("CreatePlaylist")
-	defer stop()
-
 	// fetch releases
 	parsedDiscogsURL, err := parseDiscogsURL(discogsURL)
 	if err != nil {

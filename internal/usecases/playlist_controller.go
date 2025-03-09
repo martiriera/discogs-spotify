@@ -11,7 +11,6 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
-	"github.com/martiriera/discogs-spotify/util"
 )
 
 type Controller struct {
@@ -29,7 +28,7 @@ func NewPlaylistController(discogsService ports.DiscogsPort, spotifyService port
 }
 
 func (c *Controller) CreatePlaylist(ctx *gin.Context, discogsURL string) (*entities.Playlist, error) {
-	stop := util.StartTimer("CreatePlaylist")
+	stop := StartTimer("CreatePlaylist")
 	defer stop()
 
 	// fetch releases

@@ -7,7 +7,6 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
-	"github.com/martiriera/discogs-spotify/util"
 )
 
 type AuthRouter struct {
@@ -33,12 +32,12 @@ func (router *AuthRouter) handleLogin(ctx *gin.Context) {
 func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 	token, err := router.oauthController.GenerateToken(ctx)
 	if err != nil {
-		util.HandleError(ctx, err, http.StatusInternalServerError)
+		handleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
 	err = router.oauthController.StoreToken(ctx, *router.session, token)
 	if err != nil {
-		util.HandleError(ctx, err, http.StatusInternalServerError)
+		handleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
 	ctx.Redirect(http.StatusTemporaryRedirect, "/home")

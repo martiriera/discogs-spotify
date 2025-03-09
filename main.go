@@ -14,7 +14,6 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
-	"github.com/martiriera/discogs-spotify/util"
 )
 
 func main() {
@@ -25,12 +24,12 @@ func main() {
 		}
 		gin.SetMode(gin.DebugMode)
 	}
-	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
-	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
-	port := util.AssertEnvVar("PORT")
-	spotifyAuthRedirectURL := util.AssertEnvVar("SPOTIFY_REDIRECT_URI")
+	clientID := AssertEnvVar("SPOTIFY_CLIENT_ID")
+	clientSecret := AssertEnvVar("SPOTIFY_CLIENT_SECRET")
+	port := AssertEnvVar("PORT")
+	spotifyAuthRedirectURL := AssertEnvVar("SPOTIFY_REDIRECT_URI")
 
-	util.AssertEnvVar("SESSION_KEY")
+	AssertEnvVar("SESSION_KEY")
 
 	session := session.NewGorillaSession()
 	session.Init(3600)
