@@ -10,9 +10,9 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
-	"github.com/martiriera/discogs-spotify/internal/adapters/server"
-	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/server"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 

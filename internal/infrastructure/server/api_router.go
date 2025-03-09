@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
-	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 

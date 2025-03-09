@@ -15,8 +15,8 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
-	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 )
 
 var ErrRequest = errors.New("spotify API request error")

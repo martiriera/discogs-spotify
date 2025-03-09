@@ -10,8 +10,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 )
 
 var oauthState, _ = generateRandomState()

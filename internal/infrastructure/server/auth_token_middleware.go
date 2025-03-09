@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 )
 
 func authTokenMiddleware(service ports.SessionPort) gin.HandlerFunc {
