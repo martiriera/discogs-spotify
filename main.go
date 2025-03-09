@@ -9,12 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	"github.com/martiriera/discogs-spotify/internal/discogs"
-	"github.com/martiriera/discogs-spotify/internal/playlist"
-	"github.com/martiriera/discogs-spotify/internal/server"
-	"github.com/martiriera/discogs-spotify/internal/session"
-	"github.com/martiriera/discogs-spotify/internal/spotify"
-	"github.com/martiriera/discogs-spotify/util"
+	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
+	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/server"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
+	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
 func main() {
@@ -25,28 +24,28 @@ func main() {
 		}
 		gin.SetMode(gin.DebugMode)
 	}
-	clientID := util.AssertEnvVar("SPOTIFY_CLIENT_ID")
-	clientSecret := util.AssertEnvVar("SPOTIFY_CLIENT_SECRET")
-	port := util.AssertEnvVar("PORT")
-	spotifyAuthRedirectURL := util.AssertEnvVar("SPOTIFY_REDIRECT_URI")
+	clientID := AssertEnvVar("SPOTIFY_CLIENT_ID")
+	clientSecret := AssertEnvVar("SPOTIFY_CLIENT_SECRET")
+	port := AssertEnvVar("PORT")
+	spotifyAuthRedirectURL := AssertEnvVar("SPOTIFY_REDIRECT_URI")
 
-	util.AssertEnvVar("SESSION_KEY")
+	AssertEnvVar("SESSION_KEY")
 
 	session := session.NewGorillaSession()
 	session.Init(3600)
 
-	playlistController := playlist.NewPlaylistController(
+	playlistController := usecases.NewPlaylistController(
 		discogs.NewHTTPService(&http.Client{}),
 		spotify.NewHTTPService(&http.Client{}),
 	)
 
-	oauthController := spotify.NewOAuthController(
+	oauthController := usecases.NewSpotifyAuthenticate(
 		clientID,
 		clientSecret,
 		spotifyAuthRedirectURL,
 	)
 
-	userController := spotify.NewUserController(spotify.NewHTTPService(&http.Client{}))
+	userController := usecases.NewGetSpotifyUser(spotify.NewHTTPService(&http.Client{}))
 
 	s := server.NewServer(playlistController, oauthController, userController, session)
 
