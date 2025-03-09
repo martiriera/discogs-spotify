@@ -13,7 +13,6 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/server"
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
-	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
@@ -36,7 +35,7 @@ func main() {
 	session := session.NewGorillaSession()
 	session.Init(3600)
 
-	playlistController := playlist.NewPlaylistController(
+	playlistController := usecases.NewPlaylistController(
 		discogs.NewHTTPService(&http.Client{}),
 		spotify.NewHTTPService(&http.Client{}),
 	)
@@ -47,7 +46,7 @@ func main() {
 		spotifyAuthRedirectURL,
 	)
 
-	userController := spotify.NewUserController(spotify.NewHTTPService(&http.Client{}))
+	userController := usecases.NewGetSpotifyUser(spotify.NewHTTPService(&http.Client{}))
 
 	s := server.NewServer(playlistController, oauthController, userController, session)
 

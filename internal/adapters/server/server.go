@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
-	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
@@ -24,7 +23,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 var templateFS embed.FS
 
 func NewServer(
-	playlistController *playlist.Controller,
+	playlistController *usecases.Controller,
 	authenticateSpotify *usecases.SpotifyAuthenticate,
 	getSpotifyUser *usecases.GetSpotifyUser,
 	session ports.SessionPort,

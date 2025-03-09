@@ -11,20 +11,19 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/session"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
-	"github.com/martiriera/discogs-spotify/internal/playlist"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 	"github.com/martiriera/discogs-spotify/util"
 )
 
 type APIRouter struct {
-	playlistController *playlist.Controller
+	playlistController *usecases.Controller
 	userController     *usecases.GetSpotifyUser
 	session            *ports.SessionPort
 	template           *template.Template
 }
 
 func NewAPIRouter(
-	pc *playlist.Controller,
+	pc *usecases.Controller,
 	getSpotifyUserUseCase *usecases.GetSpotifyUser,
 	session *ports.SessionPort,
 	template *template.Template) *APIRouter {
@@ -74,7 +73,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 			return
 		}
 
-		if errors.Cause(err) == playlist.ErrInvalidDiscogsURL {
+		if errors.Cause(err) == usecases.ErrInvalidDiscogsURL {
 			util.HandleError(ctx, err, http.StatusBadRequest)
 			return
 		}
