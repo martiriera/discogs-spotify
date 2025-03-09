@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -67,4 +68,12 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx *gin.Context, releases 
 	}
 
 	return uris, nil
+}
+
+func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+	album := entities.Album{
+		Artist: release.BasicInformation.Artists[0].Name,
+		Title:  strings.TrimSpace(release.BasicInformation.Title),
+	}
+	return album
 }

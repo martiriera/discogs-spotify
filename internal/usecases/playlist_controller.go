@@ -1,8 +1,6 @@
 package usecases
 
 import (
-	"strings"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/pkg/errors"
@@ -79,12 +77,4 @@ func (c *Controller) filterValidUnique(uris []string) []string {
 		}
 	}
 	return filtered
-}
-
-func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
-	album := entities.Album{
-		Artist: release.BasicInformation.Artists[0].Name,
-		Title:  strings.TrimSpace(release.BasicInformation.Title),
-	}
-	return album
 }
