@@ -1,67 +1,52 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-
-	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
-	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
-	"github.com/martiriera/discogs-spotify/internal/infrastructure/server"
-	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
-	"github.com/martiriera/discogs-spotify/internal/usecases"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/config"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/container"
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
-	if os.Getenv("ENV") == "" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Fatalf("No .env file found")
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	c := container.NewContainer(cfg)
+
+	server := c.GetHTTPServer()
+
+	// Start server in a goroutine
+	go func() {
+		log.Printf("Starting server on port %s", cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil {
+			if err.Error() != "http: Server closed" {
+				log.Fatalf("Server failed: %v", err)
+			}
 		}
-		gin.SetMode(gin.DebugMode)
-	}
-	clientID := AssertEnvVar("SPOTIFY_CLIENT_ID")
-	clientSecret := AssertEnvVar("SPOTIFY_CLIENT_SECRET")
-	port := AssertEnvVar("PORT")
-	spotifyAuthRedirectURL := AssertEnvVar("SPOTIFY_REDIRECT_URI")
+	}()
 
-	AssertEnvVar("SESSION_KEY")
+	// Wait for interrupt signal to gracefully shut down the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-	session := session.NewGorillaSession()
-	session.Init(3600)
+	log.Println("Shutting down server...")
 
-	playlistController := usecases.NewPlaylistController(
-		discogs.NewHTTPService(&http.Client{}),
-		spotify.NewHTTPService(&http.Client{}),
-	)
+	// Create a deadline for server shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	oauthController := usecases.NewSpotifyAuthenticate(
-		clientID,
-		clientSecret,
-		spotifyAuthRedirectURL,
-	)
-
-	userController := usecases.NewGetSpotifyUser(spotify.NewHTTPService(&http.Client{}))
-
-	s := server.NewServer(playlistController, oauthController, userController, session)
-
-	if port == "" {
-		port = "8080"
+	// Attempt graceful shutdown
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	server := &http.Server{
-		Addr:         ":" + port,
-		Handler:      s,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  15 * time.Second,
-	}
-
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("could not listen on port %s: %v", port, err)
-	}
+	log.Println("Server exited properly")
 }
