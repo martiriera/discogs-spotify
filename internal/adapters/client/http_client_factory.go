@@ -29,14 +29,13 @@ func (f *HTTPClientFactory) CreateClient(timeout time.Duration, retryAttempts in
 func (f *HTTPClientFactory) CreateDiscogsClient(timeout time.Duration, retryAttempts int, retryDelay time.Duration) HTTPClient {
 	client := f.CreateClient(timeout, retryAttempts, retryDelay)
 
-
 	transport := client.(*http.Client).Transport
 	if transport == nil {
 		transport = http.DefaultTransport
 	}
 
 	client.(*http.Client).Transport = &userAgentTransport{
-		base: transport,
+		base:      transport,
 		userAgent: "DiscogsSpotify/1.0",
 	}
 

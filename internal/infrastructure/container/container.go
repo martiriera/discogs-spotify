@@ -14,21 +14,21 @@ import (
 )
 
 type Container struct {
-	Config            *config.Config
-	Server            *server.Server
-	HTTPServer        *http.Server
-	Session           ports.SessionPort
-	DiscogsService    ports.DiscogsPort
-	SpotifyService    ports.SpotifyPort
+	Config             *config.Config
+	Server             *server.Server
+	HTTPServer         *http.Server
+	Session            ports.SessionPort
+	DiscogsService     ports.DiscogsPort
+	SpotifyService     ports.SpotifyPort
 	PlaylistController *usecases.Controller
-	OAuthController   *usecases.SpotifyAuthenticate
-	UserController    *usecases.GetSpotifyUser
-	HTTPClientFactory *client.HTTPClientFactory
+	OAuthController    *usecases.SpotifyAuthenticate
+	UserController     *usecases.GetSpotifyUser
+	HTTPClientFactory  *client.HTTPClientFactory
 }
 
 func NewContainer(cfg *config.Config) *Container {
 	c := &Container{
-		Config: cfg,
+		Config:            cfg,
 		HTTPClientFactory: client.NewHTTPClientFactory(),
 	}
 
