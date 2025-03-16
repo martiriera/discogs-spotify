@@ -1,9 +1,8 @@
 package usecases
 
 import (
+	"context"
 	"testing"
-
-	"github.com/gin-gonic/gin"
 
 	"golang.org/x/oauth2"
 
@@ -65,7 +64,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		}
 
 		gotCalls := 0
-		testFunc := func(_ *gin.Context, _ []string) error {
+		testFunc := func(_ context.Context, _ []string) error {
 			gotCalls++
 			return nil
 		}

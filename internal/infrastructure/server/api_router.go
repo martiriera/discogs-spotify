@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
-	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
+	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
@@ -77,7 +77,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 			return
 		}
 
-		if errors.Cause(err) == spotify.ErrUnauthorized {
+		if errors.Cause(err) == coreErrors.ErrUnauthorized {
 			ctx.Redirect(http.StatusTemporaryRedirect, "/auth/login")
 			return
 		}
