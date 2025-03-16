@@ -31,22 +31,27 @@
             <div class="text-center">
                 <h2 class="text-2xl font-semibold mb-4 text-gray-700">Enter Discogs URL</h2>
                 <p class="text-gray-600 mb-4">Paste the URL of your Discogs collection, wantlist, or list below.</p>
-                <form hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator" class="space-y-4">
+                <form id="playlist-form" hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator" hx-timeout="120000" class="space-y-4">
                     <div class="relative">
                         <input type="text" id="discogs_url" name="discogs_url"
                             placeholder="https://www.discogs.com/user/..."
                             class="w-full px-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            pattern="https?:\/\/(www\.)?discogs\.com.*"
+                            title="Please enter a valid Discogs URL starting with http://discogs.com or https://www.discogs.com"
                             required>
                         <button type="submit" id="submit-button"
-                            class="absolute right-2 top-2 text-purple-500 hover:text-purple-600">
+                            class="absolute right-2 top-2 text-purple-500 hover:text-purple-600 focus:outline-none">
                             <i class="fas fa-arrow-right" aria-hidden="true"></i>
                             <span class="sr-only">Submit</span>
                         </button>
                     </div>
+                    <div id="url-validation-message" class="text-red-500 text-sm mt-1 hidden">
+                        Please enter a valid Discogs URL
+                    </div>
                 </form>
-                <div class="my-2 htmx-indicator text-gray-600">
-                    <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                    <span>Loading...</span>
+                <div class="my-2 htmx-indicator text-gray-600 flex items-center justify-center">
+                    <i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>
+                    <span>Creating playlist... This may take up to a minute</span>
                 </div>
             </div>
 
@@ -114,6 +119,27 @@
             document.getElementById('playlist-card').classList.add('hidden');
         }
 
+        // Add form validation
+        document.getElementById('playlist-form').addEventListener('submit', function(event) {
+            const input = document.getElementById('discogs_url');
+            const validationMessage = document.getElementById('url-validation-message');
+
+            // Basic URL validation
+            if (!input.value.match(/https?:\/\/(www\.)?discogs\.com.*/i)) {
+                validationMessage.classList.remove('hidden');
+                event.preventDefault();
+                return false;
+            } else {
+                validationMessage.classList.add('hidden');
+            }
+        });
+
+        // Add input validation on change
+        document.getElementById('discogs_url').addEventListener('input', function() {
+            const validationMessage = document.getElementById('url-validation-message');
+            validationMessage.classList.add('hidden');
+        });
+
         document.addEventListener('htmx:configRequest', function (event) {
             document.getElementById('submit-button').disabled = true;
             hideCards();
@@ -124,32 +150,91 @@
         });
 
         document.addEventListener('htmx:responseError', function (event) {
-            const errorResponse = JSON.parse(event.detail.xhr.response);
-            const errorMessage = errorResponse.error
-                ? errorResponse.error.charAt(0).toUpperCase() + errorResponse.error.slice(1) + '.'
-                : 'An unknown error occurred.';
-            document.getElementById('error-card').classList.remove('hidden');
-            document.getElementById('error-message').innerText = errorMessage;
+            try {
+                const errorResponse = JSON.parse(event.detail.xhr.response);
+                const errorMessage = errorResponse.error
+                    ? errorResponse.error.charAt(0).toUpperCase() + errorResponse.error.slice(1) + '.'
+                    : 'An unknown error occurred.';
+                document.getElementById('error-card').classList.remove('hidden');
+                document.getElementById('error-message').innerText = errorMessage;
+            } catch (error) {
+                document.getElementById('error-card').classList.remove('hidden');
+                document.getElementById('error-message').innerText = 'An unexpected error occurred. Please try again.';
+                console.error('Failed to parse error response:', error);
+            }
         });
 
-        document.addEventListener('htmx:beforeSwap', function (event) {
+        document.addEventListener('htmx:afterOnLoad', function (event) {
             if (event.detail.target.id === 'results' && event.detail.xhr.status === 200) {
                 try {
+                    // Clear any previous content in the results div
+                    const resultsDiv = document.getElementById('results');
+
+                    // Try to parse the response as JSON
                     const data = JSON.parse(event.detail.xhr.responseText);
 
-                    document.getElementById('discogs-releases').innerText = data.discogs_releases || 'N/A';
-                    document.getElementById('spotify-albums').innerText = data.spotify_albums || 'N/A';
+                    // Clear the results div to prevent showing raw JSON
+                    resultsDiv.innerHTML = '';
 
-                    const playlistUrlElem = document.getElementById('playlist-url');
-                    playlistUrlElem.href = data.url || '#';
+                    // Add back our result cards (they were cleared above)
+                    resultsDiv.innerHTML = `
+                        <div id="error-card" class="hidden bg-red-100 text-red-700 p-5 rounded-lg shadow-md">
+                            <h2 class="text-xl font-semibold mb-2">Error</h2>
+                            <p id="error-message" class="text-sm">There was an issue fetching the playlist from Discogs. Please try again.</p>
+                        </div>
+                        <div id="playlist-card" class="bg-green-100 p-5 rounded-lg shadow-md justify-center">
+                            <h2 class="text-xl font-semibold mb-4 text-green-800">Playlist Created Successfully!</h2>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-green-700 mr-2">Discogs Releases:</span>
+                                    <span id="discogs-releases" class="text-sm text-green-900 font-semibold">${data.discogs_releases || 'N/A'}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-green-700 mr-2">Spotify Albums:</span>
+                                    <span id="spotify-albums" class="text-sm text-green-900 font-semibold">${data.spotify_albums || 'N/A'}</span>
+                                </div>
+                                <div class="pt-2 mt-4 border-t border-green-200">
+                                    <a id="playlist-url" href="${data.url || '#'}" target="_blank" rel="noopener noreferrer"
+                                        class="inline-flex items-center px-6 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition duration-300">
+                                        <i class="fab fa-spotify mr-2"></i>
+                                        Open in Spotify
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
 
-                    document.getElementById('playlist-card').classList.remove('hidden');
-
-                    event.preventDefault();
+                    // Prevent the default swap behavior
+                    event.detail.shouldSwap = false;
                 } catch (error) {
                     console.error('Failed to process JSON response:', error);
+
+                    // Show a friendly error message if JSON parsing fails
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = `
+                        <div class="bg-red-100 text-red-700 p-5 rounded-lg shadow-md">
+                            <h2 class="text-xl font-semibold mb-2">Error</h2>
+                            <p class="text-sm">There was an issue processing the response. Please try again.</p>
+                            <p class="text-xs mt-2">Technical details: ${error.message}</p>
+                        </div>
+                    `;
+
+                    // Prevent the default swap behavior
+                    event.detail.shouldSwap = false;
                 }
             }
+        });
+
+        // Add timeout handling
+        document.addEventListener('htmx:timeout', function(event) {
+            document.getElementById('error-card').classList.remove('hidden');
+            document.getElementById('error-message').innerText = 'The request timed out. This could be due to high server load or connectivity issues. Please try again.';
+        });
+
+        // Add network error handling
+        document.addEventListener('htmx:sendError', function(event) {
+            document.getElementById('error-card').classList.remove('hidden');
+            document.getElementById('error-message').innerText = 'Network error occurred. Please check your internet connection and try again.';
         });
 
         tippy('[data-tippy-content]', {

@@ -59,14 +59,14 @@ func LoadConfig() (*Config, error) {
 	env := getEnvWithDefault("ENV", "development")
 	sessionMaxAge := getEnvAsIntWithDefault("SESSION_MAX_AGE", 3600)
 
-	discogsTimeout := getEnvAsDurationWithDefault("DISCOGS_TIMEOUT", 10*time.Second)
-	spotifyTimeout := getEnvAsDurationWithDefault("SPOTIFY_TIMEOUT", 10*time.Second)
+	discogsTimeout := getEnvAsDurationWithDefault("DISCOGS_TIMEOUT", 30*time.Second)
+	spotifyTimeout := getEnvAsDurationWithDefault("SPOTIFY_TIMEOUT", 60*time.Second)
 	retryAttempts := getEnvAsIntWithDefault("HTTP_RETRY_ATTEMPTS", 3)
 	retryDelay := getEnvAsDurationWithDefault("HTTP_RETRY_DELAY", 1*time.Second)
 
-	readTimeout := getEnvAsDurationWithDefault("SERVER_READ_TIMEOUT", 5*time.Second)
-	writeTimeout := getEnvAsDurationWithDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
-	idleTimeout := getEnvAsDurationWithDefault("SERVER_IDLE_TIMEOUT", 15*time.Second)
+	readTimeout := getEnvAsDurationWithDefault("SERVER_READ_TIMEOUT", 10*time.Second)
+	writeTimeout := getEnvAsDurationWithDefault("SERVER_WRITE_TIMEOUT", 120*time.Second)
+	idleTimeout := getEnvAsDurationWithDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
 
 	return &Config{
 		Environment: env,
