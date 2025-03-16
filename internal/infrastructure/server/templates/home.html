@@ -145,7 +145,7 @@
 
                     document.getElementById('playlist-card').classList.remove('hidden');
 
-                    event.preventDefault();
+                    return false;
                 } catch (error) {
                     console.error('Failed to process JSON response:', error);
                 }
