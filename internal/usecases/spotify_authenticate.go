@@ -1,9 +1,9 @@
 package usecases
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"context"
 
 	"github.com/gin-gonic/gin"
 
@@ -32,8 +32,14 @@ var scopes = []string{
 	"playlist-modify-private",
 }
 
+// OAuth2Config is an interface that wraps the oauth2.Config methods we need
+type OAuth2Config interface {
+	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+}
+
 type SpotifyAuthenticate struct {
-	config     *oauth2.Config
+	config     OAuth2Config
 	oauthState string
 }
 
@@ -46,6 +52,15 @@ func NewSpotifyAuthenticate(clientID, clientSecret, redirectURL string) *Spotify
 			Scopes:       scopes,
 			Endpoint:     spotify.Endpoint,
 		},
+		oauthState: oauthState,
+	}
+}
+
+// NewSpotifyAuthenticateWithConfig creates a new SpotifyAuthenticate with a custom OAuth2 config
+// This is mainly used for testing purposes
+func NewSpotifyAuthenticateWithConfig(config OAuth2Config, oauthState string) *SpotifyAuthenticate {
+	return &SpotifyAuthenticate{
+		config:     config,
 		oauthState: oauthState,
 	}
 }
