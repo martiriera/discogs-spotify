@@ -10,20 +10,22 @@ import (
 	"net/url"
 	"strings"
 
-	"golang.org/x/oauth2"
-
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
-	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
 type HTTPService struct {
-	client client.HTTPClient
+	client          client.HTTPClient
+	contextProvider ports.ContextPort
 }
 
-func NewHTTPService(client client.HTTPClient) *HTTPService {
-	return &HTTPService{client: client}
+func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
+	return &HTTPService{
+		client:          client,
+		contextProvider: contextProvider,
+	}
 }
 
 func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
@@ -44,13 +46,18 @@ func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (str
 }
 
 func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
-	if userID, ok := ctx.Value(session.SpotifyUserIDKey).(string); ok && userID != "" {
+	userID, err := s.contextProvider.GetUserID(ctx)
+	if err == nil && userID != "" {
 		return userID, nil
 	}
 
 	resp, err := doRequest[entities.SpotifyUserResponse](ctx, s, http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", err
+	}
+
+	if err := s.contextProvider.SetUserID(ctx, resp.ID); err != nil {
+		return "", coreErrors.Wrap(err, "error setting spotify user id in context")
 	}
 
 	return resp.ID, nil
@@ -147,9 +154,9 @@ func doRequest[T any](ctx context.Context, s *HTTPService, method, route string,
 
 	req.Header.Set("Content-Type", "application/json")
 
-	token, ok := ctx.Value(session.SpotifyTokenKey).(*oauth2.Token)
-	if !ok {
-		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, "no access token in context")
+	token, err := s.contextProvider.GetToken(ctx)
+	if err != nil {
+		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, err.Error())
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
@@ -166,7 +173,8 @@ func doRequest[T any](ctx context.Context, s *HTTPService, method, route string,
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, fmt.Sprintf("status: %d, body: %s", resp.StatusCode, string(bodyBytes)))
+		errMsg := fmt.Sprintf("status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, errMsg)
 	}
 
 	var result T

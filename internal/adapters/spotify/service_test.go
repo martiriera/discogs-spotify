@@ -31,6 +31,31 @@ func (s *StubSpotifyHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	return response, s.Error
 }
 
+type MockContextProvider struct {
+	token  *oauth2.Token
+	userID string
+}
+
+func NewMockContextProvider(token *oauth2.Token, userID string) *MockContextProvider {
+	return &MockContextProvider{
+		token:  token,
+		userID: userID,
+	}
+}
+
+func (m *MockContextProvider) GetToken(_ context.Context) (*oauth2.Token, error) {
+	return m.token, nil
+}
+
+func (m *MockContextProvider) GetUserID(_ context.Context) (string, error) {
+	return m.userID, nil
+}
+
+func (m *MockContextProvider) SetUserID(_ context.Context, userID string) error {
+	m.userID = userID
+	return nil
+}
+
 func TestSpotifyService(t *testing.T) {
 	t.Setenv("SPOTIFY_CLIENT_ID", "test")
 	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
@@ -138,7 +163,8 @@ func TestSpotifyService(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
-			service := NewHTTPService(stubClient)
+			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+			service := NewHTTPService(stubClient, contextProvider)
 			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
@@ -189,7 +215,8 @@ func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
 		}`)),
 	}
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
 		t.Errorf("did not expect error, got %v", err)
@@ -209,7 +236,8 @@ func TestSpotifyServiceError(t *testing.T) {
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API error`
@@ -233,7 +261,8 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	stubClient := &StubSpotifyHTTPClient{Responses: stubResponses}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {
