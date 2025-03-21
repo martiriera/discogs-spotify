@@ -25,8 +25,8 @@ func (s *InMemorySession) Get(_ *http.Request, _ string) (map[any]any, error) {
 	return s.Data, nil
 }
 
-func (s *InMemorySession) GetData(_ *http.Request, key string) (any, error) {
-	if _, exists := s.Data[key]; !exists {
+func (s *InMemorySession) GetData(_ *http.Request, key ContextKey) (any, error) {
+	if _, exists := s.Data[string(key)]; !exists {
 		return nil, nil
 	}
 
@@ -34,10 +34,10 @@ func (s *InMemorySession) GetData(_ *http.Request, key string) (any, error) {
 		return nil, errors.New("session expired")
 	}
 
-	return s.Data[key], nil
+	return s.Data[string(key)], nil
 }
 
-func (s *InMemorySession) SetData(_ *http.Request, _ http.ResponseWriter, key string, value any) error {
-	s.Data[key] = value
+func (s *InMemorySession) SetData(_ *http.Request, _ http.ResponseWriter, key ContextKey, value any) error {
+	s.Data[string(key)] = value
 	return nil
 }

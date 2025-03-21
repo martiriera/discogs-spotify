@@ -3,6 +3,7 @@ package usecases
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"context"
 
 	"github.com/gin-gonic/gin"
 
@@ -53,7 +54,19 @@ func (o *SpotifyAuthenticate) GetAuthURL() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *SpotifyAuthenticate) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
+func (o *SpotifyAuthenticate) GenerateToken(ctx context.Context, code string) (*oauth2.Token, error) {
+	if code == "" {
+		return nil, errors.New(ErrNoCode)
+	}
+
+	token, err := o.config.Exchange(ctx, code)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrExchangingCode)
+	}
+	return token, nil
+}
+
+func (o *SpotifyAuthenticate) GenerateTokenFromGin(ctx *gin.Context) (*oauth2.Token, error) {
 	values := ctx.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
 		return nil, errors.Wrap(errors.New(err), ErrErrorInCallback)
@@ -67,11 +80,7 @@ func (o *SpotifyAuthenticate) GenerateToken(ctx *gin.Context) (*oauth2.Token, er
 		return nil, errors.New(ErrRedirectStateParamMismatch)
 	}
 
-	token, err := o.config.Exchange(ctx, code)
-	if err != nil {
-		return nil, errors.Wrap(err, ErrExchangingCode)
-	}
-	return token, nil
+	return o.GenerateToken(ctx, code)
 }
 
 func (o *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {

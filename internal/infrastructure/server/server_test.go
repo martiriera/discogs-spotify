@@ -179,7 +179,7 @@ func setSessionData(
 	sessionMock *session.InMemorySession,
 	request *http.Request,
 	response *httptest.ResponseRecorder,
-	key string,
+	key session.ContextKey,
 	value any,
 ) {
 	t.Helper()

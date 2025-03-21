@@ -72,7 +72,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		for _, tc := range tcs {
 			t.Run(tc.name, func(t *testing.T) {
 				gotCalls = 0
-				err := batchRequests(nil, tc.uris, tc.batchSize, testFunc)
+				err := batchRequests(context.TODO(), tc.uris, tc.batchSize, testFunc)
 				if err != nil {
 					t.Errorf("error is not nil")
 				}

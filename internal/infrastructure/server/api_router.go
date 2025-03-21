@@ -42,7 +42,7 @@ func (router *APIRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *APIRouter) handleMain(ctx *gin.Context) {
-	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
+	if _, exists := GetContextValue(ctx, session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
 		if err := router.template.ExecuteTemplate(ctx.Writer, "index.html", nil); err != nil {

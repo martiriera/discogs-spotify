@@ -2,6 +2,7 @@ package spotify
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"testing"
@@ -121,7 +122,8 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should create playlist",
 			request: func(service ports.SpotifyPort) (string, error) {
-				ctx.Set(session.SpotifyUserIDKey, "wizzler")
+				// set user id in context
+				ctx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
 				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
 			},
@@ -210,7 +212,7 @@ func TestSpotifyServiceError(t *testing.T) {
 	service := NewHTTPService(stubClient)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
-	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
+	want := `status: 400, body: {"message": "Bad Request"}: spotify API error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
 	}

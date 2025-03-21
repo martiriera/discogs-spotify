@@ -13,11 +13,9 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
+	"golang.org/x/oauth2"
 )
-
-type tokenKeyType string
-
-const TokenKey tokenKeyType = "spotify_access_token"
 
 type HTTPService struct {
 	client client.HTTPClient
@@ -45,6 +43,10 @@ func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (str
 }
 
 func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
+	if userID, ok := ctx.Value(session.SpotifyUserIDKey).(string); ok && userID != "" {
+		return userID, nil
+	}
+
 	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", err
@@ -144,13 +146,12 @@ func doRequest[T any](s *HTTPService, ctx context.Context, method, route string,
 
 	req.Header.Set("Content-Type", "application/json")
 
-	// Extract token from context
-	token, ok := ctx.Value(TokenKey).(string)
+	token, ok := ctx.Value(session.SpotifyTokenKey).(*oauth2.Token)
 	if !ok {
 		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, "no access token in context")
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 
 	resp, err := s.client.Do(req)
 	if err != nil {

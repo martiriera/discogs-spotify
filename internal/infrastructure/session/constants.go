@@ -4,7 +4,9 @@ const (
 	AuthSessionName = "auth-session"
 )
 
+type ContextKey string
+
 const (
-	SpotifyTokenKey  = "spotify-token"
-	SpotifyUserIDKey = "spotify-user-id"
+	SpotifyTokenKey  ContextKey = "spotify-token"
+	SpotifyUserIDKey ContextKey = "spotify-user-id"
 )

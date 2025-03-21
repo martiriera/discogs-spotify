@@ -67,7 +67,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", nil)
 		const expectedError = ErrErrorInCallback + ": access_denied"
 
-		_, err := controller.GenerateToken(ctx)
+		_, err := controller.GenerateToken(ctx, "auth_code")
 		if err == nil || err.Error() != expectedError {
 			t.Errorf("expected error %v, got %v", expectedError, err)
 		}
@@ -78,7 +78,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, nil)
 
-		_, err := controller.GenerateToken(ctx)
+		_, err := controller.GenerateToken(ctx, "")
 		if err == nil || err.Error() != ErrNoCode {
 			t.Errorf("expected error %v, got %v", ErrNoCode, err)
 		}
@@ -89,7 +89,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", nil)
 
-		_, err := controller.GenerateToken(ctx)
+		_, err := controller.GenerateToken(ctx, "auth_code")
 		if err == nil || err.Error() != ErrRedirectStateParamMismatch {
 			t.Errorf("expected error %v, got %v", ErrRedirectStateParamMismatch, err)
 		}
