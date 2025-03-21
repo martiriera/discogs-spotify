@@ -1,9 +1,8 @@
 package usecases
 
 import (
+	"context"
 	"testing"
-
-	"github.com/gin-gonic/gin"
 
 	"golang.org/x/oauth2"
 
@@ -65,7 +64,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		}
 
 		gotCalls := 0
-		testFunc := func(_ *gin.Context, _ []string) error {
+		testFunc := func(_ context.Context, _ []string) error {
 			gotCalls++
 			return nil
 		}
@@ -73,7 +72,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		for _, tc := range tcs {
 			t.Run(tc.name, func(t *testing.T) {
 				gotCalls = 0
-				err := batchRequests(nil, tc.uris, tc.batchSize, testFunc)
+				err := batchRequests(context.TODO(), tc.uris, tc.batchSize, testFunc)
 				if err != nil {
 					t.Errorf("error is not nil")
 				}

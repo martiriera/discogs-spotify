@@ -59,8 +59,10 @@ func (c *Container) initServices() {
 		c.Config.HTTP.RetryDelay,
 	)
 
+	contextProvider := server.NewGinContextProvider()
+
 	c.DiscogsService = discogs.NewHTTPService(discogsClient)
-	c.SpotifyService = spotify.NewHTTPService(spotifyClient)
+	c.SpotifyService = spotify.NewHTTPService(spotifyClient, contextProvider)
 }
 
 func (c *Container) initControllers() {

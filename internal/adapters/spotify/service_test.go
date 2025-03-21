@@ -2,11 +2,13 @@ package spotify
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
+	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/util"
@@ -27,6 +29,31 @@ func (s *StubSpotifyHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	response := s.Responses[s.index]
 	s.index++
 	return response, s.Error
+}
+
+type MockContextProvider struct {
+	token  *oauth2.Token
+	userID string
+}
+
+func NewMockContextProvider(token *oauth2.Token, userID string) *MockContextProvider {
+	return &MockContextProvider{
+		token:  token,
+		userID: userID,
+	}
+}
+
+func (m *MockContextProvider) GetToken(_ context.Context) (*oauth2.Token, error) {
+	return m.token, nil
+}
+
+func (m *MockContextProvider) GetUserID(_ context.Context) (string, error) {
+	return m.userID, nil
+}
+
+func (m *MockContextProvider) SetUserID(_ context.Context, userID string) error {
+	m.userID = userID
+	return nil
 }
 
 func TestSpotifyService(t *testing.T) {
@@ -120,7 +147,8 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should create playlist",
 			request: func(service ports.SpotifyPort) (string, error) {
-				ctx.Set(session.SpotifyUserIDKey, "wizzler")
+				// set user id in context
+				ctx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
 				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
 			},
@@ -135,7 +163,8 @@ func TestSpotifyService(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
-			service := NewHTTPService(stubClient)
+			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+			service := NewHTTPService(stubClient, contextProvider)
 			response, err := tc.request(service)
 			if err != nil {
 				t.Errorf("error is not nil: %v", err)
@@ -186,7 +215,8 @@ func TestSpotifyGetAlbumsTrackUris(t *testing.T) {
 		}`)),
 	}
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
 		t.Errorf("did not expect error, got %v", err)
@@ -206,10 +236,11 @@ func TestSpotifyServiceError(t *testing.T) {
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
-	want := `status: 400, body: {"message": "Bad Request"}: spotify API response error`
+	want := `status: 400, body: {"message": "Bad Request"}: spotify API error`
 	if err == nil {
 		t.Errorf("expected error, got nil")
 	}
@@ -230,13 +261,14 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	stubClient := &StubSpotifyHTTPClient{Responses: stubResponses}
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
-	service := NewHTTPService(stubClient)
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	service := NewHTTPService(stubClient, contextProvider)
 	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {
 		t.Errorf("did expect error, got nil")
 	}
-	if err != ErrUnauthorized {
-		t.Errorf("got %v, want %v", err, ErrUnauthorized)
+	if err != coreErrors.ErrUnauthorized {
+		t.Errorf("got %v, want %v", err, coreErrors.ErrUnauthorized)
 	}
 }

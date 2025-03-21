@@ -1,6 +1,7 @@
 package entities
 
 type SpotifyPlaylist struct {
-	ID  string
-	URL string
+	ID   string
+	Name string
+	URL  string
 }

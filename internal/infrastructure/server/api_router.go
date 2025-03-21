@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
-	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
+	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
@@ -42,7 +42,7 @@ func (router *APIRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *APIRouter) handleMain(ctx *gin.Context) {
-	if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
+	if _, exists := GetContextValue(ctx, session.SpotifyTokenKey); exists {
 		router.handleHome(ctx)
 	} else {
 		if err := router.template.ExecuteTemplate(ctx.Writer, "index.html", nil); err != nil {
@@ -77,7 +77,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 			return
 		}
 
-		if errors.Cause(err) == spotify.ErrUnauthorized {
+		if errors.Cause(err) == coreErrors.ErrUnauthorized {
 			ctx.Redirect(http.StatusTemporaryRedirect, "/auth/login")
 			return
 		}

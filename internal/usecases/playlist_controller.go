@@ -1,7 +1,7 @@
 package usecases
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/cases"
@@ -25,7 +25,7 @@ func NewPlaylistController(discogsService ports.DiscogsPort, spotifyService port
 	}
 }
 
-func (c *Controller) CreatePlaylist(ctx *gin.Context, discogsURL string) (*entities.Playlist, error) {
+func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*entities.Playlist, error) {
 	stop := StartTimer("CreatePlaylist")
 	defer stop()
 

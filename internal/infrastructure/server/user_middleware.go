@@ -9,7 +9,7 @@ import (
 
 func authUserMiddleware(uc usecases.GetSpotifyUser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if _, exists := ctx.Get(session.SpotifyUserIDKey); exists {
+		if _, exists := GetContextValue(ctx, session.SpotifyUserIDKey); exists {
 			ctx.Next()
 			return
 		}
@@ -22,7 +22,7 @@ func authUserMiddleware(uc usecases.GetSpotifyUser) gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(session.SpotifyUserIDKey, userID)
+		SetContextValue(ctx, session.SpotifyUserIDKey, userID)
 		ctx.Next()
 	}
 }
