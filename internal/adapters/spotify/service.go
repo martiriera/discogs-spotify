@@ -10,11 +10,12 @@ import (
 	"net/url"
 	"strings"
 
+	"golang.org/x/oauth2"
+
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
-	"golang.org/x/oauth2"
 )
 
 type HTTPService struct {
@@ -29,7 +30,7 @@ func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (str
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
 
-	resp, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route, nil)
+	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
 		return "", err
 	}
@@ -47,7 +48,7 @@ func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
 		return userID, nil
 	}
 
-	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, basePath+"/me", nil)
+	resp, err := doRequest[entities.SpotifyUserResponse](ctx, s, http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +64,7 @@ func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, descripti
 
 	route := fmt.Sprintf("%s/users/%s/playlists", basePath, userID)
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"name":        name,
 		"description": description,
 		"public":      false,
@@ -74,7 +75,7 @@ func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, descripti
 		return entities.SpotifyPlaylist{}, coreErrors.Wrap(err, "error marshaling request body")
 	}
 
-	resp, err := doRequest[entities.SpotifyPlaylistResponse](s, ctx, http.MethodPost, route, bytes.NewBuffer(jsonBody))
+	resp, err := doRequest[entities.SpotifyPlaylistResponse](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return entities.SpotifyPlaylist{}, err
 	}
@@ -89,7 +90,7 @@ func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, descripti
 func (s *HTTPService) AddToPlaylist(ctx context.Context, playlistID string, uris []string) error {
 	route := fmt.Sprintf("%s/playlists/%s/tracks", basePath, playlistID)
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"uris": uris,
 	}
 
@@ -98,7 +99,7 @@ func (s *HTTPService) AddToPlaylist(ctx context.Context, playlistID string, uris
 		return coreErrors.Wrap(err, "error marshaling request body")
 	}
 
-	_, err = doRequest[map[string]interface{}](s, ctx, http.MethodPost, route, bytes.NewBuffer(jsonBody))
+	_, err = doRequest[map[string]any](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
 	return err
 }
 
@@ -121,7 +122,7 @@ func (s *HTTPService) GetAlbumsTrackUris(ctx context.Context, albums []string) (
 		ids := strings.Join(batch, ",")
 		route := fmt.Sprintf("%s/albums?ids=%s", basePath, ids)
 
-		resp, err := doRequest[entities.SpotifyAlbumsResponse](s, ctx, http.MethodGet, route, nil)
+		resp, err := doRequest[entities.SpotifyAlbumsResponse](ctx, s, http.MethodGet, route, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +139,7 @@ func (s *HTTPService) GetAlbumsTrackUris(ctx context.Context, albums []string) (
 
 const basePath = "https://api.spotify.com/v1"
 
-func doRequest[T any](s *HTTPService, ctx context.Context, method, route string, body io.Reader) (*T, error) {
+func doRequest[T any](ctx context.Context, s *HTTPService, method, route string, body io.Reader) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, method, route, body)
 	if err != nil {
 		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())

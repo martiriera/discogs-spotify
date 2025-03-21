@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+
 	"github.com/pkg/errors"
 
 	"github.com/martiriera/discogs-spotify/internal/core/ports"

@@ -3,8 +3,9 @@ package util
 import (
 	"context"
 
-	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"golang.org/x/oauth2"
+
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 )
 
 func NewTestContextWithToken(key session.ContextKey, token *oauth2.Token) context.Context {

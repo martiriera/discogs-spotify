@@ -40,7 +40,7 @@ func Wrap(err error, message string) error {
 }
 
 // Wrapf wraps an error with a formatted message
-func Wrapf(err error, format string, args ...interface{}) error {
+func Wrapf(err error, format string, args ...any) error {
 	return errors.Wrapf(err, format, args...)
 }
 
@@ -56,7 +56,7 @@ func Is(err, target error) bool {
 
 // As finds the first error in err's chain that matches target, and if so, sets
 // target to that error value and returns true. Otherwise, it returns false.
-func As(err error, target interface{}) bool {
+func As(err error, target any) bool {
 	return errors.As(err, target)
 }
 

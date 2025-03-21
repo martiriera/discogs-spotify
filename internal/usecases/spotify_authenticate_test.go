@@ -20,12 +20,12 @@ import (
 
 type mockOAuthConfig struct {
 	*oauth2.Config
-	exchangeFunc func(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+	exchangeFunc func(code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 }
 
-func (m *mockOAuthConfig) Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+func (m *mockOAuthConfig) Exchange(_ context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
 	if m.exchangeFunc != nil {
-		return m.exchangeFunc(ctx, code, opts...)
+		return m.exchangeFunc(code, opts...)
 	}
 	return nil, nil
 }
@@ -35,7 +35,7 @@ type mockSession struct {
 	setDataError error
 }
 
-func (m *mockSession) SetData(r *http.Request, w http.ResponseWriter, key session.ContextKey, value any) error {
+func (m *mockSession) SetData(_ *http.Request, _ http.ResponseWriter, _ session.ContextKey, _ any) error {
 	return m.setDataError
 }
 
@@ -166,7 +166,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		}
 
 		mockConfig := createMockConfig()
-		mockConfig.exchangeFunc = func(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+		mockConfig.exchangeFunc = func(code string, _ ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
 			if code != "test_auth_code" {
 				t.Errorf("got code %s, want test_auth_code", code)
 			}
@@ -192,7 +192,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 
 	t.Run("generate token with exchange error", func(t *testing.T) {
 		mockConfig := createMockConfig()
-		mockConfig.exchangeFunc = func(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+		mockConfig.exchangeFunc = func(_ string, _ ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
 			return nil, errors.New("exchange error")
 		}
 
