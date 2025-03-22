@@ -90,7 +90,7 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 400)
-		assertResponseBody(t, response.Body.String(), "{\"error\":\"username is required\"}")
+		assertResponseBody(t, response.Body.String(), "{\"error\":\"invalid input error\"}")
 	})
 
 	t.Run("api playlist post 500 discogs error", func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestAcceptance(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertResponseStatus(t, response.Code, 500)
-		assertResponseBody(t, response.Body.String(), "{\"error\":\"discogs unexpected status error\"}")
+		assertResponseBody(t, response.Body.String(), "{\"error\":\"internal server error\"}")
 	})
 
 	t.Run("api get home 200", func(t *testing.T) {

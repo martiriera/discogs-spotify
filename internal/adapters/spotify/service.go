@@ -10,10 +10,18 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+)
+
+var (
+	ErrSpotifyAPI             = coreErrors.New("spotify API error")
+	ErrSpotifyUnauthorized    = coreErrors.New("spotify unauthorized error")
+	ErrSpotifyInvalidResponse = coreErrors.New("spotify invalid response error")
 )
 
 type HTTPService struct {
@@ -149,37 +157,37 @@ const basePath = "https://api.spotify.com/v1"
 func doRequest[T any](ctx context.Context, s *HTTPService, method, route string, body io.Reader) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, method, route, body)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errors.Wrap(ErrSpotifyAPI, err.Error())
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	token, err := s.contextProvider.GetToken(ctx)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, err.Error())
+		return nil, errors.Wrap(ErrSpotifyUnauthorized, err.Error())
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errors.Wrap(ErrSpotifyAPI, err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, coreErrors.ErrUnauthorized
+		return nil, ErrSpotifyUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		errMsg := fmt.Sprintf("status: %d, body: %s", resp.StatusCode, string(bodyBytes))
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, errMsg)
+		return nil, errors.Wrap(ErrSpotifyAPI, errMsg)
 	}
 
 	var result T
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errors.Wrap(ErrSpotifyInvalidResponse, err.Error())
 	}
 
 	return &result, nil
