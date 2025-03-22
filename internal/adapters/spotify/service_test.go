@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
-	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/util"
@@ -268,7 +267,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 	if err == nil {
 		t.Errorf("did expect error, got nil")
 	}
-	if err != coreErrors.ErrUnauthorized {
-		t.Errorf("got %v, want %v", err, coreErrors.ErrUnauthorized)
+	if err != ErrSpotifyUnauthorized {
+		t.Errorf("got %v, want %v", err, ErrSpotifyUnauthorized)
 	}
 }
