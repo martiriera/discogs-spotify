@@ -27,6 +27,8 @@ type HTTPService struct {
 	contextProvider ports.ContextPort
 }
 
+const basePath = "https://api.spotify.com/v1"
+
 func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
 	return &HTTPService{
 		client:          client,
@@ -149,8 +151,6 @@ func (s *HTTPService) GetAlbumsTrackUris(ctx context.Context, albums []string) (
 
 	return allTrackURIs, nil
 }
-
-const basePath = "https://api.spotify.com/v1"
 
 func doRequest[T any](ctx context.Context, s *HTTPService, method, route string, body io.Reader) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, method, route, body)
