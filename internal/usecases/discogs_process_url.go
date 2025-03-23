@@ -48,19 +48,19 @@ func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.Dis
 	return releases, parsedDiscogsURL, nil
 }
 
-func parseDiscogsURL(urlStr string) (*entities.DiscogsInputURL, error) {
-	// validate host
-	parsedURL, err := url.Parse(urlStr)
-
+func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
+	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return nil, err
 	}
 
 	pathWithQuery := parsedURL.Path
+	// check if is a wantlist url
 	if parsedURL.RawQuery != "" && strings.Contains(parsedURL.RawQuery, "user=") {
 		pathWithQuery += "?" + parsedURL.RawQuery
 	}
 
+	// support for urls not starting with https://www.
 	matchingURL := ""
 	if parsedURL.Host == "www.discogs.com" {
 		matchingURL = pathWithQuery
