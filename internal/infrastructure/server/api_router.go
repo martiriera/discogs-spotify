@@ -9,7 +9,7 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
-	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
+	errorWrapper "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
@@ -62,7 +62,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 	username := ctx.PostForm("discogs_url")
 
 	if username == "" {
-		handleError(ctx, coreErrors.ErrInvalidInput, http.StatusBadRequest)
+		handleError(ctx, errorWrapper.ErrInvalidInput, http.StatusBadRequest)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (router *APIRouter) handlePlaylistCreate(ctx *gin.Context) {
 		case errors.Is(err, spotify.ErrSpotifyUnauthorized):
 			ctx.Redirect(http.StatusTemporaryRedirect, "/auth/login")
 		default:
-			handleError(ctx, coreErrors.ErrInternal, http.StatusInternalServerError)
+			handleError(ctx, errorWrapper.ErrInternal, http.StatusInternalServerError)
 		}
 		return
 	}
