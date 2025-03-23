@@ -45,9 +45,6 @@
                             <span class="sr-only">Submit</span>
                         </button>
                     </div>
-                    <div id="url-validation-message" class="text-red-500 text-sm mt-1 hidden">
-                        Please enter a valid Discogs URL. Hover on the three icons below for details.
-                    </div>
                 </form>
                 <div class="my-2 htmx-indicator text-gray-600 flex items-center justify-center">
                     <i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>
@@ -118,27 +115,6 @@
             document.getElementById('error-card').classList.add('hidden');
             document.getElementById('playlist-card').classList.add('hidden');
         }
-
-        // Add form validation
-        document.getElementById('playlist-form').addEventListener('submit', function (event) {
-            const input = document.getElementById('discogs_url');
-            const validationMessage = document.getElementById('url-validation-message');
-
-            // Basic URL validation
-            if (!input.value.match(/https?:\/\/(www\.)?discogs\.com.*/i)) {
-                validationMessage.classList.remove('hidden');
-                event.preventDefault();
-                return false;
-            } else {
-                validationMessage.classList.add('hidden');
-            }
-        });
-
-        // Add input validation on change
-        document.getElementById('discogs_url').addEventListener('input', function () {
-            const validationMessage = document.getElementById('url-validation-message');
-            validationMessage.classList.add('hidden');
-        });
 
         document.addEventListener('htmx:configRequest', function (event) {
             document.getElementById('submit-button').disabled = true;
