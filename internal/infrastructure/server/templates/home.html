@@ -27,18 +27,18 @@
     <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
         <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Discogs to Spotify</h1>
 
-        <div class="space-y-8">
+        <div>
             <div class="text-center">
                 <h2 class="text-2xl font-semibold mb-4 text-gray-700">Enter Discogs URL</h2>
-                <p class="text-gray-600 mb-4">Paste the URL of your Discogs collection, wantlist, or list below.</p>
-                <form id="playlist-form" hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator" hx-timeout="120000" class="space-y-4">
+                <p class="text-gray-600 mb-4">Paste the URL of a collection, wantlist, or list.</p>
+                <form id="playlist-form" hx-post="/playlist" hx-target="#results" hx-indicator=".htmx-indicator"
+                    hx-timeout="120000" class="space-y-4">
                     <div class="relative">
-                        <input type="text" id="discogs_url" name="discogs_url"
+                        <input required type="text" id="discogs_url" name="discogs_url"
                             placeholder="https://www.discogs.com/user/..."
                             class="w-full px-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                             pattern="https?:\/\/(www\.)?discogs\.com.*"
-                            title="Please enter a valid Discogs URL starting with http://discogs.com or https://www.discogs.com"
-                            required>
+                            title="Please enter a valid Discogs URL. Hover on the three icons below for details.">
                         <button type="submit" id="submit-button"
                             class="absolute right-2 top-2 text-purple-500 hover:text-purple-600 focus:outline-none">
                             <i class="fas fa-arrow-right" aria-hidden="true"></i>
@@ -46,7 +46,7 @@
                         </button>
                     </div>
                     <div id="url-validation-message" class="text-red-500 text-sm mt-1 hidden">
-                        Please enter a valid Discogs URL
+                        Please enter a valid Discogs URL. Hover on the three icons below for details.
                     </div>
                 </form>
                 <div class="my-2 htmx-indicator text-gray-600 flex items-center justify-center">
@@ -108,7 +108,7 @@
                 Make sure that the URLs provided are <span class="underline">shared publicly</span> on Discogs.
                 <a href="https://support.discogs.com/hc/en-us/articles/360007331534-How-Does-The-Collection-Feature-Work#share"
                     target="_blank" rel="noopener noreferrer" class="text-purple-500 hover:text-purple-600">Learn
-                    more</a>
+                    more.</a>
             </p>
         </div>
     </div>
@@ -120,7 +120,7 @@
         }
 
         // Add form validation
-        document.getElementById('playlist-form').addEventListener('submit', function(event) {
+        document.getElementById('playlist-form').addEventListener('submit', function (event) {
             const input = document.getElementById('discogs_url');
             const validationMessage = document.getElementById('url-validation-message');
 
@@ -135,7 +135,7 @@
         });
 
         // Add input validation on change
-        document.getElementById('discogs_url').addEventListener('input', function() {
+        document.getElementById('discogs_url').addEventListener('input', function () {
             const validationMessage = document.getElementById('url-validation-message');
             validationMessage.classList.add('hidden');
         });
@@ -226,13 +226,13 @@
         });
 
         // Add timeout handling
-        document.addEventListener('htmx:timeout', function(event) {
+        document.addEventListener('htmx:timeout', function (event) {
             document.getElementById('error-card').classList.remove('hidden');
             document.getElementById('error-message').innerText = 'The request timed out. This could be due to high server load or connectivity issues. Please try again.';
         });
 
         // Add network error handling
-        document.addEventListener('htmx:sendError', function(event) {
+        document.addEventListener('htmx:sendError', function (event) {
             document.getElementById('error-card').classList.remove('hidden');
             document.getElementById('error-message').innerText = 'Network error occurred. Please check your internet connection and try again.';
         });
