@@ -110,6 +110,12 @@ func TestProcessDiscogsURL(t *testing.T) {
 			nil,
 			true,
 		},
+		{
+			"wrong lists",
+			"test.com",
+			nil,
+			true,
+		},
 	}
 	for _, tc := range tcs {
 		got, err := parseDiscogsURL(tc.url)
