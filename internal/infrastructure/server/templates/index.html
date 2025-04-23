@@ -5,8 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discogs to Spotify Converter - Get Started</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="/static/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/favicon/favicon.png">
     <link rel="stylesheet" href="/static/css/output.css">
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
 </head>
 
 <body class="bg-gradient-to-br from-purple-500 to-indigo-600 min-h-screen flex items-center justify-center p-4">
@@ -34,8 +40,21 @@
 
         <div class="mt-8 text-center text-sm text-gray-500">
             <p>Convert your Discogs collection to Spotify playlists with ease!</p>
+            <div class="mt-4">
+                <span class="text-xs flex items-center justify-center text-gray-400 cursor-help"
+                      data-tippy-content="This app creates Spotify playlists based on Discogs data. When you log in, we only request the permissions needed to create playlists on your behalf. We do not store your personal data, and this tool is not affiliated with, endorsed by, or officially connected to Spotify or Discogs.">
+                    <i class="fas fa-info-circle mr-1"></i> Privacy & Disclaimer
+                </span>
+            </div>
         </div>
     </div>
+
+    <script>
+        tippy('[data-tippy-content]', {
+            animation: 'scale',
+            theme: 'light-border',
+        });
+    </script>
 </body>
 
 </html>
