@@ -6,7 +6,7 @@ type SpotifySearchResponse struct {
 		Items []struct {
 			AlbumType string `json:"album_type"`
 			Artists   []struct {
-				ExternalUrls SpotifyExternalUrls `json:"external_urls"`
+				ExternalUrls SpotifyExternalURLs `json:"external_urls"`
 				Href         string              `json:"href"`
 				ID           string              `json:"id"`
 				Name         string              `json:"name"`
@@ -14,7 +14,7 @@ type SpotifySearchResponse struct {
 				URI          string              `json:"uri"`
 			} `json:"artists"`
 			AvailableMarkets []string            `json:"available_markets"`
-			ExternalUrls     SpotifyExternalUrls `json:"external_urls"`
+			ExternalUrls     SpotifyExternalURLs `json:"external_urls"`
 			Href             string              `json:"href"`
 			ID               string              `json:"id"`
 			Images           []struct {
@@ -51,7 +51,7 @@ type SpotifyUserResponse struct {
 		FilterEnabled bool `json:"filter_enabled"`
 		FilterLocked  bool `json:"filter_locked"`
 	} `json:"explicit_content"`
-	ExternalUrls SpotifyExternalUrls `json:"external_urls"`
+	ExternalUrls SpotifyExternalURLs `json:"external_urls"`
 	Followers    struct {
 		Href  string `json:"href"`
 		Total int    `json:"total"`
@@ -70,7 +70,7 @@ type SpotifyUserResponse struct {
 
 type SpotifyPlaylistResponse struct {
 	Collaborative bool                `json:"collaborative"`
-	ExternalUrls  SpotifyExternalUrls `json:"external_urls"`
+	ExternalURLs  SpotifyExternalURLs `json:"external_urls"`
 	Href          string              `json:"href"`
 	ID            string              `json:"id"`
 	Name          string              `json:"name"`
@@ -91,7 +91,7 @@ type SpotifyAlbumsResponse struct {
 	} `json:"albums"`
 }
 
-type SpotifyExternalUrls struct {
+type SpotifyExternalURLs struct {
 	Spotify string `json:"spotify"`
 }
 

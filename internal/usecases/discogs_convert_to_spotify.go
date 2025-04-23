@@ -1,12 +1,11 @@
 package usecases
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/pkg/errors"
 
@@ -22,7 +21,7 @@ func NewDiscogsConvertToSpotify(s ports.SpotifyPort) *DiscogsConvertToSpotify {
 	return &DiscogsConvertToSpotify{spotifyService: s}
 }
 
-func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx *gin.Context, releases []entities.DiscogsRelease) ([]string, error) {
+func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releases []entities.DiscogsRelease) ([]string, error) {
 	urisChan := make(chan string, len(releases))
 	errChan := make(chan error, len(releases))
 

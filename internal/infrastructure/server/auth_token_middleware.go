@@ -12,7 +12,7 @@ import (
 
 func authTokenMiddleware(service ports.SessionPort) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if _, exists := ctx.Get(session.SpotifyTokenKey); exists {
+		if _, exists := GetContextValue(ctx, session.SpotifyTokenKey); exists {
 			ctx.Next()
 			return
 		}
@@ -25,7 +25,7 @@ func authTokenMiddleware(service ports.SessionPort) gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(session.SpotifyTokenKey, token)
+		SetContextValue(ctx, session.SpotifyTokenKey, token)
 		ctx.Next()
 	}
 }

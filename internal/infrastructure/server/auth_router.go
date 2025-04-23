@@ -30,7 +30,7 @@ func (router *AuthRouter) handleLogin(ctx *gin.Context) {
 }
 
 func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
-	token, err := router.oauthController.GenerateToken(ctx)
+	token, err := router.oauthController.GenerateTokenFromGin(ctx)
 	if err != nil {
 		handleError(ctx, err, http.StatusInternalServerError)
 		return

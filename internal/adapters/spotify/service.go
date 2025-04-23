@@ -2,6 +2,7 @@ package spotify
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,35 +10,29 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-
-	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
-	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
+	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
+	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
-var ErrRequest = errors.New("spotify API request error")
-var ErrResponse = errors.New("spotify API response error")
-var ErrUnauthorized = errors.New("spotify API unauthorized error")
-
-const basePath = "https://api.spotify.com/v1"
-
 type HTTPService struct {
-	client client.HTTPClient
+	client          client.HTTPClient
+	contextProvider ports.ContextPort
 }
 
-func NewHTTPService(client client.HTTPClient) *HTTPService {
-	return &HTTPService{client: client}
+func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
+	return &HTTPService{
+		client:          client,
+		contextProvider: contextProvider,
+	}
 }
 
-func (s *HTTPService) GetAlbumID(ctx *gin.Context, album entities.Album) (string, error) {
+func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
 
-	resp, err := doRequest[entities.SpotifySearchResponse](s, ctx, http.MethodGet, route, nil)
+	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
 		return "", err
 	}
@@ -50,116 +45,141 @@ func (s *HTTPService) GetAlbumID(ctx *gin.Context, album entities.Album) (string
 	return resp.Albums.Items[0].ID, nil
 }
 
-func (s *HTTPService) GetSpotifyUserID(ctx *gin.Context) (string, error) {
-	route := basePath + "/me"
+func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
+	userID, err := s.contextProvider.GetUserID(ctx)
+	if err == nil && userID != "" {
+		return userID, nil
+	}
 
-	resp, err := doRequest[entities.SpotifyUserResponse](s, ctx, http.MethodGet, route, nil)
+	resp, err := doRequest[entities.SpotifyUserResponse](ctx, s, http.MethodGet, basePath+"/me", nil)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%v", resp.ID), nil
+	if err := s.contextProvider.SetUserID(ctx, resp.ID); err != nil {
+		return "", coreErrors.Wrap(err, "error setting spotify user id in context")
+	}
+
+	return resp.ID, nil
 }
 
-func (s *HTTPService) CreatePlaylist(ctx *gin.Context, name string, description string) (entities.SpotifyPlaylist, error) {
-	userID := ctx.GetString(session.SpotifyUserIDKey)
-	if userID == "" {
-		return entities.SpotifyPlaylist{}, errors.Wrap(ErrRequest, "no user id found on ctx")
-	}
-
-	route := basePath + "/users/" + userID + "/playlists"
-
-	body := map[string]string{
-		"name":        name,
-		"description": description,
-	}
-
-	jsonBody := new(bytes.Buffer)
-	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return entities.SpotifyPlaylist{}, errors.Wrap(ErrRequest, err.Error())
-	}
-
-	resp, err := doRequest[entities.SpotifyPlaylistResponse](s, ctx, http.MethodPost, route, jsonBody)
+func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, description string) (entities.SpotifyPlaylist, error) {
+	userID, err := s.GetSpotifyUserID(ctx)
 	if err != nil {
 		return entities.SpotifyPlaylist{}, err
 	}
 
-	return entities.SpotifyPlaylist{ID: resp.ID, URL: resp.ExternalUrls.Spotify}, nil
+	route := fmt.Sprintf("%s/users/%s/playlists", basePath, userID)
+
+	reqBody := map[string]any{
+		"name":        name,
+		"description": description,
+		"public":      false,
+	}
+
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return entities.SpotifyPlaylist{}, coreErrors.Wrap(err, "error marshaling request body")
+	}
+
+	resp, err := doRequest[entities.SpotifyPlaylistResponse](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return entities.SpotifyPlaylist{}, err
+	}
+
+	return entities.SpotifyPlaylist{
+		ID:   resp.ID,
+		Name: resp.Name,
+		URL:  resp.ExternalURLs.Spotify,
+	}, nil
 }
 
-func (s *HTTPService) AddToPlaylist(ctx *gin.Context, playlistID string, uris []string) error {
-	route := basePath + "/playlists/" + playlistID + "/tracks"
+func (s *HTTPService) AddToPlaylist(ctx context.Context, playlistID string, uris []string) error {
+	route := fmt.Sprintf("%s/playlists/%s/tracks", basePath, playlistID)
 
-	body := map[string][]string{
+	reqBody := map[string]any{
 		"uris": uris,
 	}
 
-	jsonBody := new(bytes.Buffer)
-	if err := json.NewEncoder(jsonBody).Encode(body); err != nil {
-		return errors.Wrap(ErrRequest, err.Error())
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return coreErrors.Wrap(err, "error marshaling request body")
 	}
 
-	_, err := doRequest[entities.SpotifySnapshotID](s, ctx, http.MethodPost, route, jsonBody)
+	_, err = doRequest[map[string]any](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
 	return err
 }
 
-func (s *HTTPService) GetAlbumsTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
-	query := url.Values{}
-	query.Set("ids", strings.Join(albums, ","))
-	route := basePath + "/albums" + "?" + query.Encode()
-
-	resp, err := doRequest[entities.SpotifyAlbumsResponse](s, ctx, http.MethodGet, route, nil)
-	if err != nil {
-		return nil, err
+func (s *HTTPService) GetAlbumsTrackUris(ctx context.Context, albums []string) ([]string, error) {
+	if len(albums) == 0 {
+		return []string{}, nil
 	}
 
-	var tracks []string
-	for _, album := range resp.Albums {
-		for _, track := range album.Tracks.Items {
-			tracks = append(tracks, track.URI)
+	// Spotify API allows a maximum of 20 IDs per request
+	batchSize := 20
+	var allTrackURIs []string
+
+	for i := 0; i < len(albums); i += batchSize {
+		end := i + batchSize
+		if end > len(albums) {
+			end = len(albums)
+		}
+
+		batch := albums[i:end]
+		ids := strings.Join(batch, ",")
+		route := fmt.Sprintf("%s/albums?ids=%s", basePath, ids)
+
+		resp, err := doRequest[entities.SpotifyAlbumsResponse](ctx, s, http.MethodGet, route, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, album := range resp.Albums {
+			for _, track := range album.Tracks.Items {
+				allTrackURIs = append(allTrackURIs, track.URI)
+			}
 		}
 	}
 
-	return tracks, nil
+	return allTrackURIs, nil
 }
 
-func doRequest[T any](s *HTTPService, ctx *gin.Context, method, route string, body io.Reader) (*T, error) {
-	token, ok := ctx.Get(session.SpotifyTokenKey)
-	if !ok {
-		return nil, errors.Wrap(ErrUnauthorized, "no token found")
-	}
+const basePath = "https://api.spotify.com/v1"
 
-	req, err := http.NewRequest(method, route, body)
+func doRequest[T any](ctx context.Context, s *HTTPService, method, route string, body io.Reader) (*T, error) {
+	req, err := http.NewRequestWithContext(ctx, method, route, body)
 	if err != nil {
-		return nil, errors.Wrap(ErrRequest, err.Error())
+		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
 	}
 
-	oauthToken, ok := token.(*oauth2.Token)
-	if !ok {
-		return nil, errors.Wrap(ErrUnauthorized, "invalid token type")
+	req.Header.Set("Content-Type", "application/json")
+
+	token, err := s.contextProvider.GetToken(ctx)
+	if err != nil {
+		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, err.Error())
 	}
 
-	req.Header.Set("Authorization", "Bearer "+oauthToken.AccessToken)
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(ErrRequest, err.Error())
+		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, ErrUnauthorized
+		return nil, coreErrors.ErrUnauthorized
 	}
-
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, errors.Wrapf(ErrResponse, "status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		errMsg := fmt.Sprintf("status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, errMsg)
 	}
 
 	var result T
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, errors.Wrap(ErrResponse, err.Error())
+		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
 	}
 
 	return &result, nil

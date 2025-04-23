@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 
@@ -31,8 +32,14 @@ var scopes = []string{
 	"playlist-modify-private",
 }
 
+// OAuth2Config is an interface that wraps the oauth2.Config methods we need
+type OAuth2Config interface {
+	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+}
+
 type SpotifyAuthenticate struct {
-	config     *oauth2.Config
+	config     OAuth2Config
 	oauthState string
 }
 
@@ -49,11 +56,32 @@ func NewSpotifyAuthenticate(clientID, clientSecret, redirectURL string) *Spotify
 	}
 }
 
+// NewSpotifyAuthenticateWithConfig creates a new SpotifyAuthenticate with a custom OAuth2 config
+// This is mainly used for testing purposes
+func NewSpotifyAuthenticateWithConfig(config OAuth2Config, oauthState string) *SpotifyAuthenticate {
+	return &SpotifyAuthenticate{
+		config:     config,
+		oauthState: oauthState,
+	}
+}
+
 func (o *SpotifyAuthenticate) GetAuthURL() string {
 	return o.config.AuthCodeURL(o.oauthState, oauth2.AccessTypeOffline)
 }
 
-func (o *SpotifyAuthenticate) GenerateToken(ctx *gin.Context) (*oauth2.Token, error) {
+func (o *SpotifyAuthenticate) GenerateToken(ctx context.Context, code string) (*oauth2.Token, error) {
+	if code == "" {
+		return nil, errors.New(ErrNoCode)
+	}
+
+	token, err := o.config.Exchange(ctx, code)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrExchangingCode)
+	}
+	return token, nil
+}
+
+func (o *SpotifyAuthenticate) GenerateTokenFromGin(ctx *gin.Context) (*oauth2.Token, error) {
 	values := ctx.Request.URL.Query()
 	if err := values.Get("error"); err != "" {
 		return nil, errors.Wrap(errors.New(err), ErrErrorInCallback)
@@ -67,11 +95,7 @@ func (o *SpotifyAuthenticate) GenerateToken(ctx *gin.Context) (*oauth2.Token, er
 		return nil, errors.New(ErrRedirectStateParamMismatch)
 	}
 
-	token, err := o.config.Exchange(ctx, code)
-	if err != nil {
-		return nil, errors.Wrap(err, ErrExchangingCode)
-	}
-	return token, nil
+	return o.GenerateToken(ctx, code)
 }
 
 func (o *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {

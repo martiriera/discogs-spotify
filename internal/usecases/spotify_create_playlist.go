@@ -1,7 +1,7 @@
 package usecases
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 
 	"github.com/pkg/errors"
 
@@ -20,7 +20,7 @@ func NewSpotifyCreatePlaylist(spotifyService ports.SpotifyPort) *SpotifyCreatePl
 	}
 }
 
-func (u *SpotifyCreatePlaylist) AppendAlbumsTracks(ctx *gin.Context, albums []string) error {
+func (u *SpotifyCreatePlaylist) AppendAlbumsTracks(ctx context.Context, albums []string) error {
 	trackUris, err := u.getSpotifyTrackUris(ctx, albums)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (u *SpotifyCreatePlaylist) AppendAlbumsTracks(ctx *gin.Context, albums []st
 	return nil
 }
 
-func (u *SpotifyCreatePlaylist) CreateAndPopulate(ctx *gin.Context, name, description string) (*entities.SpotifyPlaylist, error) {
+func (u *SpotifyCreatePlaylist) CreateAndPopulate(ctx context.Context, name, description string) (*entities.SpotifyPlaylist, error) {
 	playlist, err := u.spotifyService.CreatePlaylist(ctx, name, description)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating playlist")
@@ -41,10 +41,10 @@ func (u *SpotifyCreatePlaylist) CreateAndPopulate(ctx *gin.Context, name, descri
 	return &playlist, nil
 }
 
-func (u *SpotifyCreatePlaylist) getSpotifyTrackUris(ctx *gin.Context, albums []string) ([]string, error) {
-	batckSize := 20
+func (u *SpotifyCreatePlaylist) getSpotifyTrackUris(ctx context.Context, albums []string) ([]string, error) {
+	batchSize := 20
 	uris := []string{}
-	err := batchRequests(ctx, albums, batckSize, func(ctx *gin.Context, batch []string) error {
+	err := batchRequests(ctx, albums, batchSize, func(ctx context.Context, batch []string) error {
 		tracks, err := u.spotifyService.GetAlbumsTrackUris(ctx, batch)
 		if err != nil {
 			return errors.Wrap(err, "error getting album track uris")
@@ -53,14 +53,14 @@ func (u *SpotifyCreatePlaylist) getSpotifyTrackUris(ctx *gin.Context, albums []s
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting album track uris")
+		return nil, err
 	}
 	return uris, nil
 }
 
-func (u *SpotifyCreatePlaylist) addToSpotifyPlaylist(ctx *gin.Context, playlistID string, tracks []string) error {
+func (u *SpotifyCreatePlaylist) addToSpotifyPlaylist(ctx context.Context, playlistID string, tracks []string) error {
 	batchSize := 100
-	return batchRequests(ctx, tracks, batchSize, func(ctx *gin.Context, batch []string) error {
+	return batchRequests(ctx, tracks, batchSize, func(ctx context.Context, batch []string) error {
 		err := u.spotifyService.AddToPlaylist(ctx, playlistID, batch)
 		if err != nil {
 			return errors.Wrap(err, "error adding to playlist")
@@ -69,16 +69,15 @@ func (u *SpotifyCreatePlaylist) addToSpotifyPlaylist(ctx *gin.Context, playlistI
 	})
 }
 
-func batchRequests(ctx *gin.Context, totalItems []string, batchSize int, fn func(ctx *gin.Context, batch []string) error) error {
+func batchRequests(ctx context.Context, totalItems []string, batchSize int, fn func(ctx context.Context, batch []string) error) error {
 	for i := 0; i < len(totalItems); i += batchSize {
 		end := i + batchSize
 		if end > len(totalItems) {
 			end = len(totalItems)
 		}
 		batch := totalItems[i:end]
-		err := fn(ctx, batch)
-		if err != nil {
-			return errors.Wrap(err, "error processing batch")
+		if err := fn(ctx, batch); err != nil {
+			return err
 		}
 	}
 	return nil
