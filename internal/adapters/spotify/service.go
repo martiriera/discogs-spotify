@@ -12,14 +12,22 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
-	coreErrors "github.com/martiriera/discogs-spotify/internal/core/errors"
+	errorWrapper "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+)
+
+var (
+	ErrSpotifyAPI             = errorWrapper.New("spotify API error")
+	ErrSpotifyUnauthorized    = errorWrapper.New("spotify unauthorized error")
+	ErrSpotifyInvalidResponse = errorWrapper.New("spotify invalid response error")
 )
 
 type HTTPService struct {
 	client          client.HTTPClient
 	contextProvider ports.ContextPort
 }
+
+const basePath = "https://api.spotify.com/v1"
 
 func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
 	return &HTTPService{
@@ -57,7 +65,7 @@ func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
 	}
 
 	if err := s.contextProvider.SetUserID(ctx, resp.ID); err != nil {
-		return "", coreErrors.Wrap(err, "error setting spotify user id in context")
+		return "", errorWrapper.Wrap(err, "error setting spotify user id in context")
 	}
 
 	return resp.ID, nil
@@ -79,7 +87,7 @@ func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, descripti
 
 	jsonBody, err := json.Marshal(reqBody)
 	if err != nil {
-		return entities.SpotifyPlaylist{}, coreErrors.Wrap(err, "error marshaling request body")
+		return entities.SpotifyPlaylist{}, errorWrapper.Wrap(err, "error marshaling request body")
 	}
 
 	resp, err := doRequest[entities.SpotifyPlaylistResponse](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
@@ -103,7 +111,7 @@ func (s *HTTPService) AddToPlaylist(ctx context.Context, playlistID string, uris
 
 	jsonBody, err := json.Marshal(reqBody)
 	if err != nil {
-		return coreErrors.Wrap(err, "error marshaling request body")
+		return errorWrapper.Wrap(err, "error marshaling request body")
 	}
 
 	_, err = doRequest[map[string]any](ctx, s, http.MethodPost, route, bytes.NewBuffer(jsonBody))
@@ -144,42 +152,40 @@ func (s *HTTPService) GetAlbumsTrackUris(ctx context.Context, albums []string) (
 	return allTrackURIs, nil
 }
 
-const basePath = "https://api.spotify.com/v1"
-
 func doRequest[T any](ctx context.Context, s *HTTPService, method, route string, body io.Reader) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, method, route, body)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errorWrapper.Wrap(ErrSpotifyAPI, err.Error())
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	token, err := s.contextProvider.GetToken(ctx)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrUnauthorized, err.Error())
+		return nil, errorWrapper.Wrap(ErrSpotifyUnauthorized, err.Error())
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errorWrapper.Wrap(ErrSpotifyAPI, err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, coreErrors.ErrUnauthorized
+		return nil, ErrSpotifyUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		errMsg := fmt.Sprintf("status: %d, body: %s", resp.StatusCode, string(bodyBytes))
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, errMsg)
+		return nil, errorWrapper.Wrap(ErrSpotifyAPI, errMsg)
 	}
 
 	var result T
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, coreErrors.Wrap(coreErrors.ErrSpotifyAPI, err.Error())
+		return nil, errorWrapper.Wrap(ErrSpotifyInvalidResponse, err.Error())
 	}
 
 	return &result, nil
