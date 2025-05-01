@@ -65,7 +65,12 @@ func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
 	if parsedURL.Host == "www.discogs.com" {
 		matchingURL = pathWithQuery
 	} else if parsedURL.Host == "" {
-		matchingURL = "/" + strings.SplitN(pathWithQuery, "/", 2)[1]
+		// check if there are enough parts after splitting
+		parts := strings.SplitN(pathWithQuery, "/", 2)
+		if len(parts) < 2 {
+			return nil, ErrInvalidDiscogsURL
+		}
+		matchingURL = "/" + parts[1]
 	} else {
 		return nil, ErrInvalidDiscogsURL
 	}

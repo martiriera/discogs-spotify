@@ -111,7 +111,13 @@ func TestProcessDiscogsURL(t *testing.T) {
 			true,
 		},
 		{
-			"wrong lists",
+			"random url",
+			"test.com",
+			nil,
+			true,
+		},
+		{
+			"www random url",
 			"test.com",
 			nil,
 			true,
