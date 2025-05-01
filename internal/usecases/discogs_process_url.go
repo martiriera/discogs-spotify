@@ -49,7 +49,6 @@ func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.Dis
 }
 
 func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
-	// handle empty input
 	if inputURL == "" {
 		return nil, ErrInvalidDiscogsURL
 	}
@@ -64,45 +63,41 @@ func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
 		return nil, err
 	}
 
-	pathWithQuery := parsedURL.Path
-	// check if is a wantlist url
-	if parsedURL.RawQuery != "" && strings.Contains(parsedURL.RawQuery, "user=") {
-		pathWithQuery += "?" + parsedURL.RawQuery
-	}
-
-	// support for urls not starting with https://www.
-	matchingURL := ""
-	if parsedURL.Host == "www.discogs.com" || parsedURL.Host == "discogs.com" {
-		// Support both www.discogs.com and discogs.com
-		matchingURL = pathWithQuery
-	} else if strings.HasSuffix(parsedURL.Host, ".discogs.com") {
-		// Support subdomains like m.discogs.com
-		matchingURL = pathWithQuery
-	} else {
+	// Handle wantlist URLs with query parameters
+	if strings.Contains(parsedURL.Path, "/wantlist") {
+		// Extract the user parameter from the query
+		queryParams := parsedURL.Query()
+		user := queryParams.Get("user")
+		if user != "" {
+			return &entities.DiscogsInputURL{ID: user, Type: entities.WantlistType}, nil
+		}
 		return nil, ErrInvalidDiscogsURL
 	}
 
-	// validate path
-	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(?:user/(.+)/collection|wantlist\?user=(.+))$|lists/.+/(\d+)`)
-	matches := re.FindStringSubmatch(matchingURL)
-	if matches == nil {
+	// Handle collection and list URLs
+	// Remove language code if present (e.g., /es/)
+	path := parsedURL.Path
+	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(.*)$`)
+	matches := re.FindStringSubmatch(path)
+	if len(matches) < 2 {
 		return nil, ErrInvalidDiscogsURL
 	}
 
-	for i, match := range matches {
-		// https://www.discogs.com/es/user/digger/collection
-		if i == 1 && match != "" {
-			return &entities.DiscogsInputURL{ID: match, Type: entities.CollectionType}, nil
-		}
-		// https://www.discogs.com/es/wantlist?user=digger
-		if i == 2 && match != "" {
-			return &entities.DiscogsInputURL{ID: match, Type: entities.WantlistType}, nil
-		}
+	cleanPath := matches[1]
 
-		// https://www.discogs.com/es/lists/MyList/1545836
-		if i == 3 && match != "" {
-			return &entities.DiscogsInputURL{ID: match, Type: entities.ListType}, nil
-		}
+	// Check for collection URLs
+	collectionRe := regexp.MustCompile(`^user/([^/]+)/collection$`)
+	collectionMatches := collectionRe.FindStringSubmatch(cleanPath)
+	if len(collectionMatches) > 1 {
+		return &entities.DiscogsInputURL{ID: collectionMatches[1], Type: entities.CollectionType}, nil
 	}
+
+	// Check for list URLs
+	listRe := regexp.MustCompile(`^lists/.+/(\d+)$`)
+	listMatches := listRe.FindStringSubmatch(cleanPath)
+	if len(listMatches) > 1 {
+		return &entities.DiscogsInputURL{ID: listMatches[1], Type: entities.ListType}, nil
+	}
+
 	return nil, ErrInvalidDiscogsURL
 }
