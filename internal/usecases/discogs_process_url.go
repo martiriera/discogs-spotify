@@ -49,6 +49,16 @@ func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.Dis
 }
 
 func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
+	// handle empty input
+	if inputURL == "" {
+		return nil, ErrInvalidDiscogsURL
+	}
+
+	// add scheme if missing to prevent url.Parse errors
+	if !strings.HasPrefix(inputURL, "http://") && !strings.HasPrefix(inputURL, "https://") {
+		inputURL = "https://" + inputURL
+	}
+
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return nil, err
@@ -62,15 +72,12 @@ func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
 
 	// support for urls not starting with https://www.
 	matchingURL := ""
-	if parsedURL.Host == "www.discogs.com" {
+	if parsedURL.Host == "www.discogs.com" || parsedURL.Host == "discogs.com" {
+		// Support both www.discogs.com and discogs.com
 		matchingURL = pathWithQuery
-	} else if parsedURL.Host == "" {
-		// check if there are enough parts after splitting
-		parts := strings.SplitN(pathWithQuery, "/", 2)
-		if len(parts) < 2 {
-			return nil, ErrInvalidDiscogsURL
-		}
-		matchingURL = "/" + parts[1]
+	} else if strings.HasSuffix(parsedURL.Host, ".discogs.com") {
+		// Support subdomains like m.discogs.com
+		matchingURL = pathWithQuery
 	} else {
 		return nil, ErrInvalidDiscogsURL
 	}
