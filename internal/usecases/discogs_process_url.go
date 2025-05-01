@@ -53,51 +53,78 @@ func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
 		return nil, ErrInvalidDiscogsURL
 	}
 
+	parsedURL, err := ensureAndParseInputURL(inputURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Try to parse as a wantlist URL
+	// https://www.discogs.com/es/wantlist?user=digger
+	if wantlistURL := parseWantlistURL(parsedURL); wantlistURL != nil {
+		return wantlistURL, nil
+	}
+
+	// Clean the path by removing language code if present
+	cleanPath := cleanURLPath(parsedURL.Path)
+
+	// Try to parse as a collection URL
+	// https://www.discogs.com/es/user/digger/collection
+	if collectionURL := parseCollectionURL(cleanPath); collectionURL != nil {
+		return collectionURL, nil
+	}
+
+	// Try to parse as a list URL
+	// https://www.discogs.com/es/lists/MyList/1545836
+	if listURL := parseListURL(cleanPath); listURL != nil {
+		return listURL, nil
+	}
+
+	return nil, ErrInvalidDiscogsURL
+}
+
+func ensureAndParseInputURL(inputURL string) (*url.URL, error) {
 	// add scheme if missing to prevent url.Parse errors
 	if !strings.HasPrefix(inputURL, "http://") && !strings.HasPrefix(inputURL, "https://") {
 		inputURL = "https://" + inputURL
 	}
 
-	parsedURL, err := url.Parse(inputURL)
-	if err != nil {
-		return nil, err
-	}
+	return url.Parse(inputURL)
+}
 
-	// Handle wantlist URLs with query parameters
+func parseWantlistURL(parsedURL *url.URL) *entities.DiscogsInputURL {
 	if strings.Contains(parsedURL.Path, "/wantlist") {
-		// Extract the user parameter from the query
-		queryParams := parsedURL.Query()
-		user := queryParams.Get("user")
+		user := parsedURL.Query().Get("user")
 		if user != "" {
-			return &entities.DiscogsInputURL{ID: user, Type: entities.WantlistType}, nil
+			return &entities.DiscogsInputURL{ID: user, Type: entities.WantlistType}
 		}
-		return nil, ErrInvalidDiscogsURL
 	}
+	return nil
+}
 
-	// Handle collection and list URLs
-	// Remove language code if present (e.g., /es/)
-	path := parsedURL.Path
+// clean language code from the URL path if present
+func cleanURLPath(path string) string {
 	re := regexp.MustCompile(`^/(?:[a-z]{2}/)?(.*)$`)
 	matches := re.FindStringSubmatch(path)
 	if len(matches) < 2 {
-		return nil, ErrInvalidDiscogsURL
+		return ""
 	}
+	return matches[1]
+}
 
-	cleanPath := matches[1]
-
-	// Check for collection URLs
+func parseCollectionURL(cleanPath string) *entities.DiscogsInputURL {
 	collectionRe := regexp.MustCompile(`^user/([^/]+)/collection$`)
 	collectionMatches := collectionRe.FindStringSubmatch(cleanPath)
 	if len(collectionMatches) > 1 {
-		return &entities.DiscogsInputURL{ID: collectionMatches[1], Type: entities.CollectionType}, nil
+		return &entities.DiscogsInputURL{ID: collectionMatches[1], Type: entities.CollectionType}
 	}
+	return nil
+}
 
-	// Check for list URLs
+func parseListURL(cleanPath string) *entities.DiscogsInputURL {
 	listRe := regexp.MustCompile(`^lists/.+/(\d+)$`)
 	listMatches := listRe.FindStringSubmatch(cleanPath)
 	if len(listMatches) > 1 {
-		return &entities.DiscogsInputURL{ID: listMatches[1], Type: entities.ListType}, nil
+		return &entities.DiscogsInputURL{ID: listMatches[1], Type: entities.ListType}
 	}
-
-	return nil, ErrInvalidDiscogsURL
+	return nil
 }
