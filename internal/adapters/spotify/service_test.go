@@ -69,7 +69,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return album id",
 			request: func(service ports.SpotifyPort) (string, error) {
-				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -97,7 +97,7 @@ func TestSpotifyService(t *testing.T) {
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service ports.SpotifyPort) (string, error) {
-				return service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -237,7 +237,7 @@ func TestSpotifyServiceError(t *testing.T) {
 
 	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
 	service := NewHTTPService(stubClient, contextProvider)
-	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API error`
 	if err == nil {
@@ -262,7 +262,7 @@ func TestSpotifyServiceUnauthorized(t *testing.T) {
 
 	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
 	service := NewHTTPService(stubClient, contextProvider)
-	_, err := service.GetAlbumID(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
 
 	if err == nil {
 		t.Errorf("did expect error, got nil")

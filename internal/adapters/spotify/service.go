@@ -37,7 +37,7 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 	}
 }
 
-func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
+func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) (string, error) {
 	query := "album:" + album.Title + " artist:" + album.Artist
 	if !album.Reissue {
 		query += " year:" + strconv.Itoa(album.Year)

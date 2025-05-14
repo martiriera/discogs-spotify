@@ -13,7 +13,7 @@ type ServiceMock struct {
 	SleepMillis int
 }
 
-func (m *ServiceMock) GetAlbumID(_ context.Context, _ entities.Album) (string, error) {
+func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) (string, error) {
 	if m.CalledCount >= len(m.Responses) {
 		return "", nil
 	}

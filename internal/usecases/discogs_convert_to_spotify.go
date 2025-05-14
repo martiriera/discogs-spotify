@@ -37,7 +37,7 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 			wg.Add(1)
 			go func(album entities.Album) {
 				defer wg.Done()
-				uri, err := c.spotifyService.GetAlbumID(ctx, album)
+				uri, err := c.spotifyService.SearchAlbum(ctx, album)
 				if err != nil {
 					errChan <- errors.Wrap(err, "error getting album id")
 					return
