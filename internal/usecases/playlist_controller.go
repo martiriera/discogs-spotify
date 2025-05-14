@@ -29,8 +29,13 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 	stop := StartTimer("CreatePlaylist")
 	defer stop()
 
+	parsedDiscogsURL, err := parseDiscogsURL(discogsURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing Discogs URL")
+	}
+
 	// fetch releases
-	releases, parsedDiscogsURL, err := c.importer.processDiscogsURL(discogsURL)
+	releases, err := c.importer.processDiscogsURL(parsedDiscogsURL)
 	if err != nil {
 		return nil, err
 	}

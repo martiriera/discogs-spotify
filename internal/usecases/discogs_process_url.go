@@ -23,14 +23,9 @@ func NewDiscogsProcessURL(discogsService ports.DiscogsPort) *DiscogsProcessURL {
 	}
 }
 
-func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.DiscogsRelease, *entities.DiscogsInputURL, error) {
-	// fetch releases
-	parsedDiscogsURL, err := parseDiscogsURL(discogsURL)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "error parsing Discogs URL")
-	}
-
+func (c *DiscogsProcessURL) processDiscogsURL(parsedDiscogsURL *entities.ParsedDiscogsURL) ([]entities.DiscogsRelease, error) {
 	var releases []entities.DiscogsRelease
+	var err error
 	if parsedDiscogsURL.Type == entities.CollectionType {
 		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsURL.ID)
 	} else if parsedDiscogsURL.Type == entities.WantlistType {
@@ -38,17 +33,17 @@ func (c *DiscogsProcessURL) processDiscogsURL(discogsURL string) ([]entities.Dis
 	} else if parsedDiscogsURL.Type == entities.ListType {
 		releases, err = c.discogsService.GetListReleases(parsedDiscogsURL.ID)
 	} else {
-		return nil, nil, errors.New("unrecognized URL type")
+		return nil, errors.New("unrecognized URL type")
 	}
 
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return releases, parsedDiscogsURL, nil
+	return releases, nil
 }
 
-func parseDiscogsURL(inputURL string) (*entities.DiscogsInputURL, error) {
+func parseDiscogsURL(inputURL string) (*entities.ParsedDiscogsURL, error) {
 	if inputURL == "" {
 		return nil, ErrInvalidDiscogsURL
 	}
@@ -91,11 +86,11 @@ func ensureAndParseInputURL(inputURL string) (*url.URL, error) {
 	return url.Parse(inputURL)
 }
 
-func parseWantlistURL(parsedURL *url.URL) *entities.DiscogsInputURL {
+func parseWantlistURL(parsedURL *url.URL) *entities.ParsedDiscogsURL {
 	if strings.Contains(parsedURL.Path, "/wantlist") {
 		user := parsedURL.Query().Get("user")
 		if user != "" {
-			return &entities.DiscogsInputURL{ID: user, Type: entities.WantlistType}
+			return &entities.ParsedDiscogsURL{ID: user, Type: entities.WantlistType}
 		}
 	}
 	return nil
@@ -111,20 +106,20 @@ func cleanURLPath(path string) string {
 	return matches[1]
 }
 
-func parseCollectionURL(cleanPath string) *entities.DiscogsInputURL {
+func parseCollectionURL(cleanPath string) *entities.ParsedDiscogsURL {
 	collectionRe := regexp.MustCompile(`^user/([^/]+)/collection$`)
 	collectionMatches := collectionRe.FindStringSubmatch(cleanPath)
 	if len(collectionMatches) > 1 {
-		return &entities.DiscogsInputURL{ID: collectionMatches[1], Type: entities.CollectionType}
+		return &entities.ParsedDiscogsURL{ID: collectionMatches[1], Type: entities.CollectionType}
 	}
 	return nil
 }
 
-func parseListURL(cleanPath string) *entities.DiscogsInputURL {
+func parseListURL(cleanPath string) *entities.ParsedDiscogsURL {
 	listRe := regexp.MustCompile(`^lists/.+/(\d+)$`)
 	listMatches := listRe.FindStringSubmatch(cleanPath)
 	if len(listMatches) > 1 {
-		return &entities.DiscogsInputURL{ID: listMatches[1], Type: entities.ListType}
+		return &entities.ParsedDiscogsURL{ID: listMatches[1], Type: entities.ListType}
 	}
 	return nil
 }
