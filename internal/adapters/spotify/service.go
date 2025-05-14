@@ -38,7 +38,8 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 
 func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
 	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
-	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
+	// double encoding
+	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", url.QueryEscape(query))
 
 	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
