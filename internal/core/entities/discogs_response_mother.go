@@ -10,6 +10,11 @@ func MotherTwoAlbums() []DiscogsRelease {
 						Name: "The Replacements",
 					},
 				},
+				Formats: []DiscogsFormat{
+					{
+						Descriptions: []string{"LP", "Album", "Reissue"},
+					},
+				},
 			},
 		},
 		{
@@ -18,6 +23,11 @@ func MotherTwoAlbums() []DiscogsRelease {
 				Artists: []DiscogsArtist{
 					{
 						Name: "The Jim Carroll Band",
+					},
+				},
+				Formats: []DiscogsFormat{
+					{
+						Descriptions: []string{"LP", "Album"},
 					},
 				},
 			},

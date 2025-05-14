@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
@@ -37,7 +38,11 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 }
 
 func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
-	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
+	query := "album:" + album.Title + " artist:" + album.Artist
+	if !album.Reissue {
+		query += " year:" + strconv.Itoa(album.Year)
+	}
+	query = url.QueryEscape(query)
 	// double encoding
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", url.QueryEscape(query))
 
