@@ -70,8 +70,10 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 }
 
 func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+	artistName := release.BasicInformation.Artists[0].Name
+	artistName = strings.TrimSpace(strings.Split(artistName, " (")[0])
 	album := entities.Album{
-		Artist: release.BasicInformation.Artists[0].Name,
+		Artist: artistName,
 		Title:  strings.TrimSpace(release.BasicInformation.Title),
 	}
 	return album
