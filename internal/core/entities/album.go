@@ -1,8 +1,7 @@
 package entities
 
 type Album struct {
-	Artist  string
-	Title   string
-	Year    int
-	Reissue bool
+	Artist string
+	Title  string
+	Year   int
 }
