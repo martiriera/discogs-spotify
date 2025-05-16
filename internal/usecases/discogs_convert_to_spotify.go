@@ -73,19 +73,14 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	// TODO: Move this logic to domain
 	artistName := release.BasicInformation.Artists[0].Name
 	artistName = strings.TrimSpace(strings.Split(artistName, " (")[0])
-	var isReissue bool
-	for _, description := range release.BasicInformation.Formats[0].Descriptions {
-		if strings.EqualFold(description, "Reissue") {
-			isReissue = true
-			break
-		}
-	}
+
+	titleName := release.BasicInformation.Title
+	titleName = strings.TrimSpace(strings.Split(titleName, " (")[0])
 
 	album := entities.Album{
-		Artist:  artistName,
-		Title:   strings.TrimSpace(release.BasicInformation.Title),
-		Year:    release.BasicInformation.Year,
-		Reissue: isReissue,
+		Artist: artistName,
+		Title:  titleName,
+		Year:   release.BasicInformation.Year,
 	}
 	return album
 }
