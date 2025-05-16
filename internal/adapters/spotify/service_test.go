@@ -81,7 +81,19 @@ func TestSpotifyService(t *testing.T) {
 							"album_type": "album",
 							"id": "4JeLdGuCEO9SF9SnFa9LBh",
 							"name": "Spring Island",
-							"uri": "spotify:album:4JeLdGuCEO9SF9SnFa9LBh"
+							"uri": "spotify:album:4JeLdGuCEO9SF9SnFa9LBh",
+							"artists": [
+								{
+									"external_urls": {
+										"spotify": "https://open.spotify.com/artist/0kbYTNQb4Pb1rPbbaF0pT5"
+									},
+									"href": "https://api.spotify.com/v1/artists/0kbYTNQb4Pb1rPbbaF0pT5",
+									"id": "0kbYTNQb4Pb1rPbbaF0pT5",
+									"name": "Delta Sleep",
+									"type": "artist",
+									"uri": "spotify:artist:0kbYTNQb4Pb1rPbbaF0pT5"
+								}
+        			]
 						}
 					],
 					"limit": 20,
