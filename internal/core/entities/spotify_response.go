@@ -2,17 +2,17 @@ package entities
 
 type SpotifySearchResponse struct {
 	Albums struct {
-		Href     string        `json:"href"`
-		Items    []SpotifyItem `json:"items"`
-		Limit    int           `json:"limit"`
-		Next     string        `json:"next"`
-		Offset   int           `json:"offset"`
-		Previous string        `json:"previous"`
-		Total    int           `json:"total"`
+		Href     string             `json:"href"`
+		Items    []SpotifyAlbumItem `json:"items"`
+		Limit    int                `json:"limit"`
+		Next     string             `json:"next"`
+		Offset   int                `json:"offset"`
+		Previous string             `json:"previous"`
+		Total    int                `json:"total"`
 	} `json:"albums"`
 }
 
-type SpotifyItem struct {
+type SpotifyAlbumItem struct {
 	AlbumType string `json:"album_type"`
 	Artists   []struct {
 		ExternalUrls SpotifyExternalURLs `json:"external_urls"`
