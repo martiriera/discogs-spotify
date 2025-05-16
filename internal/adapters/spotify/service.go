@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
@@ -39,12 +38,8 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 
 func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) (string, error) {
 	query := "album:" + album.Title + " artist:" + album.Artist
-	if !album.Reissue {
-		query += " year:" + strconv.Itoa(album.Year)
-	}
-	query = url.QueryEscape(query)
-	// double encoding
-	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", url.QueryEscape(query))
+	encodedQuery := url.QueryEscape(query)
+	route := fmt.Sprintf("%s?q=%s&type=album&limit=4", basePath+"/search", encodedQuery)
 
 	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
@@ -56,7 +51,61 @@ func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) (st
 		return "", nil
 	}
 
-	return resp.Albums.Items[0].ID, nil
+	// TODO: Return results here
+	return getURIFromResults(album, resp.Albums.Items), nil
+}
+
+// TODO: Move to use case
+func getURIFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlbumItem) string {
+	inputArtist := normalizeName(album.Artist)
+	inputAlbumName := normalizeName(album.Title)
+
+	// Case 1: Exact artist and album name match
+	for _, spotifyAlbum := range spotifyAlbums {
+		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
+
+		for _, artist := range spotifyAlbum.Artists {
+			normalizedSpotifyArtist := normalizeName(artist.Name)
+
+			if strings.EqualFold(normalizedSpotifyArtist, inputArtist) &&
+				strings.EqualFold(normalizedSpotifyAlbumName, inputAlbumName) {
+				return spotifyAlbum.ID
+			}
+		}
+	}
+
+	// Case 2: Artist match and at least one word album name match
+	for _, spotifyAlbum := range spotifyAlbums {
+		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
+
+		for _, artist := range spotifyAlbum.Artists {
+			normalizedSpotifyArtist := normalizeName(artist.Name)
+
+			if strings.EqualFold(normalizedSpotifyArtist, inputArtist) {
+				inputWords := strings.Fields(inputAlbumName)
+				spotifyWords := strings.Fields(normalizedSpotifyAlbumName)
+
+				for _, inputWord := range inputWords {
+					for _, spotifyWord := range spotifyWords {
+						if strings.EqualFold(inputWord, spotifyWord) && len(inputWord) > 1 {
+							return spotifyAlbum.ID
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Case 3: All other cases are considered not OK
+	return ""
+}
+
+// normalizeName removes common suffixes and normalizes the artist name
+func normalizeName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.Split(name, "(")[0]
+	name = strings.TrimSpace(name)
+	return name
 }
 
 func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
