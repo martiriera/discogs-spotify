@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"sync"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/cases"
@@ -9,19 +10,22 @@ import (
 
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/database"
 )
 
 type Controller struct {
 	importer  *DiscogsProcessURL
 	builder   *SpotifyCreatePlaylist
 	converter *DiscogsConvertToSpotify
+	store     *StorePlaylistUseCase
 }
 
-func NewPlaylistController(discogsService ports.DiscogsPort, spotifyService ports.SpotifyPort) *Controller {
+func NewPlaylistController(discogsService ports.DiscogsPort, spotifyService ports.SpotifyPort, repository *database.PlaylistRepository) *Controller {
 	return &Controller{
 		importer:  NewDiscogsProcessURL(discogsService),
 		builder:   NewSpotifyCreatePlaylist(spotifyService),
 		converter: NewDiscogsConvertToSpotify(spotifyService),
+		store:     NewStorePlaylistUseCase(spotifyService, repository),
 	}
 }
 
@@ -45,14 +49,18 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 	}
 
 	// process album IDs
-	albumIDs, err := c.converter.getSpotifyAlbumIDs(ctx, releases)
+	albums, err := c.converter.getSpotifyAlbums(ctx, releases)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting spotify album uris")
 	}
-	albumIDs = c.filterValidUnique(albumIDs)
+	albums = c.filterValidUnique(albums)
 
 	// create playlist
-	err = c.builder.AppendAlbumsTracks(ctx, albumIDs)
+	albumURIs := make([]string, len(albums))
+	for i, album := range albums {
+		albumURIs[i] = album.SpotifyURI
+	}
+	err = c.builder.AppendAlbumsTracks(ctx, albumURIs)
 	if err != nil {
 		return nil, errors.Wrap(err, "error adding albums to playlist builder")
 	}
@@ -65,20 +73,25 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 		return nil, errors.Wrap(err, "error creating and populating playlist")
 	}
 
+	// Store playlist data asynchronously
+	var wg sync.WaitGroup
+	c.store.ExecuteAsync(ctx, albums, &wg)
+	// Note: We don't wait for the store operation to complete
+
 	return &entities.Playlist{
 		DiscogsReleases: len(releases),
-		SpotifyAlbums:   len(albumIDs),
+		SpotifyAlbums:   len(albums),
 		SpotifyPlaylist: *playlist,
 	}, nil
 }
 
-func (c *Controller) filterValidUnique(uris []string) []string {
-	seen := map[string]bool{}
-	filtered := []string{}
-	for _, uri := range uris {
-		if uri != "" && !seen[uri] {
-			filtered = append(filtered, uri)
-			seen[uri] = true
+func (c *Controller) filterValidUnique(albums []entities.Album) []entities.Album {
+	seen := map[entities.Album]bool{}
+	filtered := []entities.Album{}
+	for _, album := range albums {
+		if album.SpotifyURI != "" && !seen[album] {
+			filtered = append(filtered, album)
+			seen[album] = true
 		}
 	}
 	return filtered

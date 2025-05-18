@@ -21,8 +21,8 @@ func NewDiscogsConvertToSpotify(s ports.SpotifyPort) *DiscogsConvertToSpotify {
 	return &DiscogsConvertToSpotify{spotifyService: s}
 }
 
-func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releases []entities.DiscogsRelease) ([]string, error) {
-	urisChan := make(chan string, len(releases))
+func (c *DiscogsConvertToSpotify) getSpotifyAlbums(ctx context.Context, releases []entities.DiscogsRelease) ([]entities.Album, error) {
+	albumsChan := make(chan entities.Album, len(releases))
 	errChan := make(chan error, len(releases))
 
 	var wg sync.WaitGroup
@@ -42,20 +42,20 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 					errChan <- errors.Wrap(err, "error getting album id")
 					return
 				}
-				urisChan <- uri
+				albumsChan <- uri
 			}(album)
 		}
 	}
 
 	go func() {
 		wg.Wait()
-		close(urisChan)
+		close(albumsChan)
 		close(errChan)
 	}()
 
-	var uris []string
-	for uri := range urisChan {
-		uris = append(uris, uri)
+	var albums []entities.Album
+	for uri := range albumsChan {
+		albums = append(albums, uri)
 	}
 
 	var errs []error
@@ -66,7 +66,7 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 		return nil, fmt.Errorf("encountered errors: %v", errs)
 	}
 
-	return uris, nil
+	return albums, nil
 }
 
 func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
@@ -80,7 +80,6 @@ func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	album := entities.Album{
 		Artist: artistName,
 		Title:  titleName,
-		Year:   release.BasicInformation.Year,
 	}
 	return album
 }

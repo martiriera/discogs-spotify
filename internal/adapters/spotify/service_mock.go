@@ -13,16 +13,20 @@ type ServiceMock struct {
 	SleepMillis int
 }
 
-func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) (string, error) {
+func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) (entities.Album, error) {
 	if m.CalledCount >= len(m.Responses) {
-		return "", nil
+		return entities.Album{}, nil
 	}
 	response := m.Responses[m.CalledCount]
 	m.CalledCount++
 	if m.SleepMillis > 0 {
 		time.Sleep(time.Duration(m.SleepMillis) * time.Millisecond)
 	}
-	return response, nil
+	return entities.Album{
+		SpotifyURI: response,
+		Artist:     "Test Artist",
+		Title:      "Test Title",
+	}, nil
 }
 
 func (m *ServiceMock) GetSpotifyUserID(_ context.Context) (string, error) {

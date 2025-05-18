@@ -2,12 +2,14 @@ package container
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/adapters/discogs"
 	"github.com/martiriera/discogs-spotify/internal/adapters/spotify"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/config"
+	"github.com/martiriera/discogs-spotify/internal/infrastructure/database"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/server"
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
 	"github.com/martiriera/discogs-spotify/internal/usecases"
@@ -24,6 +26,7 @@ type Container struct {
 	OAuthController    *usecases.SpotifyAuthenticate
 	UserController     *usecases.GetSpotifyUser
 	HTTPClientFactory  *client.HTTPClientFactory
+	PlaylistRepository *database.PlaylistRepository
 }
 
 func NewContainer(cfg *config.Config) *Container {
@@ -33,6 +36,7 @@ func NewContainer(cfg *config.Config) *Container {
 	}
 
 	c.initSession()
+	c.initDatabase()
 	c.initServices()
 	c.initControllers()
 	c.initServer()
@@ -44,6 +48,15 @@ func (c *Container) initSession() {
 	s := session.NewGorillaSession()
 	s.Init(c.Config.Session.MaxAgeSec)
 	c.Session = s
+}
+
+func (c *Container) initDatabase() {
+	dbPath := filepath.Join("data", "playlists.db")
+	repo, err := database.NewPlaylistRepository(dbPath)
+	if err != nil {
+		panic(err)
+	}
+	c.PlaylistRepository = repo
 }
 
 func (c *Container) initServices() {
@@ -69,6 +82,7 @@ func (c *Container) initControllers() {
 	c.PlaylistController = usecases.NewPlaylistController(
 		c.DiscogsService,
 		c.SpotifyService,
+		c.PlaylistRepository,
 	)
 
 	c.OAuthController = usecases.NewSpotifyAuthenticate(

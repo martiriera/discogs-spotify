@@ -36,7 +36,7 @@ func TestAcceptance(t *testing.T) {
 		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/", nil)
 		response := httptest.NewRecorder()
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		server.ServeHTTP(response, request)
@@ -48,7 +48,7 @@ func TestAcceptance(t *testing.T) {
 		sessionMock := initSessionMock()
 		request := httptest.NewRequest("GET", "/auth/login", nil)
 		response := httptest.NewRecorder()
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		server.ServeHTTP(response, request)
@@ -61,7 +61,7 @@ func TestAcceptance(t *testing.T) {
 		request := httptest.NewRequest("POST", "/playlist", strings.NewReader("discogs_url=https://www.discogs.com/user/martireir/collection"))
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 
 		token := &oauth2.Token{
 			AccessToken:  "access_token",
@@ -84,7 +84,7 @@ func TestAcceptance(t *testing.T) {
 		request := httptest.NewRequest("POST", "/playlist", nil)
 		response := httptest.NewRecorder()
 		setSessionData(t, sessionMock, request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		server.ServeHTTP(response, request)
@@ -101,7 +101,7 @@ func TestAcceptance(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		response := httptest.NewRecorder()
 		setSessionData(t, sessionMock, request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		server.ServeHTTP(response, request)
@@ -115,7 +115,7 @@ func TestAcceptance(t *testing.T) {
 		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		setSessionData(t, sessionMock, request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 		fmt.Println(os.Getwd())
 		server.ServeHTTP(response, request)
@@ -128,7 +128,7 @@ func TestAcceptance(t *testing.T) {
 		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		setSessionData(t, sessionMock, request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Second)})
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		time.Sleep(1 * time.Second)
@@ -143,7 +143,7 @@ func TestAcceptance(t *testing.T) {
 		request := httptest.NewRequest("GET", "/home", nil)
 		response := httptest.NewRecorder()
 		setSessionData(t, sessionMock, request, response, session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test", Expiry: time.Now().Add(time.Minute)})
-		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock)
+		playlistController := usecases.NewPlaylistController(discogsServiceMock, spotifyServiceMock, nil)
 		server := NewServer(playlistController, oauthController, userController, sessionMock)
 
 		// TODO: Find a way to avoid sleep

@@ -36,27 +36,27 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 	}
 }
 
-func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) (string, error) {
+func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) (entities.Album, error) {
 	query := "album:" + album.Title + " artist:" + album.Artist
 	encodedQuery := url.QueryEscape(query)
 	route := fmt.Sprintf("%s?q=%s&type=album&limit=4", basePath+"/search", encodedQuery)
 
 	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
-		return "", err
+		return entities.Album{}, err
 	}
 
 	if len(resp.Albums.Items) == 0 {
 		fmt.Println("no album found for", album.Artist, album.Title)
-		return "", nil
+		return entities.Album{}, nil
 	}
 
 	// TODO: Return results here
-	return getURIFromResults(album, resp.Albums.Items), nil
+	return filterAlbumFromResults(album, resp.Albums.Items), nil
 }
 
 // TODO: Move to use case
-func getURIFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlbumItem) string {
+func filterAlbumFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlbumItem) entities.Album {
 	inputArtist := normalizeName(album.Artist)
 	inputAlbumName := normalizeName(album.Title)
 
@@ -69,7 +69,13 @@ func getURIFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlb
 
 			if strings.EqualFold(normalizedSpotifyArtist, inputArtist) &&
 				strings.EqualFold(normalizedSpotifyAlbumName, inputAlbumName) {
-				return spotifyAlbum.ID
+				return entities.Album{
+					Artist:               album.Artist,
+					Title:                album.Title,
+					SpotifyURI:           spotifyAlbum.ID,
+					ReleaseDate:          spotifyAlbum.ReleaseDate,
+					ReleaseDatePrecision: spotifyAlbum.ReleaseDatePrecision,
+				}
 			}
 		}
 	}
@@ -88,7 +94,13 @@ func getURIFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlb
 				for _, inputWord := range inputWords {
 					for _, spotifyWord := range spotifyWords {
 						if strings.EqualFold(inputWord, spotifyWord) && len(inputWord) > 1 {
-							return spotifyAlbum.ID
+							return entities.Album{
+								Artist:               album.Artist,
+								Title:                album.Title,
+								SpotifyURI:           spotifyAlbum.ID,
+								ReleaseDate:          spotifyAlbum.ReleaseDate,
+								ReleaseDatePrecision: spotifyAlbum.ReleaseDatePrecision,
+							}
 						}
 					}
 				}
@@ -97,7 +109,7 @@ func getURIFromResults(album entities.Album, spotifyAlbums []entities.SpotifyAlb
 	}
 
 	// Case 3: All other cases are considered not OK
-	return ""
+	return entities.Album{}
 }
 
 // normalizeName removes common suffixes and normalizes the artist name

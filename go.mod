@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/sessions v1.2.2
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/joho/godotenv v1.5.1
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/pkg/errors v0.9.1
 	golang.org/x/oauth2 v0.24.0
 	golang.org/x/text v0.23.0
