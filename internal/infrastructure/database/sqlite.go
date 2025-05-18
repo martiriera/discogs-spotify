@@ -66,7 +66,7 @@ func (r *PlaylistRepository) StorePlaylistAlbums(albums []PlaylistAlbum) error {
 	defer stmt.Close()
 
 	for _, album := range albums {
-		_, err = stmt.Exec(album.ArtistName, album.AlbumName, album.ReleaseDate)
+		_, err = stmt.Exec(album.SpotifyURI, album.ArtistName, album.AlbumName, album.ReleaseDate, album.ReleaseDatePrecision)
 		if err != nil {
 			return err
 		}

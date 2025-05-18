@@ -27,9 +27,11 @@ func (u *StorePlaylistUseCase) Execute(ctx context.Context, albums []entities.Al
 	var dbAlbums []database.PlaylistAlbum
 	for _, item := range albums {
 		track := database.PlaylistAlbum{
-			AlbumName:   item.Title,
-			ArtistName:  item.Artist,
-			ReleaseDate: item.ReleaseDate,
+			AlbumName:            item.Title,
+			ArtistName:           item.Artist,
+			ReleaseDate:          item.ReleaseDate,
+			ReleaseDatePrecision: item.ReleaseDatePrecision,
+			SpotifyURI:           item.SpotifyURI,
 		}
 		dbAlbums = append(dbAlbums, track)
 	}
