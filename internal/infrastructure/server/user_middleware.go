@@ -14,7 +14,7 @@ func authUserMiddleware(uc usecases.GetSpotifyUser) gin.HandlerFunc {
 			return
 		}
 
-		userID, err := uc.GetSpotifyUserID(ctx)
+		userID, err := uc.GetUserID(ctx)
 
 		if err != nil || userID == "" {
 			ctx.Redirect(302, "/auth/login")

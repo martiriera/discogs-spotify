@@ -25,7 +25,7 @@ func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) ([]entiti
 	return response, nil
 }
 
-func (m *ServiceMock) GetSpotifyUserID(_ context.Context) (string, error) {
+func (m *ServiceMock) GetUserID(_ context.Context) (string, error) {
 	return "wizzler", nil
 }
 

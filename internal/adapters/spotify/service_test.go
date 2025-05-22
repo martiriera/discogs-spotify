@@ -181,7 +181,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name: "should return user info",
 			request: func(service ports.SpotifyPort) (string, error) {
-				return service.GetSpotifyUserID(ctx)
+				return service.GetUserID(ctx)
 			},
 			response: &http.Response{
 				StatusCode: 200,

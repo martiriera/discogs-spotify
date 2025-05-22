@@ -54,7 +54,7 @@ func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) ([]
 	return resp.Albums.Items, nil
 }
 
-func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
+func (s *HTTPService) GetUserID(ctx context.Context) (string, error) {
 	userID, err := s.contextProvider.GetUserID(ctx)
 	if err == nil && userID != "" {
 		return userID, nil
@@ -73,7 +73,7 @@ func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
 }
 
 func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, description string) (entities.SpotifyPlaylist, error) {
-	userID, err := s.GetSpotifyUserID(ctx)
+	userID, err := s.GetUserID(ctx)
 	if err != nil {
 		return entities.SpotifyPlaylist{}, err
 	}

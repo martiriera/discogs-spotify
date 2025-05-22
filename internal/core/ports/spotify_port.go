@@ -8,7 +8,7 @@ import (
 
 type SpotifyPort interface {
 	SearchAlbum(ctx context.Context, album entities.Album) ([]entities.SpotifyAlbumItem, error)
-	GetSpotifyUserID(ctx context.Context) (string, error)
+	GetUserID(ctx context.Context) (string, error)
 	CreatePlaylist(ctx context.Context, name string, description string) (entities.SpotifyPlaylist, error)
 	AddToPlaylist(ctx context.Context, playlistID string, uris []string) error
 	GetAlbumsTrackUris(ctx context.Context, albums []string) ([]string, error)
