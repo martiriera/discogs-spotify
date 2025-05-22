@@ -16,11 +16,13 @@ import (
 func TestPlaylistController(t *testing.T) {
 	t.Run("create playlist flow", func(t *testing.T) {
 		discogsServiceMock := &discogs.ServiceMock{
-			Response: entities.MotherTwoAlbums(),
+			Response: entities.MotherTwoDiscogsAlbums(),
 		}
 		spotifyServiceMock := &spotify.ServiceMock{
-			Responses: []string{"spotify:album:1", "spotify:album:2"},
-		}
+			SearchAlbumResponses: [][]entities.SpotifyAlbumItem{
+				entities.MotherSpotifyAlbums()[0:2],
+				entities.MotherSpotifyAlbums()[2:4],
+			}}
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
@@ -44,10 +46,8 @@ func TestPlaylistController(t *testing.T) {
 
 	t.Run("filter duplicates and not founds", func(t *testing.T) {
 		discogsServiceMock := &discogs.ServiceMock{}
+		spotifyServiceMock := &spotify.ServiceMock{}
 		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
-		spotifyServiceMock := &spotify.ServiceMock{
-			Responses: uris,
-		}
 
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		filteredUris := controller.filterValidUnique(uris)

@@ -1,18 +1,18 @@
 package entities
 
-type DiscogsInputURLType string
+type URLType string
 
-func (t DiscogsInputURLType) String() string {
+func (t URLType) String() string {
 	return string(t)
 }
 
 const (
-	CollectionType DiscogsInputURLType = "collection"
-	WantlistType   DiscogsInputURLType = "wantlist"
-	ListType       DiscogsInputURLType = "list"
+	CollectionType URLType = "collection"
+	WantlistType   URLType = "wantlist"
+	ListType       URLType = "list"
 )
 
-type DiscogsInputURL struct {
+type ParsedDiscogsURL struct {
 	ID   string
-	Type DiscogsInputURLType
+	Type URLType
 }

@@ -8,16 +8,16 @@ import (
 )
 
 type ServiceMock struct {
-	Responses   []string
-	CalledCount int
-	SleepMillis int
+	SearchAlbumResponses [][]entities.SpotifyAlbumItem
+	CalledCount          int
+	SleepMillis          int
 }
 
-func (m *ServiceMock) GetAlbumID(_ context.Context, _ entities.Album) (string, error) {
-	if m.CalledCount >= len(m.Responses) {
-		return "", nil
+func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) ([]entities.SpotifyAlbumItem, error) {
+	if m.CalledCount >= len(m.SearchAlbumResponses) {
+		return []entities.SpotifyAlbumItem{}, nil
 	}
-	response := m.Responses[m.CalledCount]
+	response := m.SearchAlbumResponses[m.CalledCount]
 	m.CalledCount++
 	if m.SleepMillis > 0 {
 		time.Sleep(time.Duration(m.SleepMillis) * time.Millisecond)
@@ -25,7 +25,7 @@ func (m *ServiceMock) GetAlbumID(_ context.Context, _ entities.Album) (string, e
 	return response, nil
 }
 
-func (m *ServiceMock) GetSpotifyUserID(_ context.Context) (string, error) {
+func (m *ServiceMock) GetUserID(_ context.Context) (string, error) {
 	return "wizzler", nil
 }
 

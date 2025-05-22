@@ -16,8 +16,8 @@ func NewGetSpotifyUser(s ports.SpotifyPort) *GetSpotifyUser {
 	return &GetSpotifyUser{spotifyService: s}
 }
 
-func (c *GetSpotifyUser) GetSpotifyUserID(ctx context.Context) (string, error) {
-	userID, err := c.spotifyService.GetSpotifyUserID(ctx)
+func (c *GetSpotifyUser) GetUserID(ctx context.Context) (string, error) {
+	userID, err := c.spotifyService.GetUserID(ctx)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting spotify user id")
 	}

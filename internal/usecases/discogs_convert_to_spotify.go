@@ -37,11 +37,15 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 			wg.Add(1)
 			go func(album entities.Album) {
 				defer wg.Done()
-				uri, err := c.spotifyService.GetAlbumID(ctx, album)
+				albums, err := c.spotifyService.SearchAlbum(ctx, album)
+				if albums == nil {
+					return
+				}
 				if err != nil {
 					errChan <- errors.Wrap(err, "error getting album id")
 					return
 				}
+				uri := getMatchingAlbumURI(album, albums)
 				urisChan <- uri
 			}(album)
 		}
@@ -70,9 +74,70 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 }
 
 func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+	// TODO: Move this logic to domain
+	artistName := release.BasicInformation.Artists[0].Name
+	artistName = strings.TrimSpace(strings.Split(artistName, " (")[0])
+
+	titleName := release.BasicInformation.Title
+	titleName = strings.TrimSpace(strings.Split(titleName, " (")[0])
+
 	album := entities.Album{
-		Artist: release.BasicInformation.Artists[0].Name,
-		Title:  strings.TrimSpace(release.BasicInformation.Title),
+		Artist: artistName,
+		Title:  titleName,
+		Year:   release.BasicInformation.Year,
 	}
 	return album
+}
+
+// compares album name and artist from Discogs with Spotify to discard unrelated albums
+func getMatchingAlbumURI(album entities.Album, spotifyAlbums []entities.SpotifyAlbumItem) string {
+	inputArtist := normalizeName(album.Artist)
+	inputAlbumName := normalizeName(album.Title)
+
+	// Case 1: Exact artist and album name match
+	for _, spotifyAlbum := range spotifyAlbums {
+		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
+
+		for _, artist := range spotifyAlbum.Artists {
+			normalizedSpotifyArtist := normalizeName(artist.Name)
+
+			if strings.EqualFold(normalizedSpotifyArtist, inputArtist) &&
+				strings.EqualFold(normalizedSpotifyAlbumName, inputAlbumName) {
+				return spotifyAlbum.ID
+			}
+		}
+	}
+
+	// Case 2: Artist match and at least one word album name match
+	for _, spotifyAlbum := range spotifyAlbums {
+		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
+
+		for _, artist := range spotifyAlbum.Artists {
+			normalizedSpotifyArtist := normalizeName(artist.Name)
+
+			if strings.EqualFold(normalizedSpotifyArtist, inputArtist) {
+				inputWords := strings.Fields(inputAlbumName)
+				spotifyWords := strings.Fields(normalizedSpotifyAlbumName)
+
+				for _, inputWord := range inputWords {
+					for _, spotifyWord := range spotifyWords {
+						if strings.EqualFold(inputWord, spotifyWord) && len(inputWord) > 1 {
+							return spotifyAlbum.ID
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Case 3: All other cases are considered not OK
+	return ""
+}
+
+// normalizeName removes common suffixes and normalizes the artist name
+func normalizeName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.Split(name, "(")[0]
+	name = strings.TrimSpace(name)
+	return name
 }

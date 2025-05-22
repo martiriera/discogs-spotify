@@ -36,24 +36,25 @@ func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort)
 	}
 }
 
-func (s *HTTPService) GetAlbumID(ctx context.Context, album entities.Album) (string, error) {
-	query := url.QueryEscape("album:" + album.Title + " artist:" + album.Artist)
-	route := fmt.Sprintf("%s?q=%s&type=album&limit=1", basePath+"/search", query)
+func (s *HTTPService) SearchAlbum(ctx context.Context, album entities.Album) ([]entities.SpotifyAlbumItem, error) {
+	query := "album:" + album.Title + " artist:" + album.Artist
+	encodedQuery := url.QueryEscape(query)
+	route := fmt.Sprintf("%s?q=%s&type=album&limit=4", basePath+"/search", encodedQuery)
 
 	resp, err := doRequest[entities.SpotifySearchResponse](ctx, s, http.MethodGet, route, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if len(resp.Albums.Items) == 0 {
 		fmt.Println("no album found for", album.Artist, album.Title)
-		return "", nil
+		return nil, nil
 	}
 
-	return resp.Albums.Items[0].ID, nil
+	return resp.Albums.Items, nil
 }
 
-func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
+func (s *HTTPService) GetUserID(ctx context.Context) (string, error) {
 	userID, err := s.contextProvider.GetUserID(ctx)
 	if err == nil && userID != "" {
 		return userID, nil
@@ -72,7 +73,7 @@ func (s *HTTPService) GetSpotifyUserID(ctx context.Context) (string, error) {
 }
 
 func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, description string) (entities.SpotifyPlaylist, error) {
-	userID, err := s.GetSpotifyUserID(ctx)
+	userID, err := s.GetUserID(ctx)
 	if err != nil {
 		return entities.SpotifyPlaylist{}, err
 	}

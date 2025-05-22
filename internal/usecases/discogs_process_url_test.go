@@ -13,7 +13,7 @@ func TestProcessDiscogsURL(t *testing.T) {
 		testCases []struct {
 			name        string
 			url         string
-			expected    *entities.DiscogsInputURL
+			expected    *entities.ParsedDiscogsURL
 			expectError bool
 		}
 	}{
@@ -22,49 +22,49 @@ func TestProcessDiscogsURL(t *testing.T) {
 			testCases: []struct {
 				name        string
 				url         string
-				expected    *entities.DiscogsInputURL
+				expected    *entities.ParsedDiscogsURL
 				expectError bool
 			}{
 				{
 					name:        "short collection URL",
 					url:         "discogs.com/user/digger/collection",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL",
 					url:         "https://www.discogs.com/user/digger/collection",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL with language code",
 					url:         "https://www.discogs.com/es/user/digger/collection",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "www collection URL with language code",
 					url:         "www.discogs.com/es/user/digger/collection",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL with different user",
 					url:         "https://www.discogs.com/user/johndoe/collection",
-					expected:    &entities.DiscogsInputURL{ID: "johndoe", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "johndoe", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL with query parameter",
 					url:         "https://www.discogs.com/user/digger/collection?header=1",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "collection URL with subdomain",
 					url:         "https://m.discogs.com/user/digger/collection",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
 					expectError: false,
 				},
 			},
@@ -74,31 +74,31 @@ func TestProcessDiscogsURL(t *testing.T) {
 			testCases: []struct {
 				name        string
 				url         string
-				expected    *entities.DiscogsInputURL
+				expected    *entities.ParsedDiscogsURL
 				expectError bool
 			}{
 				{
 					name:        "https list URL",
 					url:         "https://www.discogs.com/lists/MyList/1545836",
-					expected:    &entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
+					expected:    &entities.ParsedDiscogsURL{ID: "1545836", Type: entities.ListType},
 					expectError: false,
 				},
 				{
 					name:        "www list URL",
 					url:         "www.discogs.com/lists/MyList/1545836",
-					expected:    &entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
+					expected:    &entities.ParsedDiscogsURL{ID: "1545836", Type: entities.ListType},
 					expectError: false,
 				},
 				{
 					name:        "list URL with language code",
 					url:         "www.discogs.com/es/lists/MyList/1545836",
-					expected:    &entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
+					expected:    &entities.ParsedDiscogsURL{ID: "1545836", Type: entities.ListType},
 					expectError: false,
 				},
 				{
 					name:        "list URL with different name",
 					url:         "www.discogs.com/lists/FavoriteAlbums/1545836",
-					expected:    &entities.DiscogsInputURL{ID: "1545836", Type: entities.ListType},
+					expected:    &entities.ParsedDiscogsURL{ID: "1545836", Type: entities.ListType},
 					expectError: false,
 				},
 			},
@@ -108,31 +108,31 @@ func TestProcessDiscogsURL(t *testing.T) {
 			testCases: []struct {
 				name        string
 				url         string
-				expected    *entities.DiscogsInputURL
+				expected    *entities.ParsedDiscogsURL
 				expectError bool
 			}{
 				{
 					name:        "https wantlist URL",
 					url:         "https://www.discogs.com/wantlist?user=digger",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "www wantlist URL",
 					url:         "www.discogs.com/wantlist?user=digger",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "short wantlist URL with language code",
 					url:         "discogs.com/es/wantlist?user=digger",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "wantlist URL with additional parameters",
 					url:         "www.discogs.com/wantlist?user=digger&sort=artist",
-					expected:    &entities.DiscogsInputURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
 					expectError: false,
 				},
 			},
@@ -142,7 +142,7 @@ func TestProcessDiscogsURL(t *testing.T) {
 			testCases: []struct {
 				name        string
 				url         string
-				expected    *entities.DiscogsInputURL
+				expected    *entities.ParsedDiscogsURL
 				expectError bool
 			}{
 				{

@@ -78,10 +78,17 @@ type DiscogsBasicInformation struct {
 	Title    string          `json:"title"`
 	Year     int             `json:"year"`
 	Artists  []DiscogsArtist `json:"artists"`
+	Formats  []DiscogsFormat `json:"formats"`
 }
 
 type DiscogsArtist struct {
 	Name string `json:"name"`
+}
+
+type DiscogsFormat struct {
+	Name         string   `json:"name"`
+	Quantity     string   `json:"qty"`
+	Descriptions []string `json:"descriptions"`
 }
 
 type DiscogsListResponse struct {
