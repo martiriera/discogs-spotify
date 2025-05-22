@@ -15,7 +15,10 @@ import (
 func BenchmarkGetAlbumUris(b *testing.B) {
 	discogsResponses := entities.MotherNAlbums(300)
 	spotifyServiceMock := &spotify.ServiceMock{
-		Responses:   []string{"spotify:album:1", "spotify:album:2"},
+		SearchAlbumResponses: [][]entities.SpotifyAlbumItem{
+			entities.MotherSpotifyAlbums()[0:2],
+			entities.MotherSpotifyAlbums()[2:4],
+		},
 		SleepMillis: 600,
 	}
 	controller := NewDiscogsConvertToSpotify(spotifyServiceMock)

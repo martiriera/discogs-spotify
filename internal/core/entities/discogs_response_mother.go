@@ -1,13 +1,13 @@
 package entities
 
-func MotherTwoAlbums() []DiscogsRelease {
+func MotherTwoDiscogsAlbums() []DiscogsRelease {
 	return []DiscogsRelease{
 		{
 			BasicInformation: DiscogsBasicInformation{
-				Title: "Tim",
+				Title: "Milo Goes to College",
 				Artists: []DiscogsArtist{
 					{
-						Name: "The Replacements",
+						Name: "Descendents",
 					},
 				},
 				Formats: []DiscogsFormat{

@@ -20,10 +20,13 @@ import (
 
 func TestAcceptance(t *testing.T) {
 	discogsServiceMock := &discogs.ServiceMock{
-		Response: entities.MotherTwoAlbums(),
+		Response: entities.MotherTwoDiscogsAlbums(),
 	}
 	spotifyServiceMock := &spotify.ServiceMock{
-		Responses: []string{"spotify:album:1", "spotify:album:2"},
+		SearchAlbumResponses: [][]entities.SpotifyAlbumItem{
+			entities.MotherSpotifyAlbums()[0:2],
+			entities.MotherSpotifyAlbums()[2:4],
+		},
 	}
 	oauthController := usecases.NewSpotifyAuthenticate(
 		"client_id",
