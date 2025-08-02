@@ -75,6 +75,7 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 
 func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
 	// TODO: Move this logic to domain
+	// David Bowie Hunky Dory = A Pedir De Boca = A Pedir De Boca
 	artistName := release.BasicInformation.Artists[0].Name
 	artistName = strings.TrimSpace(strings.Split(artistName, " (")[0])
 
