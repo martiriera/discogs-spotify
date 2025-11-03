@@ -1,6 +1,6 @@
 module github.com/martiriera/discogs-spotify
 
-go 1.23.4
+go 1.25
 
 require (
 	github.com/gin-gonic/gin v1.10.0
