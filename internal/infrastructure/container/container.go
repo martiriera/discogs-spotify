@@ -91,6 +91,7 @@ func (c *Container) initServer() {
 		c.OAuthController,
 		c.UserController,
 		c.Session,
+		c.Config,
 	)
 
 	c.HTTPServer = &http.Server{
