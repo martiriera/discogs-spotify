@@ -28,6 +28,8 @@ type SpotifyConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+	ProxyURL     string // Auth proxy URL for development
+	UseProxy     bool   
 }
 
 type SessionConfig struct {
@@ -53,6 +55,7 @@ func LoadConfig() (*Config, error) {
 	spotifyClientID := getRequiredEnv("SPOTIFY_CLIENT_ID")
 	spotifyClientSecret := getRequiredEnv("SPOTIFY_CLIENT_SECRET")
 	spotifyRedirectURI := getRequiredEnv("SPOTIFY_REDIRECT_URI")
+	spotifyProxyURL := getEnvWithDefault("SPOTIFY_PROXY_URL", "")
 	sessionKey := getRequiredEnv("SESSION_KEY")
 
 	port := getEnvWithDefault("PORT", "8080")
@@ -80,6 +83,8 @@ func LoadConfig() (*Config, error) {
 			ClientID:     spotifyClientID,
 			ClientSecret: spotifyClientSecret,
 			RedirectURI:  spotifyRedirectURI,
+			ProxyURL:     spotifyProxyURL,
+			UseProxy:     env == "development" && spotifyProxyURL != "",
 		},
 		Session: SessionConfig{
 			Key:       sessionKey,
