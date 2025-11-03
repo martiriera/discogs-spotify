@@ -56,7 +56,6 @@ func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 func (router *AuthRouter) handleProxyCallback(ctx *gin.Context) {
 	localDevURL := env.GetWithDefault("LOCAL_DEV_URL", "http://localhost:8080")
 
-	// Parse the local development callback URL
 	localCallbackURL, err := url.Parse(localDevURL + "/auth/callback")
 	if err != nil {
 		log.Printf("Error parsing local dev URL: %v", err)
@@ -64,7 +63,6 @@ func (router *AuthRouter) handleProxyCallback(ctx *gin.Context) {
 		return
 	}
 
-	// Copy all query parameters from the Spotify callback
 	query := localCallbackURL.Query()
 	for key, values := range ctx.Request.URL.Query() {
 		for _, value := range values {
@@ -75,6 +73,5 @@ func (router *AuthRouter) handleProxyCallback(ctx *gin.Context) {
 
 	log.Printf("Auth proxy redirecting to local development server: %s", localCallbackURL.String())
 
-	// Redirect the user's browser to the local development server
 	ctx.Redirect(http.StatusTemporaryRedirect, localCallbackURL.String())
 }
