@@ -23,6 +23,8 @@ const (
 	ErrErrorInCallback            = "spotify: error in callback"
 	ErrExchangingCode             = "spotify: error exchanging code"
 	ErrSavingSession              = "spotify: error saving session"
+
+	randomStateLength = 16
 )
 
 var scopes = []string{
@@ -98,7 +100,7 @@ func (o *SpotifyAuthenticate) GenerateTokenFromGin(ctx *gin.Context) (*oauth2.To
 	return o.GenerateToken(ctx, code)
 }
 
-func (o *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
+func (_ *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
 	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {
@@ -109,7 +111,7 @@ func (o *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, 
 }
 
 func generateRandomState() (string, error) {
-	b := make([]byte, 16)
+	b := make([]byte, randomStateLength)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err

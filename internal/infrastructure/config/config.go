@@ -10,6 +10,15 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/utils/env"
 )
 
+const (
+	defaultSessionMaxAge      = 3600 // 1 hour
+	defaultDiscogsTimeout     = 30   // 30 seconds
+	defaultSpotifyTimeout     = 60   // 60 seconds
+	defaultServerReadTimeout  = 10   // 10 seconds
+	defaultServerWriteTimeout = 120  // 120 seconds (2 minutes)
+	defaultServerIdleTimeout  = 120  // 120 seconds (2 minutes)
+)
+
 type Config struct {
 	Environment string
 	Server      ServerConfig
@@ -61,16 +70,16 @@ func LoadConfig() (*Config, error) {
 
 	port := env.GetWithDefault("PORT", "8080")
 	environment := env.GetWithDefault("ENV", "development")
-	sessionMaxAge := env.GetAsIntWithDefault("SESSION_MAX_AGE", 3600)
+	sessionMaxAge := env.GetAsIntWithDefault("SESSION_MAX_AGE", defaultSessionMaxAge)
 
-	discogsTimeout := env.GetAsDurationWithDefault("DISCOGS_TIMEOUT", 30*time.Second)
-	spotifyTimeout := env.GetAsDurationWithDefault("SPOTIFY_TIMEOUT", 60*time.Second)
+	discogsTimeout := env.GetAsDurationWithDefault("DISCOGS_TIMEOUT", defaultDiscogsTimeout*time.Second)
+	spotifyTimeout := env.GetAsDurationWithDefault("SPOTIFY_TIMEOUT", defaultSpotifyTimeout*time.Second)
 	retryAttempts := env.GetAsIntWithDefault("HTTP_RETRY_ATTEMPTS", 3)
 	retryDelay := env.GetAsDurationWithDefault("HTTP_RETRY_DELAY", 1*time.Second)
 
-	readTimeout := env.GetAsDurationWithDefault("SERVER_READ_TIMEOUT", 10*time.Second)
-	writeTimeout := env.GetAsDurationWithDefault("SERVER_WRITE_TIMEOUT", 120*time.Second)
-	idleTimeout := env.GetAsDurationWithDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
+	readTimeout := env.GetAsDurationWithDefault("SERVER_READ_TIMEOUT", defaultServerReadTimeout*time.Second)
+	writeTimeout := env.GetAsDurationWithDefault("SERVER_WRITE_TIMEOUT", defaultServerWriteTimeout*time.Second)
+	idleTimeout := env.GetAsDurationWithDefault("SERVER_IDLE_TIMEOUT", defaultServerIdleTimeout*time.Second)
 
 	return &Config{
 		Environment: environment,

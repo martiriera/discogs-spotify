@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ func authTokenMiddleware(service ports.SessionPort) gin.HandlerFunc {
 		token, err := service.GetData(ctx.Request, session.SpotifyTokenKey)
 
 		if err != nil || token == nil || isExpired(token) {
-			ctx.Redirect(302, "/auth/login")
+			ctx.Redirect(http.StatusFound, "/auth/login")
 			ctx.Abort()
 			return
 		}

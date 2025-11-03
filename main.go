@@ -12,6 +12,10 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/container"
 )
 
+const (
+	shutdownTimeout = 10 * time.Second
+)
+
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -32,19 +36,17 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shut down the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Println("Shutting down server...")
 
-	// Create a deadline for server shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	// Attempt graceful shutdown
 	if err := server.Shutdown(ctx); err != nil {
+		cancel()
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
