@@ -19,3 +19,5 @@ tailwind-build:
 
 tailwind-watch:
 	tailwindcss -i ./static/css/styles.css -o ./static/css/output.css --watch
+
+.PHONY: run lint lint-fix test test-cover-html tailwind-build tailwind-watch
