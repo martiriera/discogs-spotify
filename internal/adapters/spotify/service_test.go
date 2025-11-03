@@ -3,6 +3,7 @@ package spotify
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -373,7 +374,7 @@ func TestServiceUnauthorized(t *testing.T) {
 	if err == nil {
 		t.Errorf("did expect error, got nil")
 	}
-	if err != ErrSpotifyUnauthorized {
+	if !errors.Is(err, ErrSpotifyUnauthorized) {
 		t.Errorf("got %v, want %v", err, ErrSpotifyUnauthorized)
 	}
 }

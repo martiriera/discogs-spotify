@@ -64,7 +64,7 @@ func paginate(client client.HTTPClient, url string) ([]entities.DiscogsRelease, 
 }
 
 func doRequest(client client.HTTPClient, url string) (entities.DiscogsResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
 	}

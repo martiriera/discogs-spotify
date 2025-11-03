@@ -72,7 +72,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		mockConfig := createMockConfig()
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("POST", "/", nil)
+		ctx.Request = httptest.NewRequest("POST", "/", http.NoBody)
 
 		token := &oauth2.Token{
 			AccessToken:  "access_token",
@@ -109,7 +109,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		mockConfig := createMockConfig()
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("POST", "/", nil)
+		ctx.Request = httptest.NewRequest("POST", "/", http.NoBody)
 
 		token := &oauth2.Token{
 			AccessToken: "access_token",
@@ -125,7 +125,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		mockConfig := createMockConfig()
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", nil)
+		ctx.Request = httptest.NewRequest("GET", "/callback?error=access_denied", http.NoBody)
 		const expectedError = ErrErrorInCallback + ": access_denied"
 
 		_, err := controller.GenerateTokenFromGin(ctx)
@@ -138,7 +138,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		mockConfig := createMockConfig()
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, nil)
+		ctx.Request = httptest.NewRequest("GET", "/callback?state="+oauthState, http.NoBody)
 
 		_, err := controller.GenerateTokenFromGin(ctx)
 		if err == nil || err.Error() != ErrNoCode {
@@ -150,7 +150,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 		mockConfig := createMockConfig()
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", nil)
+		ctx.Request = httptest.NewRequest("GET", "/callback?code=auth_code&state=wrong_state", http.NoBody)
 
 		_, err := controller.GenerateTokenFromGin(ctx)
 		if err == nil || err.Error() != ErrRedirectStateParamMismatch {
@@ -175,7 +175,7 @@ func TestSpotifyAuthenticate(t *testing.T) {
 
 		controller := NewSpotifyAuthenticateWithConfig(mockConfig, oauthState)
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-		ctx.Request = httptest.NewRequest("GET", "/callback?code=test_auth_code&state="+oauthState, nil)
+		ctx.Request = httptest.NewRequest("GET", "/callback?code=test_auth_code&state="+oauthState, http.NoBody)
 
 		token, err := controller.GenerateTokenFromGin(ctx)
 		if err != nil {

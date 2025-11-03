@@ -37,7 +37,7 @@ func MotherTwoDiscogsAlbums() []DiscogsRelease {
 
 func MotherNAlbums(n int) []DiscogsRelease {
 	albums := []DiscogsRelease{}
-	for i := 0; i < n; i++ {
+	for range n {
 		albums = append(albums, DiscogsRelease{
 			BasicInformation: DiscogsBasicInformation{
 				Title: "Album",

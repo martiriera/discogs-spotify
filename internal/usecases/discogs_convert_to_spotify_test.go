@@ -25,7 +25,7 @@ func BenchmarkGetAlbumUris(b *testing.B) {
 	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for i := range b.N {
 		start := time.Now()
 		_, err := controller.getSpotifyAlbumIDs(ctx, discogsResponses)
 		if err != nil {

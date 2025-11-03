@@ -26,13 +26,14 @@ func NewDiscogsProcessURL(discogsService ports.DiscogsPort) *DiscogsProcessURL {
 func (c *DiscogsProcessURL) processDiscogsURL(parsedDiscogsURL *entities.ParsedDiscogsURL) ([]entities.DiscogsRelease, error) {
 	var releases []entities.DiscogsRelease
 	var err error
-	if parsedDiscogsURL.Type == entities.CollectionType {
+	switch parsedDiscogsURL.Type {
+	case entities.CollectionType:
 		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsURL.ID)
-	} else if parsedDiscogsURL.Type == entities.WantlistType {
+	case entities.WantlistType:
 		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsURL.ID)
-	} else if parsedDiscogsURL.Type == entities.ListType {
+	case entities.ListType:
 		releases, err = c.discogsService.GetListReleases(parsedDiscogsURL.ID)
-	} else {
+	default:
 		return nil, errors.New("unrecognized URL type")
 	}
 
