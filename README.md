@@ -60,8 +60,8 @@ This project is a web application that converts a [Discogs](https://www.discogs.
    1. **Deploy your app** (if not already deployed):
       ```bash
       # Deploy to your preferred platform (Koyeb, Heroku, Railway, etc.)
-      # Example for Koyeb using the included koyeb.yaml:
-      koyeb app deploy
+      # Example: Deploy to your preferred platform (Koyeb, Heroku, Railway, etc.) following their documentation.
+      
       ```
 
    2. **Configure environment variables**:
