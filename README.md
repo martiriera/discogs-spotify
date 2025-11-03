@@ -93,7 +93,7 @@ This project is a web application that converts a [Discogs](https://www.discogs.
 
    2. Use the provided HTTPS URL as your redirect URI in Spotify app settings.
 
-   ⚠️ **Important**: The `SPOTIFY_REDIRECT_URI` should always be your local callback URL (`http://localhost:8080/auth/callback`), while the Spotify app settings should use your production app's proxy URL.
+   ⚠️ **Important**: The `SPOTIFY_REDIRECT_URI` should be set to your local callback URL (`http://localhost:8080/auth/callback`) **only for local development**. For production deployments, set `SPOTIFY_REDIRECT_URI` to your production callback URL (e.g., `https://your-deployed-app-url.com/auth/callback`). In both cases, the Spotify app settings should use your production app's proxy URL.
 
 3. Install dependencies:
 
