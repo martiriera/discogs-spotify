@@ -7,12 +7,22 @@ type DiscogsResponse interface {
 	GetReleases() []DiscogsRelease
 }
 
+type DiscogsCollectionResponse struct {
+	Pagination DiscogsPagination `json:"pagination"`
+	Releases   []DiscogsRelease  `json:"releases"`
+}
+
 func (r *DiscogsCollectionResponse) GetPagination() DiscogsPagination {
 	return r.Pagination
 }
 
 func (r *DiscogsCollectionResponse) GetReleases() []DiscogsRelease {
 	return r.Releases
+}
+
+type DiscogsWantlistResponse struct {
+	Pagination DiscogsPagination `json:"pagination"`
+	Wants      []DiscogsRelease  `json:"wants"`
 }
 
 func (r *DiscogsWantlistResponse) GetPagination() DiscogsPagination {
@@ -23,7 +33,19 @@ func (r *DiscogsWantlistResponse) GetReleases() []DiscogsRelease {
 	return r.Wants
 }
 
-func (r *DiscogsListResponse) GetPagination() DiscogsPagination {
+type DiscogsListResponse struct {
+	CreatedTs   string            `json:"created_ts"`
+	ModifiedTs  string            `json:"modified_ts"`
+	Name        string            `json:"name"`
+	ListID      int               `json:"list_id"`
+	URL         string            `json:"url"`
+	Items       []DiscogsListItem `json:"items"`
+	ResourceURL string            `json:"resource_url"`
+	Public      bool              `json:"public"`
+	Description string            `json:"description"`
+}
+
+func (_ *DiscogsListResponse) GetPagination() DiscogsPagination {
 	return DiscogsPagination{}
 }
 
@@ -42,16 +64,6 @@ func (r *DiscogsListResponse) GetReleases() []DiscogsRelease {
 		}
 	}
 	return releases
-}
-
-type DiscogsCollectionResponse struct {
-	Pagination DiscogsPagination `json:"pagination"`
-	Releases   []DiscogsRelease  `json:"releases"`
-}
-
-type DiscogsWantlistResponse struct {
-	Pagination DiscogsPagination `json:"pagination"`
-	Wants      []DiscogsRelease  `json:"wants"`
 }
 
 type DiscogsPagination struct {
@@ -89,18 +101,6 @@ type DiscogsFormat struct {
 	Name         string   `json:"name"`
 	Quantity     string   `json:"qty"`
 	Descriptions []string `json:"descriptions"`
-}
-
-type DiscogsListResponse struct {
-	CreatedTs   string            `json:"created_ts"`
-	ModifiedTs  string            `json:"modified_ts"`
-	Name        string            `json:"name"`
-	ListID      int               `json:"list_id"`
-	URL         string            `json:"url"`
-	Items       []DiscogsListItem `json:"items"`
-	ResourceURL string            `json:"resource_url"`
-	Public      bool              `json:"public"`
-	Description string            `json:"description"`
 }
 
 type DiscogsListItem struct {
