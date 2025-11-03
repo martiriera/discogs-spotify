@@ -33,7 +33,7 @@ func NewServer(
 	tmpl := template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
 	apiRouter := NewAPIRouter(playlistController, getSpotifyUser, &session, tmpl)
-	authRouter := NewAuthRouter(authenticateSpotify, &session)
+	authRouter := NewAuthRouter(authenticateSpotify, session)
 
 	authGroup := s.Group("/auth")
 	authRouter.SetupRoutes(authGroup)

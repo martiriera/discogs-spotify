@@ -25,9 +25,9 @@ type APIRouter struct {
 func NewAPIRouter(
 	pc *usecases.Controller,
 	getSpotifyUserUseCase *usecases.GetSpotifyUser,
-	session *ports.SessionPort,
-	template *template.Template) *APIRouter {
-	router := &APIRouter{playlistController: pc, userController: getSpotifyUserUseCase, session: session, template: template}
+	sessionPort *ports.SessionPort,
+	tmpl *template.Template) *APIRouter {
+	router := &APIRouter{playlistController: pc, userController: getSpotifyUserUseCase, session: sessionPort, template: tmpl}
 	return router
 }
 
