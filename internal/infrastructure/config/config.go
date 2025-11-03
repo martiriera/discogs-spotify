@@ -29,7 +29,7 @@ type SpotifyConfig struct {
 	ClientSecret string
 	RedirectURI  string
 	ProxyURL     string // Auth proxy URL for development
-	UseProxy     bool   
+	UseProxy     bool
 }
 
 type SessionConfig struct {
