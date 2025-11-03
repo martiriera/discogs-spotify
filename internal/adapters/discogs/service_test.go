@@ -2,6 +2,7 @@ package discogs
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"testing"
@@ -60,7 +61,7 @@ func TestDiscogsService(t *testing.T) {
 
 	tcs := []struct {
 		name         string
-		fn           func(string) ([]entities.DiscogsRelease, error)
+		fn           func(context.Context, string) ([]entities.DiscogsRelease, error)
 		responseBody string
 	}{
 		{
@@ -80,7 +81,7 @@ func TestDiscogsService(t *testing.T) {
 			stubClient.Responses[0].Body = io.NopCloser(bytes.NewBufferString(tc.responseBody))
 			stubClient.CalledCount = 0
 
-			response, err := tc.fn("digger")
+			response, err := tc.fn(context.Background(), "digger")
 			if err != nil {
 				t.Errorf("did not expect an error, got %v", err)
 			}
@@ -167,7 +168,7 @@ func TestDiscogsServicePagination(t *testing.T) {
 
 	stubClient := &StubDiscogsHTTPClient{Responses: stubResponses}
 	service := NewHTTPService(stubClient)
-	response, err := service.GetCollectionReleases("digger")
+	response, err := service.GetCollectionReleases(context.Background(), "digger")
 	if err != nil {
 		t.Errorf("did not expect an error, got %v", err)
 	}
@@ -192,7 +193,7 @@ func TestDiscogsServiceError(t *testing.T) {
 	}
 	stubClient := &StubDiscogsHTTPClient{Responses: []http.Response{*stubResponse}}
 	service := NewHTTPService(stubClient)
-	_, err := service.GetCollectionReleases("digger")
+	_, err := service.GetCollectionReleases(context.Background(), "digger")
 	if err == nil {
 		t.Errorf("error is nil")
 	}
@@ -205,7 +206,7 @@ func TestDiscogsServiceUnauthorized(t *testing.T) {
 	}
 	stubClient := &StubDiscogsHTTPClient{Responses: []http.Response{*stubResponse}}
 	service := NewHTTPService(stubClient)
-	_, err := service.GetCollectionReleases("digger")
+	_, err := service.GetCollectionReleases(context.Background(), "digger")
 	if err == nil {
 		t.Errorf("error is nil")
 	}

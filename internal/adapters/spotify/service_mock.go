@@ -25,11 +25,11 @@ func (m *ServiceMock) SearchAlbum(_ context.Context, _ entities.Album) ([]entiti
 	return response, nil
 }
 
-func (m *ServiceMock) GetUserID(_ context.Context) (string, error) {
+func (_ *ServiceMock) GetUserID(_ context.Context) (string, error) {
 	return "wizzler", nil
 }
 
-func (m *ServiceMock) CreatePlaylist(_ context.Context, _ string, _ string) (entities.SpotifyPlaylist, error) {
+func (_ *ServiceMock) CreatePlaylist(_ context.Context, _ string, _ string) (entities.SpotifyPlaylist, error) {
 	return entities.SpotifyPlaylist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
 }
 
@@ -38,6 +38,6 @@ func (m *ServiceMock) AddToPlaylist(_ context.Context, _ string, _ []string) err
 	return nil
 }
 
-func (m *ServiceMock) GetAlbumsTrackUris(_ context.Context, _ []string) ([]string, error) {
+func (_ *ServiceMock) GetAlbumsTrackUris(_ context.Context, _ []string) ([]string, error) {
 	return []string{"spotify:track:1", "spotify:track:2"}, nil
 }

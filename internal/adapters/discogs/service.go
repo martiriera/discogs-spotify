@@ -1,6 +1,7 @@
 package discogs
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -27,34 +28,34 @@ func NewHTTPService(client client.HTTPClient) *HTTPService {
 	return &HTTPService{client: client}
 }
 
-func (s *HTTPService) GetCollectionReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetCollectionReleases(ctx context.Context, username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/collection/folders/0/releases?per_page=100&sort=artist&sort_order=asc"
-	return paginate(s.client, url)
+	return paginate(ctx, s.client, url)
 }
 
-func (s *HTTPService) GetWantlistReleases(username string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetWantlistReleases(ctx context.Context, username string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/users/" + username + "/wants?per_page=100&sort=artist&sort_order=asc"
-	return paginate(s.client, url)
+	return paginate(ctx, s.client, url)
 }
 
-func (s *HTTPService) GetListReleases(listID string) ([]entities.DiscogsRelease, error) {
+func (s *HTTPService) GetListReleases(ctx context.Context, listID string) ([]entities.DiscogsRelease, error) {
 	url := basePath + "/lists/" + listID
-	response, err := doRequest(s.client, url)
+	response, err := doRequest(ctx, s.client, url)
 	if err != nil {
 		return nil, err
 	}
 	return response.GetReleases(), nil
 }
 
-func paginate(client client.HTTPClient, url string) ([]entities.DiscogsRelease, error) {
+func paginate(ctx context.Context, client client.HTTPClient, url string) ([]entities.DiscogsRelease, error) {
 	result := make([]entities.DiscogsRelease, 0)
-	response, err := doRequest(client, url)
+	response, err := doRequest(ctx, client, url)
 	if err != nil {
 		return nil, err
 	}
 	result = append(result, response.GetReleases()...)
 	for response.GetPagination().Urls.Next != "" {
-		response, err = doRequest(client, response.GetPagination().Urls.Next)
+		response, err = doRequest(ctx, client, response.GetPagination().Urls.Next)
 		if err != nil {
 			return nil, err
 		}
@@ -63,8 +64,8 @@ func paginate(client client.HTTPClient, url string) ([]entities.DiscogsRelease, 
 	return result, nil
 }
 
-func doRequest(client client.HTTPClient, url string) (entities.DiscogsResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
+func doRequest(ctx context.Context, client client.HTTPClient, url string) (entities.DiscogsResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())
 	}

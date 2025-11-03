@@ -35,7 +35,7 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 	}
 
 	// fetch releases
-	releases, err := c.importer.processDiscogsURL(parsedDiscogsURL)
+	releases, err := c.importer.processDiscogsURL(ctx, parsedDiscogsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 	}, nil
 }
 
-func (c *Controller) filterValidUnique(uris []string) []string {
+func (_ *Controller) filterValidUnique(uris []string) []string {
 	seen := map[string]bool{}
 	filtered := []string{}
 	for _, uri := range uris {
