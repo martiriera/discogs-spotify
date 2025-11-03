@@ -211,8 +211,8 @@ func TestGetUser(t *testing.T) {
 			name: "should create playlist",
 			request: func(service ports.SpotifyPort) (string, error) {
 				// set user id in context
-				ctx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
-				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
+				userCtx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
+				playlist, err := service.CreatePlaylist(userCtx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
 			},
 			response: &http.Response{
@@ -254,8 +254,8 @@ func TestCreatePlaylist(t *testing.T) {
 			name: "should create playlist",
 			request: func(service ports.SpotifyPort) (string, error) {
 				// set user id in context
-				ctx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
-				playlist, err := service.CreatePlaylist(ctx, "Sunday Playlist", "Rock and Roll")
+				userCtx := context.WithValue(ctx, session.SpotifyUserIDKey, "wizzler")
+				playlist, err := service.CreatePlaylist(userCtx, "Sunday Playlist", "Rock and Roll")
 				return playlist.ID, err
 			},
 			response: &http.Response{

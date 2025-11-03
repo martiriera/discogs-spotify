@@ -31,8 +31,8 @@ func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *AuthRouter) handleLogin(ctx *gin.Context) {
-	url := router.oauthController.GetAuthURL()
-	ctx.Redirect(http.StatusTemporaryRedirect, url)
+	authURL := router.oauthController.GetAuthURL()
+	ctx.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
 func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
