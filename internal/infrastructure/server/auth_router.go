@@ -51,7 +51,7 @@ func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 
 // handleProxyCallback acts as an auth proxy for local development
 // It receives the OAuth callback from Spotify and redirects to the local dev server
-func (_ *AuthRouter) handleProxyCallback(ctx *gin.Context) {
+func (*AuthRouter) handleProxyCallback(ctx *gin.Context) {
 	localDevURL := env.GetWithDefault("LOCAL_DEV_URL", "http://localhost:8080")
 
 	// Parse the local development callback URL

@@ -45,7 +45,7 @@ type DiscogsListResponse struct {
 	Description string            `json:"description"`
 }
 
-func (_ *DiscogsListResponse) GetPagination() DiscogsPagination {
+func (*DiscogsListResponse) GetPagination() DiscogsPagination {
 	return DiscogsPagination{}
 }
 

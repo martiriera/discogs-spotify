@@ -24,7 +24,10 @@ func NewDiscogsProcessURL(discogsService ports.DiscogsPort) *DiscogsProcessURL {
 	}
 }
 
-func (c *DiscogsProcessURL) processDiscogsURL(ctx context.Context, parsedDiscogsURL *entities.ParsedDiscogsURL) ([]entities.DiscogsRelease, error) {
+func (c *DiscogsProcessURL) processDiscogsURL(
+	ctx context.Context,
+	parsedDiscogsURL *entities.ParsedDiscogsURL,
+) ([]entities.DiscogsRelease, error) {
 	var releases []entities.DiscogsRelease
 	var err error
 	switch parsedDiscogsURL.Type {

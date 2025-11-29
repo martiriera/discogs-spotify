@@ -100,7 +100,7 @@ func (o *SpotifyAuthenticate) GenerateTokenFromGin(ctx *gin.Context) (*oauth2.To
 	return o.GenerateToken(ctx, code)
 }
 
-func (_ *SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
+func (*SpotifyAuthenticate) StoreToken(ctx *gin.Context, s ports.SessionPort, token *oauth2.Token) error {
 	err := s.SetData(ctx.Request, ctx.Writer, session.SpotifyTokenKey, token)
 
 	if err != nil {

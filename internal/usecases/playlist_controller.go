@@ -72,7 +72,7 @@ func (c *Controller) CreatePlaylist(ctx context.Context, discogsURL string) (*en
 	}, nil
 }
 
-func (_ *Controller) filterValidUnique(uris []string) []string {
+func (*Controller) filterValidUnique(uris []string) []string {
 	seen := map[string]bool{}
 	filtered := []string{}
 	for _, uri := range uris {

@@ -13,7 +13,7 @@ func NewHTTPClientFactory() *HTTPClientFactory {
 	return &HTTPClientFactory{}
 }
 
-func (_ *HTTPClientFactory) CreateClient(timeout time.Duration, retryAttempts int, retryDelay time.Duration) HTTPClient {
+func (*HTTPClientFactory) CreateClient(timeout time.Duration, retryAttempts int, retryDelay time.Duration) HTTPClient {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = retryAttempts
 	retryClient.RetryWaitMin = retryDelay

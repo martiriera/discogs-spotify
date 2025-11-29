@@ -44,7 +44,7 @@ type mockSession struct {
 	setDataError error
 }
 
-func (ms *mockSession) Init(_ int) {}
+func (*mockSession) Init(_ int) {}
 
 func (ms *mockSession) Get(_ *http.Request, _ string) (map[any]any, error) {
 	result := make(map[any]any)

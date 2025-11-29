@@ -28,7 +28,7 @@ func NewGinContextProvider() *GinContextProvider {
 	return &GinContextProvider{}
 }
 
-func (_ *GinContextProvider) GetToken(ctx context.Context) (*oauth2.Token, error) {
+func (*GinContextProvider) GetToken(ctx context.Context) (*oauth2.Token, error) {
 	ginCtx, ok := ctx.(*gin.Context)
 	if !ok {
 		return nil, fmt.Errorf("context is not a gin.Context")
@@ -47,7 +47,7 @@ func (_ *GinContextProvider) GetToken(ctx context.Context) (*oauth2.Token, error
 	return token, nil
 }
 
-func (_ *GinContextProvider) GetUserID(ctx context.Context) (string, error) {
+func (*GinContextProvider) GetUserID(ctx context.Context) (string, error) {
 	ginCtx, ok := ctx.(*gin.Context)
 	if !ok {
 		return "", fmt.Errorf("context is not a gin.Context")
@@ -66,7 +66,7 @@ func (_ *GinContextProvider) GetUserID(ctx context.Context) (string, error) {
 	return userID, nil
 }
 
-func (p *GinContextProvider) SetUserID(ctx context.Context, userID string) error {
+func (*GinContextProvider) SetUserID(ctx context.Context, userID string) error {
 	ginCtx, ok := ctx.(*gin.Context)
 	if !ok {
 		return fmt.Errorf("context is not a gin.Context")
