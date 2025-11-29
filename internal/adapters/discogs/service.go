@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/client"
+	httpClient "github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 
 	"github.com/pkg/errors"
@@ -19,12 +19,12 @@ var ErrRequest = errors.New("discogs request error")
 var ErrResponse = errors.New("discogs response error")
 
 type HTTPService struct {
-	client client.HTTPClient
+	client httpClient.HTTPClient
 }
 
 const basePath = "https://api.discogs.com"
 
-func NewHTTPService(client client.HTTPClient) *HTTPService {
+func NewHTTPService(client httpClient.HTTPClient) *HTTPService {
 	return &HTTPService{client: client}
 }
 
@@ -47,7 +47,7 @@ func (s *HTTPService) GetListReleases(ctx context.Context, listID string) ([]ent
 	return response.GetReleases(), nil
 }
 
-func paginate(ctx context.Context, client client.HTTPClient, url string) ([]entities.DiscogsRelease, error) {
+func paginate(ctx context.Context, client httpClient.HTTPClient, url string) ([]entities.DiscogsRelease, error) {
 	result := make([]entities.DiscogsRelease, 0)
 	response, err := doRequest(ctx, client, url)
 	if err != nil {
@@ -64,7 +64,7 @@ func paginate(ctx context.Context, client client.HTTPClient, url string) ([]enti
 	return result, nil
 }
 
-func doRequest(ctx context.Context, client client.HTTPClient, url string) (entities.DiscogsResponse, error) {
+func doRequest(ctx context.Context, client httpClient.HTTPClient, url string) (entities.DiscogsResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequest, err.Error())

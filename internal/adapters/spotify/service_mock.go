@@ -29,7 +29,7 @@ func (_ *ServiceMock) GetUserID(_ context.Context) (string, error) {
 	return "wizzler", nil
 }
 
-func (_ *ServiceMock) CreatePlaylist(_ context.Context, _ string, _ string) (entities.SpotifyPlaylist, error) {
+func (_ *ServiceMock) CreatePlaylist(_ context.Context, _, _ string) (entities.SpotifyPlaylist, error) {
 	return entities.SpotifyPlaylist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
 }
 
