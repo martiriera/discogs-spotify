@@ -71,10 +71,15 @@ func (c *Container) initControllers() {
 		c.SpotifyService,
 	)
 
+	redirectURI := c.Config.Spotify.RedirectURI
+	if c.Config.Spotify.UseProxy && c.Config.Spotify.ProxyURL != "" {
+		redirectURI = c.Config.Spotify.ProxyURL + "/auth/proxy/callback/spotify"
+	}
+
 	c.OAuthController = usecases.NewSpotifyAuthenticate(
 		c.Config.Spotify.ClientID,
 		c.Config.Spotify.ClientSecret,
-		c.Config.Spotify.RedirectURI,
+		redirectURI,
 	)
 
 	c.UserController = usecases.NewGetSpotifyUser(c.SpotifyService)

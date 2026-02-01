@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/martiriera/discogs-spotify/internal/adapters/client"
+	httpClient "github.com/martiriera/discogs-spotify/internal/adapters/client"
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 	errorWrapper "github.com/martiriera/discogs-spotify/internal/core/errors"
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
@@ -23,13 +23,13 @@ var (
 )
 
 type HTTPService struct {
-	client          client.HTTPClient
+	client          httpClient.HTTPClient
 	contextProvider ports.ContextPort
 }
 
 const basePath = "https://api.spotify.com/v1"
 
-func NewHTTPService(client client.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
+func NewHTTPService(client httpClient.HTTPClient, contextProvider ports.ContextPort) *HTTPService {
 	return &HTTPService{
 		client:          client,
 		contextProvider: contextProvider,
@@ -72,7 +72,7 @@ func (s *HTTPService) GetUserID(ctx context.Context) (string, error) {
 	return resp.ID, nil
 }
 
-func (s *HTTPService) CreatePlaylist(ctx context.Context, name string, description string) (entities.SpotifyPlaylist, error) {
+func (s *HTTPService) CreatePlaylist(ctx context.Context, name, description string) (entities.SpotifyPlaylist, error) {
 	userID, err := s.GetUserID(ctx)
 	if err != nil {
 		return entities.SpotifyPlaylist{}, err

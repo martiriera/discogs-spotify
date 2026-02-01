@@ -3,10 +3,20 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
+
+	"github.com/martiriera/discogs-spotify/internal/utils/env"
+)
+
+const (
+	defaultSessionMaxAge      = 3600 // 1 hour
+	defaultDiscogsTimeout     = 30   // 30 seconds
+	defaultSpotifyTimeout     = 60   // 60 seconds
+	defaultServerReadTimeout  = 10   // 10 seconds
+	defaultServerWriteTimeout = 120  // 120 seconds (2 minutes)
+	defaultServerIdleTimeout  = 120  // 120 seconds (2 minutes)
 )
 
 type Config struct {
@@ -28,6 +38,8 @@ type SpotifyConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+	ProxyURL     string // Auth proxy URL for development
+	UseProxy     bool
 }
 
 type SessionConfig struct {
@@ -50,26 +62,27 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	spotifyClientID := getRequiredEnv("SPOTIFY_CLIENT_ID")
-	spotifyClientSecret := getRequiredEnv("SPOTIFY_CLIENT_SECRET")
-	spotifyRedirectURI := getRequiredEnv("SPOTIFY_REDIRECT_URI")
-	sessionKey := getRequiredEnv("SESSION_KEY")
+	spotifyClientID := env.GetRequired("SPOTIFY_CLIENT_ID")
+	spotifyClientSecret := env.GetRequired("SPOTIFY_CLIENT_SECRET")
+	spotifyRedirectURI := env.GetRequired("SPOTIFY_REDIRECT_URI")
+	spotifyProxyURL := env.GetWithDefault("SPOTIFY_PROXY_URL", "")
+	sessionKey := env.GetRequired("SESSION_KEY")
 
-	port := getEnvWithDefault("PORT", "8080")
-	env := getEnvWithDefault("ENV", "development")
-	sessionMaxAge := getEnvAsIntWithDefault("SESSION_MAX_AGE", 3600)
+	port := env.GetWithDefault("PORT", "8080")
+	environment := env.GetWithDefault("ENV", "development")
+	sessionMaxAge := env.GetAsIntWithDefault("SESSION_MAX_AGE", defaultSessionMaxAge)
 
-	discogsTimeout := getEnvAsDurationWithDefault("DISCOGS_TIMEOUT", 30*time.Second)
-	spotifyTimeout := getEnvAsDurationWithDefault("SPOTIFY_TIMEOUT", 60*time.Second)
-	retryAttempts := getEnvAsIntWithDefault("HTTP_RETRY_ATTEMPTS", 3)
-	retryDelay := getEnvAsDurationWithDefault("HTTP_RETRY_DELAY", 1*time.Second)
+	discogsTimeout := env.GetAsDurationWithDefault("DISCOGS_TIMEOUT", defaultDiscogsTimeout*time.Second)
+	spotifyTimeout := env.GetAsDurationWithDefault("SPOTIFY_TIMEOUT", defaultSpotifyTimeout*time.Second)
+	retryAttempts := env.GetAsIntWithDefault("HTTP_RETRY_ATTEMPTS", 3)
+	retryDelay := env.GetAsDurationWithDefault("HTTP_RETRY_DELAY", 1*time.Second)
 
-	readTimeout := getEnvAsDurationWithDefault("SERVER_READ_TIMEOUT", 10*time.Second)
-	writeTimeout := getEnvAsDurationWithDefault("SERVER_WRITE_TIMEOUT", 120*time.Second)
-	idleTimeout := getEnvAsDurationWithDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
+	readTimeout := env.GetAsDurationWithDefault("SERVER_READ_TIMEOUT", defaultServerReadTimeout*time.Second)
+	writeTimeout := env.GetAsDurationWithDefault("SERVER_WRITE_TIMEOUT", defaultServerWriteTimeout*time.Second)
+	idleTimeout := env.GetAsDurationWithDefault("SERVER_IDLE_TIMEOUT", defaultServerIdleTimeout*time.Second)
 
 	return &Config{
-		Environment: env,
+		Environment: environment,
 		Server: ServerConfig{
 			Port:         port,
 			ReadTimeout:  readTimeout,
@@ -80,6 +93,8 @@ func LoadConfig() (*Config, error) {
 			ClientID:     spotifyClientID,
 			ClientSecret: spotifyClientSecret,
 			RedirectURI:  spotifyRedirectURI,
+			ProxyURL:     spotifyProxyURL,
+			UseProxy:     environment == "development" && spotifyProxyURL != "",
 		},
 		Session: SessionConfig{
 			Key:       sessionKey,
@@ -92,46 +107,4 @@ func LoadConfig() (*Config, error) {
 			RetryDelay:     retryDelay,
 		},
 	}, nil
-}
-
-func getRequiredEnv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		panic(fmt.Sprintf("Environment variable %s is required", key))
-	}
-	return value
-}
-
-func getEnvWithDefault(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
-
-func getEnvAsIntWithDefault(key string, defaultValue int) int {
-	valueStr := os.Getenv(key)
-	if valueStr == "" {
-		return defaultValue
-	}
-
-	value, err := strconv.Atoi(valueStr)
-	if err != nil {
-		return defaultValue
-	}
-	return value
-}
-
-func getEnvAsDurationWithDefault(key string, defaultValue time.Duration) time.Duration {
-	valueStr := os.Getenv(key)
-	if valueStr == "" {
-		return defaultValue
-	}
-
-	value, err := time.ParseDuration(valueStr)
-	if err != nil {
-		return defaultValue
-	}
-	return value
 }
