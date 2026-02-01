@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/session"
@@ -17,7 +19,7 @@ func authUserMiddleware(uc usecases.GetSpotifyUser) gin.HandlerFunc {
 		userID, err := uc.GetUserID(ctx)
 
 		if err != nil || userID == "" {
-			ctx.Redirect(302, "/auth/login")
+			ctx.Redirect(http.StatusFound, "/auth/login")
 			ctx.Abort()
 			return
 		}

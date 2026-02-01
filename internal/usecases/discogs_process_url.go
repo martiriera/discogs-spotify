@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"net/url"
 	"regexp"
 	"strings"
@@ -23,16 +24,20 @@ func NewDiscogsProcessURL(discogsService ports.DiscogsPort) *DiscogsProcessURL {
 	}
 }
 
-func (c *DiscogsProcessURL) processDiscogsURL(parsedDiscogsURL *entities.ParsedDiscogsURL) ([]entities.DiscogsRelease, error) {
+func (c *DiscogsProcessURL) processDiscogsURL(
+	ctx context.Context,
+	parsedDiscogsURL *entities.ParsedDiscogsURL,
+) ([]entities.DiscogsRelease, error) {
 	var releases []entities.DiscogsRelease
 	var err error
-	if parsedDiscogsURL.Type == entities.CollectionType {
-		releases, err = c.discogsService.GetCollectionReleases(parsedDiscogsURL.ID)
-	} else if parsedDiscogsURL.Type == entities.WantlistType {
-		releases, err = c.discogsService.GetWantlistReleases(parsedDiscogsURL.ID)
-	} else if parsedDiscogsURL.Type == entities.ListType {
-		releases, err = c.discogsService.GetListReleases(parsedDiscogsURL.ID)
-	} else {
+	switch parsedDiscogsURL.Type {
+	case entities.CollectionType:
+		releases, err = c.discogsService.GetCollectionReleases(ctx, parsedDiscogsURL.ID)
+	case entities.WantlistType:
+		releases, err = c.discogsService.GetWantlistReleases(ctx, parsedDiscogsURL.ID)
+	case entities.ListType:
+		releases, err = c.discogsService.GetListReleases(ctx, parsedDiscogsURL.ID)
+	default:
 		return nil, errors.New("unrecognized URL type")
 	}
 

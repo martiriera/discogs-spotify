@@ -18,24 +18,24 @@ import (
 type APIRouter struct {
 	playlistController *usecases.Controller
 	userController     *usecases.GetSpotifyUser
-	session            *ports.SessionPort
+	session            ports.SessionPort
 	template           *template.Template
 }
 
 func NewAPIRouter(
 	pc *usecases.Controller,
 	getSpotifyUserUseCase *usecases.GetSpotifyUser,
-	session *ports.SessionPort,
-	template *template.Template) *APIRouter {
-	router := &APIRouter{playlistController: pc, userController: getSpotifyUserUseCase, session: session, template: template}
+	sessionPort ports.SessionPort,
+	tmpl *template.Template) *APIRouter {
+	router := &APIRouter{playlistController: pc, userController: getSpotifyUserUseCase, session: sessionPort, template: tmpl}
 	return router
 }
 
 func (router *APIRouter) SetupRoutes(rg *gin.RouterGroup) {
 	rg.GET("/", router.handleMain)
-	rg.GET("/home", authTokenMiddleware(*router.session), router.handleMain)
+	rg.GET("/home", authTokenMiddleware(router.session), router.handleMain)
 	rg.POST("/playlist",
-		authTokenMiddleware(*router.session),
+		authTokenMiddleware(router.session),
 		authUserMiddleware(*router.userController),
 		router.handlePlaylistCreate,
 	)

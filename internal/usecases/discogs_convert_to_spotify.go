@@ -13,6 +13,10 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/core/ports"
 )
 
+const (
+	spotifyAPIRateLimit = 200 * time.Millisecond
+)
+
 type DiscogsConvertToSpotify struct {
 	spotifyService ports.SpotifyPort
 }
@@ -26,10 +30,10 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 	errChan := make(chan error, len(releases))
 
 	var wg sync.WaitGroup
-	rateLimiter := time.Tick(200 * time.Millisecond)
+	rateLimiter := time.Tick(spotifyAPIRateLimit)
 
 	for _, release := range releases {
-		album := getAlbumFromRelease(release)
+		album := getAlbumFromRelease(&release)
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -73,7 +77,7 @@ func (c *DiscogsConvertToSpotify) getSpotifyAlbumIDs(ctx context.Context, releas
 	return uris, nil
 }
 
-func getAlbumFromRelease(release entities.DiscogsRelease) entities.Album {
+func getAlbumFromRelease(release *entities.DiscogsRelease) entities.Album {
 	// TODO: Move this logic to domain
 	// David Bowie Hunky Dory = A Pedir De Boca = A Pedir De Boca
 	artistName := release.BasicInformation.Artists[0].Name
@@ -96,7 +100,8 @@ func getMatchingAlbumURI(album entities.Album, spotifyAlbums []entities.SpotifyA
 	inputAlbumName := normalizeName(album.Title)
 
 	// Case 1: Exact artist and album name match
-	for _, spotifyAlbum := range spotifyAlbums {
+	for i := range spotifyAlbums {
+		spotifyAlbum := &spotifyAlbums[i]
 		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
 
 		for _, artist := range spotifyAlbum.Artists {
@@ -110,7 +115,8 @@ func getMatchingAlbumURI(album entities.Album, spotifyAlbums []entities.SpotifyA
 	}
 
 	// Case 2: Artist match and at least one word album name match
-	for _, spotifyAlbum := range spotifyAlbums {
+	for i := range spotifyAlbums {
+		spotifyAlbum := &spotifyAlbums[i]
 		normalizedSpotifyAlbumName := normalizeName(spotifyAlbum.Name)
 
 		for _, artist := range spotifyAlbum.Artists {

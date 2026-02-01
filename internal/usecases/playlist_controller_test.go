@@ -36,11 +36,11 @@ func TestPlaylistController(t *testing.T) {
 		if playlist.SpotifyAlbums != 2 {
 			t.Errorf("got %d albums, want 2", playlist.SpotifyAlbums)
 		}
-		if playlist.SpotifyPlaylist.ID != "6rqhFgbbKwnb9MLmUQDhG6" {
-			t.Errorf("got %s, want 6rqhFgbbKwnb9MLmUQDhG6", playlist.SpotifyPlaylist.ID)
+		if playlist.ID != "6rqhFgbbKwnb9MLmUQDhG6" {
+			t.Errorf("got %s, want 6rqhFgbbKwnb9MLmUQDhG6", playlist.ID)
 		}
-		if playlist.SpotifyPlaylist.URL != "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6" {
-			t.Errorf("got %s, want https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6", playlist.SpotifyPlaylist.URL)
+		if playlist.URL != "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6" {
+			t.Errorf("got %s, want https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6", playlist.URL)
 		}
 	})
 

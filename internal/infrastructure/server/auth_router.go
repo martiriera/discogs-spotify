@@ -14,10 +14,10 @@ import (
 
 type AuthRouter struct {
 	oauthController *usecases.SpotifyAuthenticate
-	session         *ports.SessionPort
+	session         ports.SessionPort
 }
 
-func NewAuthRouter(c *usecases.SpotifyAuthenticate, session *ports.SessionPort) *AuthRouter {
+func NewAuthRouter(c *usecases.SpotifyAuthenticate, session ports.SessionPort) *AuthRouter {
 	router := &AuthRouter{oauthController: c, session: session}
 	return router
 }
@@ -31,8 +31,8 @@ func (router *AuthRouter) SetupRoutes(rg *gin.RouterGroup) {
 }
 
 func (router *AuthRouter) handleLogin(ctx *gin.Context) {
-	url := router.oauthController.GetAuthURL()
-	ctx.Redirect(http.StatusTemporaryRedirect, url)
+	authURL := router.oauthController.GetAuthURL()
+	ctx.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
 func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
@@ -41,7 +41,7 @@ func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 		handleError(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	err = router.oauthController.StoreToken(ctx, *router.session, token)
+	err = router.oauthController.StoreToken(ctx, router.session, token)
 	if err != nil {
 		handleError(ctx, err, http.StatusInternalServerError)
 		return
@@ -51,7 +51,7 @@ func (router *AuthRouter) handleLoginCallback(ctx *gin.Context) {
 
 // handleProxyCallback acts as an auth proxy for local development
 // It receives the OAuth callback from Spotify and redirects to the local dev server
-func (router *AuthRouter) handleProxyCallback(ctx *gin.Context) {
+func (*AuthRouter) handleProxyCallback(ctx *gin.Context) {
 	localDevURL := env.GetWithDefault("LOCAL_DEV_URL", "http://localhost:8080")
 
 	// Parse the local development callback URL
