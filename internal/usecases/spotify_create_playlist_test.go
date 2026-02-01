@@ -65,6 +65,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		}
 
 		gotCalls := 0
+		//nolint:unparam // testFunc must match batchRequests signature, error tested separately
 		testFunc := func(_ context.Context, _ []string) error {
 			gotCalls++
 			return nil

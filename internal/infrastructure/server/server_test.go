@@ -182,6 +182,7 @@ func setSessionData(
 	sessionMock *session.InMemorySession,
 	request *http.Request,
 	response *httptest.ResponseRecorder,
+	//nolint:unparam // test code
 	key session.ContextKey,
 	value any,
 ) {
