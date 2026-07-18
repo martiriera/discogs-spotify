@@ -2,15 +2,15 @@ FROM golang:1.25-bookworm AS builder
 
 WORKDIR /app
 
-# Copy dependency files and vendor directory
+# Copy dependency files and download modules
 COPY go.mod go.sum ./
-COPY vendor/ vendor/
+RUN go mod download
 
 # Copy source code
 COPY . .
 
-# Build the worker binary using vendored dependencies
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -o worker ./cmd/worker
+# Build the worker binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o worker ./cmd/worker
 
 FROM alpine:latest
 
