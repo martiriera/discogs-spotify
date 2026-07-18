@@ -55,7 +55,10 @@ func (w *WorkerMonthlyReleases) Run(ctx context.Context, discogsURL string, targ
 	return filterByMonth(albumItems, targetMonth), nil
 }
 
-func (w *WorkerMonthlyReleases) searchSpotifyAlbums(ctx context.Context, releases []entities.DiscogsRelease) ([]entities.SpotifyAlbumItem, error) {
+func (w *WorkerMonthlyReleases) searchSpotifyAlbums(
+	ctx context.Context,
+	releases []entities.DiscogsRelease,
+) ([]entities.SpotifyAlbumItem, error) {
 	type result struct {
 		item entities.SpotifyAlbumItem
 		err  error
@@ -63,7 +66,7 @@ func (w *WorkerMonthlyReleases) searchSpotifyAlbums(ctx context.Context, release
 
 	resultsChan := make(chan result, len(releases))
 	var wg sync.WaitGroup
-	rateLimiter := time.Tick(spotifyAPIRateLimit) //nolint:staticcheck // acceptable in short-lived worker
+	rateLimiter := time.Tick(spotifyAPIRateLimit)
 
 	for _, release := range releases {
 		album := getAlbumFromRelease(&release)
@@ -132,7 +135,8 @@ func filterByMonth(items []entities.SpotifyAlbumItem, targetMonth time.Month) []
 	seen := make(map[string]struct{})
 	var result []MonthlyRelease
 
-	for _, item := range items {
+	for i := range items {
+		item := &items[i]
 		if _, ok := seen[item.ID]; ok {
 			continue
 		}

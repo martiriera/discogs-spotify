@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/martiriera/discogs-spotify/internal/adapters/client"
@@ -27,11 +28,13 @@ func main() {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), workerTimeout)
-	defer cancel()
 
 	if err := run(ctx, cfg); err != nil {
-		log.Fatalf("Worker failed: %v", err)
+		cancel()
+		log.Printf("Worker failed: %v", err)
+		os.Exit(1)
 	}
+	cancel()
 
 	log.Println("Worker completed successfully")
 }

@@ -13,7 +13,11 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 
-const tokenURL = "https://accounts.spotify.com/api/token"
+const tokenURL = "https://accounts.spotify.com/api/token" //nolint:gosec // not a credential, it's a public endpoint URL
+
+// tokenExpiryBuffer is subtracted from the token's declared expiry to ensure
+// we refresh before the token actually expires.
+const tokenExpiryBuffer = 30 * time.Second
 
 // ClientCredentialsProvider fetches and caches a Spotify access token
 // using the Client Credentials OAuth2 flow (machine-to-machine, no user).
@@ -67,7 +71,7 @@ func (p *ClientCredentialsProvider) Token(ctx context.Context) (string, error) {
 
 	p.token = tokenResp.AccessToken
 	// subtract 30s buffer so we refresh before actual expiry
-	p.expiry = time.Now().Add(time.Duration(tokenResp.ExpiresIn-30) * time.Second)
+	p.expiry = time.Now().Add(time.Duration(tokenResp.ExpiresIn)*time.Second - tokenExpiryBuffer)
 
 	return p.token, nil
 }

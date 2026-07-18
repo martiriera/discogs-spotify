@@ -25,10 +25,10 @@ func (w *WorkerContextProvider) GetToken(ctx context.Context) (*oauth2.Token, er
 	return &oauth2.Token{AccessToken: accessToken}, nil
 }
 
-func (w *WorkerContextProvider) GetUserID(_ context.Context) (string, error) {
+func (*WorkerContextProvider) GetUserID(_ context.Context) (string, error) {
 	return "", nil
 }
 
-func (w *WorkerContextProvider) SetUserID(_ context.Context, _ string) error {
+func (*WorkerContextProvider) SetUserID(_ context.Context, _ string) error {
 	return nil
 }
