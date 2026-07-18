@@ -10,6 +10,12 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
+const (
+	icsEventHour     = 18
+	icsEventDuration = 1 // hours
+	icsAlarmMinutes  = -5
+)
+
 // ResendSender sends the monthly digest email via the Resend API.
 type ResendSender struct {
 	client *resend.Client
@@ -35,6 +41,18 @@ func (s *ResendSender) SendMonthlyDigest(month time.Month, year int, releases []
 		To:      []string{s.to},
 		Subject: subject,
 		Html:    html,
+	}
+
+	if len(releases) > 0 {
+		icsContent := buildICS(month, year, releases)
+		filename := fmt.Sprintf("releases-%s-%d.ics", strings.ToLower(month.String()), year)
+		params.Attachments = []*resend.Attachment{
+			{
+				Filename:    filename,
+				Content:     []byte(icsContent),
+				ContentType: "text/calendar; charset=utf-8",
+			},
+		}
 	}
 
 	_, err := s.client.Emails.Send(params)
@@ -90,6 +108,88 @@ func buildEmailHTML(month time.Month, year int, releases []usecases.MonthlyRelea
 
 	sb.WriteString("</body>\n</html>")
 	return sb.String()
+}
+
+// buildICS generates an iCalendar (.ics) file containing one VEVENT per release.
+// Each event starts at 18:00 and lasts one hour, with a 5-minute VALARM.
+// The release date is used as-is from Discogs (format "YYYY-MM-DD" or "YYYY-MM").
+func buildICS(month time.Month, year int, releases []usecases.MonthlyRelease) string {
+	now := time.Now().UTC().Format("20060102T150405Z")
+	var sb strings.Builder
+
+	sb.WriteString("BEGIN:VCALENDAR\r\n")
+	sb.WriteString("VERSION:2.0\r\n")
+	sb.WriteString("PRODID:-//discogs-spotify//Monthly Digest//EN\r\n")
+	sb.WriteString("CALSCALE:GREGORIAN\r\n")
+	sb.WriteString("METHOD:PUBLISH\r\n")
+
+	for i, r := range releases {
+		dtstart, ok := parseDateToICS(r.ReleaseDate)
+		if !ok {
+			continue
+		}
+		dtend := shiftICSHour(dtstart, icsEventDuration)
+		uid := fmt.Sprintf("release-%d-%s-%d-%d@discogs-spotify", i, strings.ToLower(month.String()), year, i)
+		summary := icsEscape(fmt.Sprintf("%s - %s", r.Artist, r.Title))
+
+		sb.WriteString("BEGIN:VEVENT\r\n")
+		fmt.Fprintf(&sb, "UID:%s\r\n", uid)
+		fmt.Fprintf(&sb, "DTSTAMP:%s\r\n", now)
+		fmt.Fprintf(&sb, "DTSTART:%s\r\n", dtstart)
+		fmt.Fprintf(&sb, "DTEND:%s\r\n", dtend)
+		fmt.Fprintf(&sb, "SUMMARY:%s\r\n", summary)
+		sb.WriteString("BEGIN:VALARM\r\n")
+		sb.WriteString("ACTION:DISPLAY\r\n")
+		fmt.Fprintf(&sb, "TRIGGER:-PT%dM\r\n", -icsAlarmMinutes)
+		sb.WriteString("DESCRIPTION:Reminder\r\n")
+		sb.WriteString("END:VALARM\r\n")
+		sb.WriteString("END:VEVENT\r\n")
+	}
+
+	sb.WriteString("END:VCALENDAR\r\n")
+	return sb.String()
+}
+
+// parseDateToICS converts a Discogs release date string to an iCalendar
+// DTSTART value at 18:00 local time (no timezone).
+// Supports "YYYY-MM-DD" and "YYYY-MM" formats.
+func parseDateToICS(releaseDate string) (string, bool) {
+	var t time.Time
+	var err error
+
+	switch len(releaseDate) {
+	case 10: // YYYY-MM-DD
+		t, err = time.Parse("2006-01-02", releaseDate)
+	case 7: // YYYY-MM
+		t, err = time.Parse("2006-01", releaseDate)
+	default:
+		return "", false
+	}
+
+	if err != nil {
+		return "", false
+	}
+
+	result := time.Date(t.Year(), t.Month(), t.Day(), icsEventHour, 0, 0, 0, time.UTC)
+	return result.Format("20060102T150405"), true
+}
+
+// shiftICSHour adds hours to an iCalendar datetime string (format: 20060102T150405).
+func shiftICSHour(icsDatetime string, hours int) string {
+	t, err := time.Parse("20060102T150405", icsDatetime)
+	if err != nil {
+		return icsDatetime
+	}
+	return t.Add(time.Duration(hours) * time.Hour).Format("20060102T150405")
+}
+
+// icsEscape escapes special characters for iCalendar text values.
+func icsEscape(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, ";", `\;`)
+	s = strings.ReplaceAll(s, ",", `\,`)
+	s = strings.ReplaceAll(s, "\n", `\n`)
+	return s
 }
 
 // htmlEscape escapes the minimal set of characters needed for safe HTML content.
