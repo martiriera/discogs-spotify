@@ -1,0 +1,30 @@
+name: Monthly Digest
+
+on:
+  schedule:
+    - cron: '0 8 15 * *' # 15th of each month at 08:00 UTC
+  workflow_dispatch: # allow manual runs for testing
+
+permissions:
+  contents: read
+
+jobs:
+  run-worker:
+    name: Send Monthly Release Digest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Build worker image
+        run: docker build -f Dockerfile.worker -t discogs-worker .
+
+      - name: Run worker
+        run: >
+          docker run --rm
+          -e ENV="${{ vars.ENV }}"
+          -e DISCOGS_URL="${{ vars.DISCOGS_URL }}"
+          -e SPOTIFY_CLIENT_ID="${{ secrets.SPOTIFY_CLIENT_ID }}"
+          -e SPOTIFY_CLIENT_SECRET="${{ secrets.SPOTIFY_CLIENT_SECRET }}"
+          -e RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
+          -e TO_EMAIL="${{ vars.TO_EMAIL }}"
+          discogs-worker
