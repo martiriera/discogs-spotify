@@ -27,6 +27,15 @@ type Config struct {
 	HTTP        HTTPConfig
 }
 
+type WorkerConfig struct {
+	DiscogsURL      string
+	SpotifyClientID string
+	SpotifySecret   string
+	ResendAPIKey    string
+	ToEmail         string
+	HTTP            HTTPConfig
+}
+
 type ServerConfig struct {
 	Port         string
 	ReadTimeout  time.Duration
@@ -100,6 +109,33 @@ func LoadConfig() (*Config, error) {
 			Key:       sessionKey,
 			MaxAgeSec: sessionMaxAge,
 		},
+		HTTP: HTTPConfig{
+			DiscogsTimeout: discogsTimeout,
+			SpotifyTimeout: spotifyTimeout,
+			RetryAttempts:  retryAttempts,
+			RetryDelay:     retryDelay,
+		},
+	}, nil
+}
+
+func LoadWorkerConfig() (*WorkerConfig, error) {
+	if os.Getenv("ENV") == "" {
+		if err := godotenv.Load(".env"); err != nil {
+			return nil, fmt.Errorf("no .env file found: %w", err)
+		}
+	}
+
+	discogsTimeout := env.GetAsDurationWithDefault("DISCOGS_TIMEOUT", defaultDiscogsTimeout*time.Second)
+	spotifyTimeout := env.GetAsDurationWithDefault("SPOTIFY_TIMEOUT", defaultSpotifyTimeout*time.Second)
+	retryAttempts := env.GetAsIntWithDefault("HTTP_RETRY_ATTEMPTS", 3)
+	retryDelay := env.GetAsDurationWithDefault("HTTP_RETRY_DELAY", 1*time.Second)
+
+	return &WorkerConfig{
+		DiscogsURL:      env.GetRequired("DISCOGS_URL"),
+		SpotifyClientID: env.GetRequired("SPOTIFY_CLIENT_ID"),
+		SpotifySecret:   env.GetRequired("SPOTIFY_CLIENT_SECRET"),
+		ResendAPIKey:    env.GetRequired("RESEND_API_KEY"),
+		ToEmail:         env.GetRequired("TO_EMAIL"),
 		HTTP: HTTPConfig{
 			DiscogsTimeout: discogsTimeout,
 			SpotifyTimeout: spotifyTimeout,
