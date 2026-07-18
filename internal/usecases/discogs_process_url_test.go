@@ -7,6 +7,8 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 
+const testDiscogsUserID = "digger"
+
 func TestProcessDiscogsURL(t *testing.T) {
 	tests := []struct {
 		category  string
@@ -28,25 +30,25 @@ func TestProcessDiscogsURL(t *testing.T) {
 				{
 					name:        "short collection URL",
 					url:         "discogs.com/user/digger/collection",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL",
 					url:         "https://www.discogs.com/user/digger/collection",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "https collection URL with language code",
 					url:         "https://www.discogs.com/es/user/digger/collection",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "www collection URL with language code",
 					url:         "www.discogs.com/es/user/digger/collection",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
@@ -58,13 +60,13 @@ func TestProcessDiscogsURL(t *testing.T) {
 				{
 					name:        "https collection URL with query parameter",
 					url:         "https://www.discogs.com/user/digger/collection?header=1",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 				{
 					name:        "collection URL with subdomain",
 					url:         "https://m.discogs.com/user/digger/collection",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.CollectionType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.CollectionType},
 					expectError: false,
 				},
 			},
@@ -114,25 +116,25 @@ func TestProcessDiscogsURL(t *testing.T) {
 				{
 					name:        "https wantlist URL",
 					url:         "https://www.discogs.com/wantlist?user=digger",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "www wantlist URL",
 					url:         "www.discogs.com/wantlist?user=digger",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "short wantlist URL with language code",
 					url:         "discogs.com/es/wantlist?user=digger",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.WantlistType},
 					expectError: false,
 				},
 				{
 					name:        "wantlist URL with additional parameters",
 					url:         "www.discogs.com/wantlist?user=digger&sort=artist",
-					expected:    &entities.ParsedDiscogsURL{ID: "digger", Type: entities.WantlistType},
+					expected:    &entities.ParsedDiscogsURL{ID: testDiscogsUserID, Type: entities.WantlistType},
 					expectError: false,
 				},
 			},

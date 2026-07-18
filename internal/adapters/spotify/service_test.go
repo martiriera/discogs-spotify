@@ -17,6 +17,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	testAccessToken       = "test"
+	deltaSleepArtistName  = "Delta Sleep"
+	springIslandAlbumName = "Spring Island"
+	spotifyPlaylistID     = "6rqhFgbbKwnb9MLmUQDhG6"
+)
+
 type StubSpotifyHTTPClient struct {
 	Responses []*http.Response
 	index     int
@@ -58,9 +65,9 @@ func (m *MockContextProvider) SetUserID(_ context.Context, userID string) error 
 }
 
 func TestSearchAlbum(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
 	tcs := []struct {
 		name     string
@@ -71,7 +78,7 @@ func TestSearchAlbum(t *testing.T) {
 		{
 			name: "should return album id",
 			request: func(service ports.SpotifyPort) ([]entities.SpotifyAlbumItem, error) {
-				return service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.SearchAlbum(ctx, entities.Album{Artist: deltaSleepArtistName, Title: springIslandAlbumName})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -110,7 +117,7 @@ func TestSearchAlbum(t *testing.T) {
 				{
 					AlbumType: "album",
 					ID:        "4JeLdGuCEO9SF9SnFa9LBh",
-					Name:      "Spring Island",
+					Name:      springIslandAlbumName,
 					URI:       "spotify:album:4JeLdGuCEO9SF9SnFa9LBh",
 					Artists: []entities.SpotifyAlbumArtist{
 						{
@@ -119,7 +126,7 @@ func TestSearchAlbum(t *testing.T) {
 							},
 							Href: "https://api.spotify.com/v1/artists/0kbYTNQb4Pb1rPbbaF0pT5",
 							ID:   "0kbYTNQb4Pb1rPbbaF0pT5",
-							Name: "Delta Sleep",
+							Name: deltaSleepArtistName,
 							Type: "artist",
 							URI:  "spotify:artist:0kbYTNQb4Pb1rPbbaF0pT5",
 						},
@@ -130,7 +137,7 @@ func TestSearchAlbum(t *testing.T) {
 		{
 			name: "should return empty string as uri when not found",
 			request: func(service ports.SpotifyPort) ([]entities.SpotifyAlbumItem, error) {
-				return service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+				return service.SearchAlbum(ctx, entities.Album{Artist: deltaSleepArtistName, Title: springIslandAlbumName})
 			},
 			response: &http.Response{
 				StatusCode: 200,
@@ -153,7 +160,7 @@ func TestSearchAlbum(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
-			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 			service := NewHTTPService(stubClient, contextProvider)
 
 			response, err := tc.request(service)
@@ -169,9 +176,9 @@ func TestSearchAlbum(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
 	tcs := []struct {
 		name     string
@@ -226,7 +233,7 @@ func TestGetUser(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
-			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 			service := NewHTTPService(stubClient, contextProvider)
 			response, err := tc.request(service)
 			if err != nil {
@@ -240,9 +247,9 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestCreatePlaylist(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
 	tcs := []struct {
 		name     string
@@ -269,7 +276,7 @@ func TestCreatePlaylist(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{tc.response}}
-			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+			contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 			service := NewHTTPService(stubClient, contextProvider)
 			response, err := tc.request(service)
 			if err != nil {
@@ -283,9 +290,9 @@ func TestCreatePlaylist(t *testing.T) {
 }
 
 func TestGetAlbumsTrackUris(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 	stubResponse := &http.Response{
 		StatusCode: 200,
 		Body: io.NopCloser(bytes.NewBufferString(`{
@@ -321,7 +328,7 @@ func TestGetAlbumsTrackUris(t *testing.T) {
 		}`)),
 	}
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
-	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 	service := NewHTTPService(stubClient, contextProvider)
 	uris, err := service.GetAlbumsTrackUris(ctx, []string{"spotify:album:1", "spotify:album:2"})
 	if err != nil {
@@ -333,18 +340,18 @@ func TestGetAlbumsTrackUris(t *testing.T) {
 }
 
 func TestServiceError(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
 	stubResponse := &http.Response{
 		StatusCode: 400,
 		Body:       io.NopCloser(bytes.NewBufferString(`{"message": "Bad Request"}`)),
 	}
 	stubClient := &StubSpotifyHTTPClient{Responses: []*http.Response{stubResponse}}
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
-	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 	service := NewHTTPService(stubClient, contextProvider)
-	_, err := service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: springIslandAlbumName})
 
 	want := `status: 400, body: {"message": "Bad Request"}: spotify API error`
 	if err == nil {
@@ -356,8 +363,8 @@ func TestServiceError(t *testing.T) {
 }
 
 func TestServiceUnauthorized(t *testing.T) {
-	t.Setenv("SPOTIFY_CLIENT_ID", "test")
-	t.Setenv("SPOTIFY_CLIENT_SECRET", "test")
+	t.Setenv("SPOTIFY_CLIENT_ID", testAccessToken)
+	t.Setenv("SPOTIFY_CLIENT_SECRET", testAccessToken)
 	stubResponses := []*http.Response{
 		{
 			StatusCode: 401,
@@ -365,11 +372,11 @@ func TestServiceUnauthorized(t *testing.T) {
 		},
 	}
 	stubClient := &StubSpotifyHTTPClient{Responses: stubResponses}
-	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+	ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
-	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: "test"}, "wizzler")
+	contextProvider := NewMockContextProvider(&oauth2.Token{AccessToken: testAccessToken}, "wizzler")
 	service := NewHTTPService(stubClient, contextProvider)
-	_, err := service.SearchAlbum(ctx, entities.Album{Artist: "Delta Sleep", Title: "Spring Island"})
+	_, err := service.SearchAlbum(ctx, entities.Album{Artist: deltaSleepArtistName, Title: springIslandAlbumName})
 
 	if err == nil {
 		t.Errorf("did expect error, got nil")

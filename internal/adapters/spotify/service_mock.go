@@ -7,6 +7,11 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/core/entities"
 )
 
+const (
+	mockPlaylistID  = "6rqhFgbbKwnb9MLmUQDhG6"
+	mockPlaylistURL = "https://open.spotify.com/playlist/" + mockPlaylistID
+)
+
 type ServiceMock struct {
 	SearchAlbumResponses [][]entities.SpotifyAlbumItem
 	CalledCount          int
@@ -30,7 +35,7 @@ func (*ServiceMock) GetUserID(_ context.Context) (string, error) {
 }
 
 func (*ServiceMock) CreatePlaylist(_ context.Context, _, _ string) (entities.SpotifyPlaylist, error) {
-	return entities.SpotifyPlaylist{ID: "6rqhFgbbKwnb9MLmUQDhG6", URL: "https://open.spotify.com/playlist/6rqhFgbbKwnb9MLmUQDhG6"}, nil
+	return entities.SpotifyPlaylist{ID: mockPlaylistID, URL: mockPlaylistURL}, nil
 }
 
 func (m *ServiceMock) AddToPlaylist(_ context.Context, _ string, _ []string) error {

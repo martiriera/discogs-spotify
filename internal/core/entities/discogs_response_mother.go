@@ -1,5 +1,11 @@
 package entities
 
+const (
+	discogsArtistDescendents     = "Descendents"
+	discogsAlbumDescriptionAlbum = "Album"
+	discogsArtistJimCarrollBand  = "The Jim Carroll Band"
+)
+
 func MotherTwoDiscogsAlbums() []DiscogsRelease {
 	return []DiscogsRelease{
 		{
@@ -7,12 +13,12 @@ func MotherTwoDiscogsAlbums() []DiscogsRelease {
 				Title: "Milo Goes to College",
 				Artists: []DiscogsArtist{
 					{
-						Name: "Descendents",
+						Name: discogsArtistDescendents,
 					},
 				},
 				Formats: []DiscogsFormat{
 					{
-						Descriptions: []string{"LP", "Album", "Reissue"},
+						Descriptions: []string{"LP", discogsAlbumDescriptionAlbum, "Reissue"},
 					},
 				},
 			},
@@ -22,12 +28,12 @@ func MotherTwoDiscogsAlbums() []DiscogsRelease {
 				Title: "Catholic Boy",
 				Artists: []DiscogsArtist{
 					{
-						Name: "The Jim Carroll Band",
+						Name: discogsArtistJimCarrollBand,
 					},
 				},
 				Formats: []DiscogsFormat{
 					{
-						Descriptions: []string{"LP", "Album"},
+						Descriptions: []string{"LP", discogsAlbumDescriptionAlbum},
 					},
 				},
 			},

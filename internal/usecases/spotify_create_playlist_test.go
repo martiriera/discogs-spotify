@@ -18,7 +18,7 @@ func TestSpotifyCreatePlaylist(t *testing.T) {
 		uris := make([]string, 205)
 
 		builder := NewSpotifyCreatePlaylist(spotifyServiceMock)
-		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
 		err := builder.addToSpotifyPlaylist(ctx, "6rqhFgbbKwnb9MLmUQDhG6", uris)
 		if err != nil {
