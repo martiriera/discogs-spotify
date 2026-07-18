@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
+	github.com/resend/resend-go/v2 v2.28.0
 	golang.org/x/oauth2 v0.27.0
 	golang.org/x/text v0.37.0
 )
