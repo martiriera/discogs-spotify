@@ -9,37 +9,40 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/infrastructure/container"
 )
 
+const (
+	workerTimeout     = 30 * time.Minute
+	workerPollTimeout = 5 * time.Second
+)
+
 func main() {
 	log.Println("Starting worker...")
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		log.Printf("Failed to load configuration: %v", err)
+		return
 	}
 
 	c := container.NewContainer(cfg)
 
-	// Create a context with timeout for the worker
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), workerTimeout)
 	defer cancel()
 
-	// Example worker task - you can expand this based on your needs
 	if err := runWorkerTask(ctx, c); err != nil {
-		log.Fatalf("Worker task failed: %v", err)
+		log.Printf("Worker task failed: %v", err)
+		return
 	}
 
 	log.Println("Worker completed successfully")
 }
 
-func runWorkerTask(ctx context.Context, c *container.Container) error {
+func runWorkerTask(ctx context.Context, _ *container.Container) error {
 	log.Println("Running worker task...")
 
-	// Example: This could be batch processing, cleanup tasks, etc.
-	// For now, it's a simple placeholder that demonstrates the pattern
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-time.After(5 * time.Second):
+	case <-time.After(workerPollTimeout):
 		log.Println("Worker task processing completed")
 		return nil
 	}

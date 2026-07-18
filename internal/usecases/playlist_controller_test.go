@@ -13,6 +13,11 @@ import (
 	"github.com/martiriera/discogs-spotify/util"
 )
 
+const (
+	testAccessToken  = "test"
+	spotifyAlbumURI1 = "spotify:album:1"
+)
+
 func TestPlaylistController(t *testing.T) {
 	t.Run("create playlist flow", func(t *testing.T) {
 		discogsServiceMock := &discogs.ServiceMock{
@@ -24,7 +29,7 @@ func TestPlaylistController(t *testing.T) {
 				entities.MotherSpotifyAlbums()[2:4],
 			}}
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
-		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: "test"})
+		ctx := util.NewTestContextWithToken(session.SpotifyTokenKey, &oauth2.Token{AccessToken: testAccessToken})
 
 		playlist, err := controller.CreatePlaylist(ctx, "https://www.discogs.com/user/digger/collection")
 		if err != nil {
@@ -47,7 +52,7 @@ func TestPlaylistController(t *testing.T) {
 	t.Run("filter duplicates and not founds", func(t *testing.T) {
 		discogsServiceMock := &discogs.ServiceMock{}
 		spotifyServiceMock := &spotify.ServiceMock{}
-		uris := []string{"spotify:album:1", "spotify:album:1", "spotify:album:2", "", "spotify:album:3"}
+		uris := []string{spotifyAlbumURI1, spotifyAlbumURI1, "spotify:album:2", "", "spotify:album:3"}
 
 		controller := NewPlaylistController(discogsServiceMock, spotifyServiceMock)
 		filteredUris := controller.filterValidUnique(uris)
@@ -56,7 +61,7 @@ func TestPlaylistController(t *testing.T) {
 			t.Errorf("got %d uris, want 3", len(filteredUris))
 		}
 
-		expectedUris := []string{"spotify:album:1", "spotify:album:2", "spotify:album:3"}
+		expectedUris := []string{spotifyAlbumURI1, "spotify:album:2", "spotify:album:3"}
 		if !reflect.DeepEqual(filteredUris, expectedUris) {
 			t.Errorf("got %v, want %v", filteredUris, expectedUris)
 		}
