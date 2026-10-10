@@ -11,9 +11,11 @@ import (
 )
 
 const (
-	icsEventHour     = 18
-	icsEventDuration = 1 // hours
-	icsAlarmMinutes  = -5
+	icsEventHour       = 18
+	icsEventDuration   = 1 // hours
+	icsAlarmMinutes    = -5
+	icsDayDateLength   = 10
+	icsMonthDateLength = 7
 )
 
 // ResendSender sends the monthly digest email via the Resend API.
@@ -159,9 +161,9 @@ func parseDateToICS(releaseDate string, eventYear int) (string, bool) {
 	var err error
 
 	switch len(releaseDate) {
-	case 10: // YYYY-MM-DD
+	case icsDayDateLength: // YYYY-MM-DD
 		t, err = time.Parse("2006-01-02", releaseDate)
-	case 7: // YYYY-MM
+	case icsMonthDateLength: // YYYY-MM
 		t, err = time.Parse("2006-01", releaseDate)
 	default:
 		return "", false

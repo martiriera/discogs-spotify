@@ -34,6 +34,11 @@ type MonthlyRelease struct {
 	SpotifyURL  string
 }
 
+const (
+	releaseDatePrecisionDay   = "day"
+	releaseDatePrecisionMonth = "month"
+)
+
 // Run fetches the collection at discogsURL and returns albums released in targetMonth.
 func (w *WorkerMonthlyReleases) Run(ctx context.Context, discogsURL string, targetMonth time.Month) ([]MonthlyRelease, error) {
 	parsed, err := parseDiscogsURL(discogsURL)
@@ -168,13 +173,13 @@ func filterByMonth(items []entities.SpotifyAlbumItem, targetMonth time.Month) []
 // Returns (month, true) for "day" and "month" precision; (0, false) otherwise.
 func parseReleaseMonth(releaseDate, precision string) (time.Month, bool) {
 	switch precision {
-	case "day":
+	case releaseDatePrecisionDay:
 		t, err := time.Parse("2006-01-02", releaseDate)
 		if err != nil {
 			return 0, false
 		}
 		return t.Month(), true
-	case "month":
+	case releaseDatePrecisionMonth:
 		t, err := time.Parse("2006-01", releaseDate)
 		if err != nil {
 			return 0, false

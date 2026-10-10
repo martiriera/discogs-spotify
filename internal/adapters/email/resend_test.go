@@ -8,6 +8,12 @@ import (
 	"github.com/martiriera/discogs-spotify/internal/usecases"
 )
 
+const (
+	resendTestArtist     = "Artist"
+	resendTestAlbumTitle = "Album"
+	resendTestAlbumURL   = "https://open.spotify.com/album/abc"
+)
+
 func TestBuildICS_ContainsRequiredCalendarFields(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
 		{Artist: "Radiohead", Title: "OK Computer", ReleaseDate: "1997-06-16", SpotifyURL: "https://open.spotify.com/album/123"},
@@ -39,7 +45,7 @@ func TestBuildICS_ContainsRequiredCalendarFields(t *testing.T) {
 
 func TestBuildICS_EventTimesCorrect(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
-		{Artist: "Artist", Title: "Album", ReleaseDate: "2024-08-15", SpotifyURL: "https://open.spotify.com/album/abc"},
+		{Artist: resendTestArtist, Title: resendTestAlbumTitle, ReleaseDate: "2024-08-15", SpotifyURL: resendTestAlbumURL},
 	}
 
 	ics := buildICS(time.August, 2024, releases)
@@ -54,7 +60,7 @@ func TestBuildICS_EventTimesCorrect(t *testing.T) {
 
 func TestBuildICS_UsesDigestYearForEventDate(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
-		{Artist: "Artist", Title: "Album", ReleaseDate: "1997-08-15", SpotifyURL: "https://open.spotify.com/album/abc"},
+		{Artist: resendTestArtist, Title: resendTestAlbumTitle, ReleaseDate: "1997-08-15", SpotifyURL: resendTestAlbumURL},
 	}
 
 	ics := buildICS(time.August, 2026, releases)
@@ -81,7 +87,7 @@ func TestBuildICS_MultipleReleases(t *testing.T) {
 
 func TestBuildICS_MonthPrecisionDate(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
-		{Artist: "Artist", Title: "Album", ReleaseDate: "2024-08", SpotifyURL: "https://open.spotify.com/album/abc"},
+		{Artist: resendTestArtist, Title: resendTestAlbumTitle, ReleaseDate: "2024-08", SpotifyURL: resendTestAlbumURL},
 	}
 
 	ics := buildICS(time.August, 2024, releases)
@@ -96,7 +102,7 @@ func TestBuildICS_MonthPrecisionDate(t *testing.T) {
 
 func TestBuildICS_SkipsInvalidDate(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
-		{Artist: "Artist", Title: "Album", ReleaseDate: "1997", SpotifyURL: "https://open.spotify.com/album/abc"},
+		{Artist: resendTestArtist, Title: resendTestAlbumTitle, ReleaseDate: "1997", SpotifyURL: resendTestAlbumURL},
 	}
 
 	ics := buildICS(time.June, 1997, releases)
