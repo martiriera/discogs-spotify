@@ -124,7 +124,7 @@ func buildICS(month time.Month, year int, releases []usecases.MonthlyRelease) st
 	sb.WriteString("METHOD:PUBLISH\r\n")
 
 	for i, r := range releases {
-		dtstart, ok := parseDateToICS(r.ReleaseDate)
+		dtstart, ok := parseDateToICS(r.ReleaseDate, year)
 		if !ok {
 			continue
 		}
@@ -151,9 +151,10 @@ func buildICS(month time.Month, year int, releases []usecases.MonthlyRelease) st
 }
 
 // parseDateToICS converts a Discogs release date string to an iCalendar
-// DTSTART value at 18:00 local time (no timezone).
+// DTSTART value at 18:00 local time (no timezone), using eventYear for the
+// calendar year.
 // Supports "YYYY-MM-DD" and "YYYY-MM" formats.
-func parseDateToICS(releaseDate string) (string, bool) {
+func parseDateToICS(releaseDate string, eventYear int) (string, bool) {
 	var t time.Time
 	var err error
 
@@ -170,7 +171,7 @@ func parseDateToICS(releaseDate string) (string, bool) {
 		return "", false
 	}
 
-	result := time.Date(t.Year(), t.Month(), t.Day(), icsEventHour, 0, 0, 0, time.UTC)
+	result := time.Date(eventYear, t.Month(), t.Day(), icsEventHour, 0, 0, 0, time.UTC)
 	return result.Format("20060102T150405"), true
 }
 

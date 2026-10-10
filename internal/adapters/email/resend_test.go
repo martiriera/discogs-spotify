@@ -52,6 +52,18 @@ func TestBuildICS_EventTimesCorrect(t *testing.T) {
 	}
 }
 
+func TestBuildICS_UsesDigestYearForEventDate(t *testing.T) {
+	releases := []usecases.MonthlyRelease{
+		{Artist: "Artist", Title: "Album", ReleaseDate: "1997-08-15", SpotifyURL: "https://open.spotify.com/album/abc"},
+	}
+
+	ics := buildICS(time.August, 2026, releases)
+
+	if !strings.Contains(ics, "DTSTART:20260815T180000") {
+		t.Errorf("expected DTSTART in digest year, got:\n%s", ics)
+	}
+}
+
 func TestBuildICS_MultipleReleases(t *testing.T) {
 	releases := []usecases.MonthlyRelease{
 		{Artist: "Artist A", Title: "Album A", ReleaseDate: "2024-08-01", SpotifyURL: "https://open.spotify.com/album/a"},
@@ -107,34 +119,34 @@ func TestBuildICS_ICSEscapesSpecialCharacters(t *testing.T) {
 }
 
 func TestParseDateToICS_DayPrecision(t *testing.T) {
-	result, ok := parseDateToICS("1997-06-16")
+	result, ok := parseDateToICS("1997-06-16", 2026)
 	if !ok {
 		t.Fatal("expected ok=true for YYYY-MM-DD input")
 	}
-	if result != "19970616T180000" {
-		t.Errorf("expected 19970616T180000, got %s", result)
+	if result != "20260616T180000" {
+		t.Errorf("expected 20260616T180000, got %s", result)
 	}
 }
 
 func TestParseDateToICS_MonthPrecision(t *testing.T) {
-	result, ok := parseDateToICS("1997-06")
+	result, ok := parseDateToICS("1997-06", 2026)
 	if !ok {
 		t.Fatal("expected ok=true for YYYY-MM input")
 	}
-	if result != "19970601T180000" {
-		t.Errorf("expected 19970601T180000, got %s", result)
+	if result != "20260601T180000" {
+		t.Errorf("expected 20260601T180000, got %s", result)
 	}
 }
 
 func TestParseDateToICS_YearOnlyReturnsFalse(t *testing.T) {
-	_, ok := parseDateToICS("1997")
+	_, ok := parseDateToICS("1997", 2026)
 	if ok {
 		t.Error("expected ok=false for year-only input")
 	}
 }
 
 func TestParseDateToICS_InvalidReturnsFalse(t *testing.T) {
-	_, ok := parseDateToICS("not-a-date")
+	_, ok := parseDateToICS("not-a-date", 2026)
 	if ok {
 		t.Error("expected ok=false for invalid date input")
 	}
