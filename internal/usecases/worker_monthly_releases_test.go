@@ -14,15 +14,23 @@ import (
 // errorSpotifyMock returns an error on SearchAlbum calls.
 type errorSpotifyMock struct{}
 
-func (e *errorSpotifyMock) SearchAlbum(_ context.Context, _ entities.Album) ([]entities.SpotifyAlbumItem, error) {
+const (
+	workerTestArtist     = "Test Artist"
+	workerTestAlbumURL   = "https://open.spotify.com/album/id1"
+	workerDuplicateAlbum = "Duplicate Album"
+	workerDescendents    = "Descendents"
+	workerMiloAlbum      = "Milo Goes to College"
+)
+
+func (*errorSpotifyMock) SearchAlbum(_ context.Context, _ entities.Album) ([]entities.SpotifyAlbumItem, error) {
 	return nil, errors.New("spotify unavailable")
 }
-func (e *errorSpotifyMock) GetUserID(_ context.Context) (string, error)                    { return "", nil }
-func (e *errorSpotifyMock) CreatePlaylist(_ context.Context, _, _ string) (entities.SpotifyPlaylist, error) {
+func (*errorSpotifyMock) GetUserID(_ context.Context) (string, error) { return "", nil }
+func (*errorSpotifyMock) CreatePlaylist(_ context.Context, _, _ string) (entities.SpotifyPlaylist, error) {
 	return entities.SpotifyPlaylist{}, nil
 }
-func (e *errorSpotifyMock) AddToPlaylist(_ context.Context, _ string, _ []string) error { return nil }
-func (e *errorSpotifyMock) GetAlbumsTrackUris(_ context.Context, _ []string) ([]string, error) {
+func (*errorSpotifyMock) AddToPlaylist(_ context.Context, _ string, _ []string) error { return nil }
+func (*errorSpotifyMock) GetAlbumsTrackUris(_ context.Context, _ []string) ([]string, error) {
 	return nil, nil
 }
 
@@ -39,14 +47,14 @@ func TestParseReleaseMonth(t *testing.T) {
 		{
 			name:        "day precision - valid date",
 			releaseDate: "2024-08-15",
-			precision:   "day",
+			precision:   releaseDatePrecisionDay,
 			wantMonth:   time.August,
 			wantOK:      true,
 		},
 		{
 			name:        "month precision - valid date",
 			releaseDate: "2024-03",
-			precision:   "month",
+			precision:   releaseDatePrecisionMonth,
 			wantMonth:   time.March,
 			wantOK:      true,
 		},
@@ -67,28 +75,28 @@ func TestParseReleaseMonth(t *testing.T) {
 		{
 			name:        "day precision - malformed date",
 			releaseDate: "not-a-date",
-			precision:   "day",
+			precision:   releaseDatePrecisionDay,
 			wantMonth:   0,
 			wantOK:      false,
 		},
 		{
 			name:        "month precision - malformed date",
 			releaseDate: "2024/08",
-			precision:   "month",
+			precision:   releaseDatePrecisionMonth,
 			wantMonth:   0,
 			wantOK:      false,
 		},
 		{
 			name:        "day precision - January",
 			releaseDate: "2023-01-01",
-			precision:   "day",
+			precision:   releaseDatePrecisionDay,
 			wantMonth:   time.January,
 			wantOK:      true,
 		},
 		{
 			name:        "month precision - December",
 			releaseDate: "2023-12",
-			precision:   "month",
+			precision:   releaseDatePrecisionMonth,
 			wantMonth:   time.December,
 			wantOK:      true,
 		},
@@ -110,7 +118,7 @@ func TestParseReleaseMonth(t *testing.T) {
 // --- filterByMonth ---
 
 func TestFilterByMonth(t *testing.T) {
-	baseArtist := entities.SpotifyAlbumArtist{Name: "Test Artist"}
+	baseArtist := entities.SpotifyAlbumArtist{Name: workerTestArtist}
 
 	tests := []struct {
 		name        string
@@ -126,15 +134,15 @@ func TestFilterByMonth(t *testing.T) {
 					ID:                   "id1",
 					Name:                 "August Album",
 					ReleaseDate:          "2024-08-10",
-					ReleaseDatePrecision: "day",
+					ReleaseDatePrecision: releaseDatePrecisionDay,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
-					ExternalURLs:         entities.SpotifyExternalURLs{Spotify: "https://open.spotify.com/album/id1"},
+					ExternalURLs:         entities.SpotifyExternalURLs{Spotify: workerTestAlbumURL},
 				},
 				{
 					ID:                   "id2",
 					Name:                 "March Album",
 					ReleaseDate:          "2024-03-01",
-					ReleaseDatePrecision: "day",
+					ReleaseDatePrecision: releaseDatePrecisionDay,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
 					ExternalURLs:         entities.SpotifyExternalURLs{Spotify: "https://open.spotify.com/album/id2"},
 				},
@@ -150,14 +158,14 @@ func TestFilterByMonth(t *testing.T) {
 					ID:                   "id3",
 					Name:                 "May Album",
 					ReleaseDate:          "2024-05",
-					ReleaseDatePrecision: "month",
+					ReleaseDatePrecision: releaseDatePrecisionMonth,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
 				},
 				{
 					ID:                   "id4",
 					Name:                 "June Album",
 					ReleaseDate:          "2024-06",
-					ReleaseDatePrecision: "month",
+					ReleaseDatePrecision: releaseDatePrecisionMonth,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
 				},
 			},
@@ -185,22 +193,22 @@ func TestFilterByMonth(t *testing.T) {
 			items: []entities.SpotifyAlbumItem{
 				{
 					ID:                   "dup1",
-					Name:                 "Duplicate Album",
+					Name:                 workerDuplicateAlbum,
 					ReleaseDate:          "2024-07-01",
-					ReleaseDatePrecision: "day",
+					ReleaseDatePrecision: releaseDatePrecisionDay,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
 				},
 				{
 					ID:                   "dup1",
-					Name:                 "Duplicate Album",
+					Name:                 workerDuplicateAlbum,
 					ReleaseDate:          "2024-07-01",
-					ReleaseDatePrecision: "day",
+					ReleaseDatePrecision: releaseDatePrecisionDay,
 					Artists:              []entities.SpotifyAlbumArtist{baseArtist},
 				},
 			},
 			targetMonth: time.July,
 			wantLen:     1,
-			wantTitles:  []string{"Duplicate Album"},
+			wantTitles:  []string{workerDuplicateAlbum},
 		},
 		{
 			name:        "empty input returns nil",
@@ -216,7 +224,7 @@ func TestFilterByMonth(t *testing.T) {
 					ID:                   "id6",
 					Name:                 "Multi Artist Album",
 					ReleaseDate:          "2024-11-15",
-					ReleaseDatePrecision: "day",
+					ReleaseDatePrecision: releaseDatePrecisionDay,
 					Artists: []entities.SpotifyAlbumArtist{
 						{Name: "First Artist"},
 						{Name: "Second Artist"},
@@ -266,10 +274,10 @@ func TestFilterByMonth(t *testing.T) {
 func TestFilterByMonth_PopulatesFields(t *testing.T) {
 	items := []entities.SpotifyAlbumItem{
 		{
-			ID:          "id1",
-			Name:        "Test Album",
-			ReleaseDate: "2024-04-20",
-			ReleaseDatePrecision: "day",
+			ID:                   "id1",
+			Name:                 "Test Album",
+			ReleaseDate:          "2024-04-20",
+			ReleaseDatePrecision: releaseDatePrecisionDay,
 			Artists: []entities.SpotifyAlbumArtist{
 				{Name: "Test Artist"},
 			},
@@ -310,7 +318,7 @@ func TestGetMatchingAlbumItem(t *testing.T) {
 	}{
 		{
 			name:       "exact match returns item",
-			album:      entities.Album{Artist: "Descendents", Title: "Milo Goes to College"},
+			album:      entities.Album{Artist: workerDescendents, Title: workerMiloAlbum},
 			candidates: albums,
 			wantID:     entities.SpotifyAlbumIDMiloGoesToCollege,
 		},
@@ -322,7 +330,7 @@ func TestGetMatchingAlbumItem(t *testing.T) {
 		},
 		{
 			name:       "empty candidates returns nil",
-			album:      entities.Album{Artist: "Descendents", Title: "Milo Goes to College"},
+			album:      entities.Album{Artist: workerDescendents, Title: workerMiloAlbum},
 			candidates: []entities.SpotifyAlbumItem{},
 			wantNil:    true,
 		},
@@ -360,11 +368,11 @@ func TestWorkerMonthlyReleasesRun(t *testing.T) {
 				{
 					{
 						ID:                   entities.SpotifyAlbumIDMiloGoesToCollege,
-						Name:                 "Milo Goes to College",
+						Name:                 workerMiloAlbum,
 						ReleaseDate:          "1982-08-01",
-						ReleaseDatePrecision: "day",
+						ReleaseDatePrecision: releaseDatePrecisionDay,
 						Artists: []entities.SpotifyAlbumArtist{
-							{Name: "Descendents"},
+							{Name: workerDescendents},
 						},
 						ExternalURLs: entities.SpotifyExternalURLs{Spotify: "https://open.spotify.com/album/" + entities.SpotifyAlbumIDMiloGoesToCollege},
 					},
@@ -392,10 +400,10 @@ func TestWorkerMonthlyReleasesRun(t *testing.T) {
 		if len(results) != 1 {
 			t.Fatalf("got %d results, want 1", len(results))
 		}
-		if results[0].Title != "Milo Goes to College" {
+		if results[0].Title != workerMiloAlbum {
 			t.Errorf("Title = %q, want %q", results[0].Title, "Milo Goes to College")
 		}
-		if results[0].Artist != "Descendents" {
+		if results[0].Artist != workerDescendents {
 			t.Errorf("Artist = %q, want %q", results[0].Artist, "Descendents")
 		}
 	})
@@ -476,7 +484,7 @@ func TestWorkerMonthlyReleasesRun(t *testing.T) {
 		worker := NewWorkerMonthlyReleases(discogsServiceMock, spotifyServiceMock)
 		_, err := worker.Run(ctx, "https://www.discogs.com/user/digger/collection", time.August)
 		if err == nil {
-			t.Fatal("expected error for cancelled context, got nil")
+			t.Fatal("expected error for canceled context, got nil")
 		}
 	})
 
