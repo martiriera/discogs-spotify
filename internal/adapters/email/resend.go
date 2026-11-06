@@ -132,7 +132,7 @@ func buildICS(month time.Month, year int, releases []usecases.MonthlyRelease) st
 		}
 		dtend := shiftICSHour(dtstart, icsEventDuration)
 		uid := fmt.Sprintf("release-%d-%s-%d-%d@discogs-spotify", i, strings.ToLower(month.String()), year, i)
-		summary := icsEscape(fmt.Sprintf("%s - %s", r.Artist, r.Title))
+		summary := icsEscape(fmt.Sprintf("%s - %s (%s)", r.Artist, r.Title, r.ReleaseDate))
 
 		sb.WriteString("BEGIN:VEVENT\r\n")
 		fmt.Fprintf(&sb, "UID:%s\r\n", uid)

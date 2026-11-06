@@ -30,7 +30,7 @@ func TestBuildICS_ContainsRequiredCalendarFields(t *testing.T) {
 		"END:VCALENDAR",
 		"DTSTART:",
 		"DTEND:",
-		"SUMMARY:Radiohead - OK Computer",
+		"SUMMARY:Radiohead - OK Computer (1997-06-16)",
 		"BEGIN:VALARM",
 		"TRIGGER:-PT5M",
 		"END:VALARM",
